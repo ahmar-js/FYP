@@ -1,0 +1,435 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Preview CSV Data</title>
+    <script src="https://kit.fontawesome.com/6b9f1a8d1a.js" crossorigin="anonymous"></script>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS v5.2.1 -->
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous"> -->
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta2/css/bootstrap-select.min.css" integrity="sha512-mR/b5Y7FRsKqrYZou7uysnOdCIJib/7r5QeJMFvLNHNhtye3xJp1TdJVPLtetkukFn227nKpXD9OjUc09lx97Q==" crossorigin="anonymous"
+        referrerpolicy="no-referrer" />
+
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+</head>
+
+<body class="my-4">
+    <div id="alert-container" class="mb-3"></div>
+    <!-- main container -->
+    <div class="container">
+
+        <!-- ----------- Data display -------------- -->
+        <div class="displaydata">
+            <h1>Preview CSV Data</h1>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        {% for column in preview_data.columns %}
+                        <th>{{ column }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in preview_data.iterrows %}
+                    <tr>
+                        {% for value in row.1 %}
+                        <td>{{ value }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <!-- ----------- Data display end -------------- -->
+
+        <!-- ----------- Data stat cards ----------- -->
+
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 col-sm-6">
+                    <div class="card-box bg-dark">
+                        <div class="inner">
+                            <h3> {{num_rows}} </h3>
+                            <p> Total Rows </p>
+                        </div>
+                        <div class="icon">
+                            <i class="fa-solid fa-chart-simple fa-rotate-90" aria-hidden="true"></i>
+                        </div>
+                        <a href="#" class="card-box-footer">View More <i class="fa fa-arrow-circle-right"></i></a>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-sm-6">
+                    <div class="card-box bg-dark">
+                        <div class="inner">
+                            <h3> {{num_columns}} </h3>
+                            <p> Total Columns </p>
+                        </div>
+                        <div class="icon">
+                            <i class="fa-solid fa-chart-simple" aria-hidden="true"></i>
+                        </div>
+                        <a href="#" class="card-box-footer">View More <i class="fa fa-arrow-circle-right"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-sm-6">
+                    <div class="card-box bg-dark">
+                        <div class="inner">
+                            <h3> {{tot_nulls}} </h3>
+                            <p> Null Values </p>
+                        </div>
+                        <div class="icon">
+                            <i class="fa-solid fa-circle-minus" aria-hidden="true"></i>
+                        </div>
+                        <a href="#" class="card-box-footer">View More <i class="fa fa-arrow-circle-right"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-sm-6">
+                    <div class="card-box bg-dark">
+                        <div class="inner">
+                            <h3> {{unique_dtypes}} </h3>
+                            <p> Different DataTypes </p>
+                        </div>
+                        <div class="icon">
+                            <i class="fa-solid fa-diagram-project" aria-hidden="true"></i>
+                        </div>
+                        <a href="#" class="card-box-footer">View More <i class="fa fa-arrow-circle-right"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- ----------- Data stat cards end ----------- -->
+
+
+        <!-- ----------- Info alert box ----------- -->
+
+        <div class="information-alert">
+            <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+                <symbol id="check-circle-fill" fill="currentColor" viewBox="0 0 16 16">
+                    <path
+                        d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
+                </symbol>
+                <symbol id="info-fill" fill="currentColor" viewBox="0 0 16 16">
+                    <path
+                        d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" />
+                </symbol>
+                <symbol id="exclamation-triangle-fill" fill="currentColor" viewBox="0 0 16 16">
+                    <path
+                        d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
+                </symbol>
+            </svg>
+
+            <div class="alert alert-dark d-flex align-items-start" role="alert">
+                <svg class="bi flex-shrink-0 me-2 mt-1" width="24" height="24" role="img" aria-label="Info:">
+                    <use xlink:href="#info-fill" />
+                </svg>
+                <div>
+                    <h4 class="alert-heading">Attention!</h4>
+                    <p><strong>Mean</strong> and <strong>Media</strong> imputation strategies are applicable exclusively
+                        to columns with numerical data types, such as int, float, and double. These techniques help fill
+                        missing values effectively and ensure data integrity. </p>
+                    <hr>
+                    <p class="mb-0">Before employing Mean and Median imputation strategies, ensure the column is
+                        converted to numerical data types.</p>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ----------- Info alert box end ----------- -->
+
+
+
+        <!-- ----------- Imputation box d-flex ----------- -->
+
+        <div class="d-flex dtype-impute">
+            <div class="col-6">
+                <h1>Imputation</h1>
+                <!-- ----------- Column drop form ----------- -->
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    <div class="dropcolumn">
+                        <div class="mb-3">
+                            <label for="dropcolumnmenu" class="form-label">Select Column to Drop</label>
+                            <select class="form-select form-select" name="dropcolumnmenu" id="dropcolumnmenu" required>
+                                <option selected disabled value="">Select one</option>
+                                {% for column in preview_data.columns %}
+                                <option value="{{ column }}">{{ column }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="invalid-feedback">
+                                Please select a column.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <!-- <button type="submit" class="btn btn-danger" onclick="event.preventDefault(); showDropAlert(document.getElementById('dropcolumnmenu').value)">Drop</button> -->
+                            <button type="submit" class="btn btn-danger">Drop</button>
+                        </div>
+
+                    </div>
+                </form>
+                <!-- ----------- Column drop form end ----------- -->
+
+
+                <!-- ----------- Fill null values form ----------- -->
+
+                <div class="fill_naValues">
+                    <form class="form needs-validation" method="post" novalidate>
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="fillnullvalues" class="form-label">Select to Fill Null values</label>
+                            <select class="form-select form-select" name="fillnullvalues" id="fillnullvalues" required>
+                                <option selected disabled value="">Select one</option>
+                                <option value="complete_data">Complete Data</option>
+                                {% for column in preview_data.columns %}
+                                <option value="{{column}}">{{column}}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="invalid-feedback">
+                                Please select a column.
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="strategy" id="strategy_mean"
+                                    value="mean" required>
+                                <label class="form-check-label" for="strategy_mean">mean</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="strategy" id="strategy_mode"
+                                    value="most_frequent" required>
+                                <label class="form-check-label" for="strategy_mode">most frequent (mode)</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="strategy" id="strategy_median"
+                                    value="median" required>
+                                <label class="form-check-label" for="strategy_median">median</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="strategy" id="strategy_bfill"
+                                    value="bfill" required>
+                                <label class="form-check-label" for="strategy_bfill">bfill</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="strategy" id="strategy_pad"
+                                    value="pad" required>
+                                <label class="form-check-label" for="strategy_pad">pad</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="strategy" id="strategy_input"
+                                    value="input_constant" required>
+                                <label class="form-check-label" for="strategy_pad">Fill Constant</label>
+                            </div>
+                            <div class="invalid-feedback">
+                                Please select any of the strategy.
+                            </div>
+                            <input type="text" class="form-control" name="strategy_constant" id="strategy_constant"
+                                aria-describedby="helpId" placeholder="0 or undefined" disabled required>
+                            <small id="helpId" class="form-text text-muted">Enter the constant value for
+                                imputation.</small>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Impute</button>
+                    </form>
+                </div>
+                <!-- ----------- fill null values form end ----------- -->
+
+                <!-- ----------- drop null rows  ----------- -->
+
+                <div class="dropnullrows">
+                    <form class="form needs-validation" method="POST" novalidate>
+                        {% csrf_token %}
+                        <div class="my-3">
+                            <label aria-describedby="helpId-multi" for="select-multi-drop-row" class="form-label">Select subset to null drop</label>
+                            <br><small id="helpId-multi" class="form-text text-muted">Optional</small><br>
+                            <div>
+                            <select  class="selectpicker" multiple aria-label="size 3 select example" name="select-multi-drop-row" id="select-multi-drop-row">
+                              <option disabled selected>Select columns</option>
+                              {% for columns in preview_data.columns %}
+
+                              <option value="{{columns}}">{{columns}}</option>
+
+                              {% endfor %}
+                            </select><br>
+                            <label for="strategy_method" class="form-label">How: </label>
+                            <div class="form-check form-check-inline" id="strategy_method">
+                                <input class="form-check-input" type="radio" name="row_drop_strategy" id="row_drop_strategy" value="any" required>
+                                <label class="form-check-label" for="row_drop_strategy">Any</label>
+                              </div>
+
+                              <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="row_drop_strategy" id="row_drop_strategy" value="all" required>
+                                <label class="form-check-label" for="row_drop_strategy">All</label>
+                              </div>
+
+                              <div class="invalid-feedback">
+                                Please choose a Strategy.
+                            </div>
+               
+                        </div>
+
+                            
+                        </div>
+                        <button type="submit" class="btn btn-secondary">Drop</button>
+                    </form>
+
+            
+                </div>
+                <!-- ----------- drop null rows end ----------- -->
+
+                <!-- ----------- Lat long filteration ----------- -->
+
+                <div class="cord_filter">
+                    <form method="post" class="form needs-validation" novalidate>
+                        {% csrf_token %}
+                        <div class="my-3">
+                            <div class="d-flex justify-content-start select-menu-latlong flex-wrap">
+                                <div class="select-lat-container col-lg-5 me-5">
+                            <label for="select-lat" class="form-label">Select latitude column</label>
+                            <select class="form-select form-select" name="select-lat" id="select-lat" required>
+                                <option selected disabled>Select latitude</option>
+                                {% for columns in preview_data.columns %}
+
+                                <option value="{{columns}}">{{columns}}</option>
+  
+                                {% endfor %}
+                            </select>
+                            <div class="invalid-feedback">
+                                Please choose latitude.
+                            </div>
+                        </div>
+                        <div class="select-long-container col-lg-5">
+                            <label for="select-long" class="form-label">Select longitude column</label>
+                            <select class="form-select form-select" name="select-long" id="select-long" required>
+                                <option selected disabled>Select longitude</option>
+                                {% for columns in preview_data.columns %}
+
+                                <option value="{{columns}}">{{columns}}</option>
+  
+                                {% endfor %}
+                            </select>
+                            <div class="invalid-feedback">
+                                Please choose longitude.
+                            </div>
+                        </div>
+                        <div class="select-cordSys col-lg-5 me-5 my-3">
+                            <fieldset class="border rounded-3 p-3">
+                                <legend class="float-none w-auto px-3" style="font-size: medium;" >Coordinate Systems</legend>
+                                <div class="form-check">
+                                  <input class="form-check-input" type="radio" name="cord-sys" id="cord-sys-gcs" required>
+                                  <label class="form-check-label" for="cord-sys">
+                                    GCS - Latitude, Longitude (curved)
+                                  </label>
+                                </div>
+                                <div class="form-check">
+                                  <input class="form-check-input" type="radio" name="cord-sys" id="cord-sys-pcs" required>
+                                  <label class="form-check-label" for="cord-sys">
+                                    PCS - Projected (cartesian)
+                                  </label>
+                                </div>
+                            </fieldset>
+                            <div class="invalid-feedback">
+                                Please choose valid coordinate system.
+                            </div>
+                        </div> <!-- select-cordSys end -->
+                        <div class="cord_dataunits col-lg-5 my-3">
+                            <fieldset class="border rounded-3 p-3">
+                                <legend class="float-none w-auto px-3" style="font-size: medium;" >Data units</legend>
+                                <div class="form-check">
+                                  <input class="form-check-input" type="radio" name="cord-sys-units" id="cord-sys-unit-dg" disabled>
+                                  <label class="form-check-label" for="cord-sys-units">
+                                    Decimal Degrees
+                                  </label>
+                                </div>
+                                <div class="form-check">
+                                  <input class="form-check-input" type="radio" name="cord-sys-units" id="cord-sys-unit-mt" disabled>
+                                  <label class="form-check-label" for="cord-sys-units">
+                                    Meters
+                                  </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="cord-sys-units" id="cord-sys-units-ft" disabled>
+                                    <label class="form-check-label" for="cord-sys-units">
+                                      Feets
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="cord-sys-units" id="cord-sys-unit-km" disabled>
+                                    <label class="form-check-label" for="cord-sys-units">
+                                      Kilometers
+                                    </label>
+                                </div>
+                            </fieldset>
+                        </div>
+                        </div> <!-- select-menu-latlong end -->
+
+                        </div>
+                    </form>
+                </div>
+
+                <!-- ----------- Lat long filteration end ----------- -->
+
+            </div> <!-- col-6 (1) -->
+
+
+            <!-- ----------- Data types table ----------- -->
+            <div class="datatypetable col-6">
+                <div class="container ">
+                    <h1>Data Types</h1>
+                    <label for="" class="form-label">Data types of column</label>
+                    <table class="table table-bordered table-dark">
+                        <thead>
+                            <tr>
+                                <th>Column Name</th>
+                                <th>Data Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for column, dtype in preview_data.dtypes.items %}
+                            <tr>
+                                <td>{{ column }}</td>
+                                <td>{{ dtype }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div> <!--- col-6 (2) -->
+
+            <!-- ----------- Data types table end ----------- -->
+
+
+
+        </div>
+
+
+
+        <!-- ----------- Imputation box d-flex end ----------- -->
+
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="reset" value="true">
+        <input type="submit" value="Reset">
+    </form>
+
+    </div>
+
+    <!-- ----------- main container end -----------  -->
+
+
+    <script src="{% static 'js/main.js' %}"></script>
+
+
+    <!-- Bootstrap JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta2/js/bootstrap-select.min.js" integrity="sha512-FHZVRMUW9FsXobt+ONiix6Z0tIkxvQfxtCSirkKc5Sb4TKHmqq1dZa8DphF0XqKb3ldLu/wgMa8mT6uXiLlRlw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+</body>
+
+</html>
