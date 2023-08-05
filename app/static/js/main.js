@@ -76,3 +76,32 @@ Array.prototype.slice.call(forms)
 
 
 
+
+//============= function to handle the coordinae systems and units
+
+    function updateDataUnitOptions() {
+        const gcsRadio = document.getElementById('cord-sys-gcs');
+        const pcsRadio = document.getElementById('cord-sys-pcs');
+        const dgRadio = document.getElementById('cord-sys-unit-dg');
+        const mtRadio = document.getElementById('cord-sys-unit-mt');
+        const ftRadio = document.getElementById('cord-sys-units-ft');
+        const kmRadio = document.getElementById('cord-sys-unit-km');
+
+        if (gcsRadio.checked) {
+            // If GCS radio button is checked, enable Decimal Degrees and disable the other data units
+            dgRadio.disabled = false;
+            mtRadio.disabled = true;
+            ftRadio.disabled = true;
+            kmRadio.disabled = true;
+        } else if (pcsRadio.checked) {
+            // If PCS radio button is checked, enable Meters, Feet, and Kilometers and disable Decimal Degrees
+            dgRadio.disabled = true;
+            mtRadio.disabled = false;
+            ftRadio.disabled = false;
+            kmRadio.disabled = false;
+        }
+    }
+
+//============= function to handle the coordinae systems and units end
+
+

@@ -3,4 +3,6 @@ from app import views
 
 urlpatterns = [
     path('', views.upload_file, name='upload_file'),
+    path('preview', views.upload_file, name='preview'),
+    
 ]

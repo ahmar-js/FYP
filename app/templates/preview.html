@@ -22,14 +22,36 @@
 </head>
 
 <body class="my-4">
-    <div id="alert-container" class="mb-3"></div>
+    <div id="alert-container" class="mb-3 container">
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'success' %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <h4 class="alert-heading">Success!</h4>
+                <hr>
+                <p>{{ message }}</p>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% elif message.tags == 'error' %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <h4 class="alert-heading">Error!</h4>
+                <hr>
+                <p>{{ message }}</p>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+    </div>
+
+
     <!-- main container -->
     <div class="container">
 
         <!-- ----------- Data display -------------- -->
         <div class="displaydata">
             <h1>Preview CSV Data</h1>
-            <table class="table table-bordered">
+            <table class="table table-bordered table-dark table-hover">
                 <thead>
                     <tr>
                         {% for column in preview_data.columns %}
@@ -132,7 +154,7 @@
                 </svg>
                 <div>
                     <h4 class="alert-heading">Attention!</h4>
-                    <p><strong>Mean</strong> and <strong>Media</strong> imputation strategies are applicable exclusively
+                    <p><strong>Mean</strong> and <strong>Median</strong> imputation strategies are applicable exclusively
                         to columns with numerical data types, such as int, float, and double. These techniques help fill
                         missing values effectively and ensure data integrity. </p>
                     <hr>
@@ -150,7 +172,7 @@
         <!-- ----------- Imputation box d-flex ----------- -->
 
         <div class="d-flex dtype-impute">
-            <div class="col-6">
+            <div class="col-lg-6 col-sm-12">
                 <h1>Imputation</h1>
                 <!-- ----------- Column drop form ----------- -->
                 <form method="post" class="needs-validation" novalidate>
@@ -239,14 +261,20 @@
                 </div>
                 <!-- ----------- fill null values form end ----------- -->
 
+                <!-- ----------- nullrows-dtype-container ----------- -->
+
+                <div class="nullrows-dtype-container d-flex">
+
                 <!-- ----------- drop null rows  ----------- -->
 
-                <div class="dropnullrows">
+                <div class="dropnullrows col-lg-5">
                     <form class="form needs-validation" method="POST" novalidate>
                         {% csrf_token %}
                         <div class="my-3">
-                            <label aria-describedby="helpId-multi" for="select-multi-drop-row" class="form-label">Select subset to null drop</label>
-                            <br><small id="helpId-multi" class="form-text text-muted">Optional</small><br>
+                            <label aria-describedby="helpId-multi" for="select-multi-drop-row" class="form-label">Select subset to null drop 
+                                <i class="fa-solid fa-circle-info py-1" data-bs-toggle="popover" title="Important!" data-bs-content="By not selecting column, strategy will apply to complete dataset"></i>
+                            </label>
+                            <br><small id="helpId-multi" class="form-text text-muted">Select multiple</small><br>
                             <div>
                             <select  class="selectpicker" multiple aria-label="size 3 select example" name="select-multi-drop-row" id="select-multi-drop-row">
                               <option disabled selected>Select columns</option>
@@ -282,17 +310,79 @@
                 </div>
                 <!-- ----------- drop null rows end ----------- -->
 
+
+                <!-- change data type -->
+                <div class="change-dtype col-lg-5">
+                    <form method="POST" class="form needs-validation" novalidate>
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label aria-describedby="helpId-dtype" for="select-col-convert-dtype" class="form-label mb-2 mt-3">Select column to change data type 
+                                <i class="fa-solid fa-circle-info" data-bs-toggle="popover" title="Important!" data-bs-content="For GCS coordinates - Don't convert data type of coordinates to float, keep them as object"></i>
+                            </label>
+                            <br><small id="helpId-dtype" class="form-text text-muted">Remove null values first</small><br>
+                            <select class="form-select form-select" name="select-col-convert-dtype" id="select-col-convert-dtype" required>
+                                <option disabled selected value="">Select Column</option>
+                                {% for columns in preview_data.columns %}
+
+                                <option value="{{columns}}">{{columns}}</option>
+  
+                                {% endfor %}
+                            </select>
+                            <div class="invalid-feedback">
+                                Please specify a column.
+                            </div>
+                        <div class="selectdtype">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="datatype" id="datatype1" value="int" required>
+                                <label class="form-check-label" for="datatype1">int</label>
+                              </div>
+                              <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="datatype" id="datatype2" value="bool" required>
+                                <label class="form-check-label" for="datatype2">bool</label>
+                              </div>
+                              <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="datatype" id="datatype4" value="float" required>
+                                <label class="form-check-label" for="datatype4">float</label>
+                              </div>
+                              <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="datatype" id="datatype3" value="str" required>
+                                <label class="form-check-label" for="datatype3">str</label>
+                              </div>
+                              <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="datatype" id="datatype5" value="date" required>
+                                <label class="form-check-label" for="datatype5">date</label>
+                              </div>
+                              <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="datatype" id="datatype6" value="datetime" required>
+                                <label class="form-check-label" for="datatype6">datetime</label>
+                              </div>
+                        </div>
+                        <div class="invalid-feedback">
+                            Please choose data type to convert.
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-warning">Change</button>
+
+                    </form>
+                </div>
+                <!-- change data type end -->
+
+
+            </div>
+                <!-- ----------- nullrows-dtype-container end ----------- -->
+
                 <!-- ----------- Lat long filteration ----------- -->
 
                 <div class="cord_filter">
-                    <form method="post" class="form needs-validation" novalidate>
+                    <form method="POST" class="form needs-validation" novalidate>
                         {% csrf_token %}
                         <div class="my-3">
                             <div class="d-flex justify-content-start select-menu-latlong flex-wrap">
-                                <div class="select-lat-container col-lg-5 me-5">
-                            <label for="select-lat" class="form-label">Select latitude column</label>
+                            <div class="select-lat-container col-lg-5 me-5">
+                            <label for="select-lat" class="form-label">Select latitude/northing column</label>
                             <select class="form-select form-select" name="select-lat" id="select-lat" required>
-                                <option selected disabled>Select latitude</option>
+                                <option selected disabled value="">Select latitude/northing</option>
                                 {% for columns in preview_data.columns %}
 
                                 <option value="{{columns}}">{{columns}}</option>
@@ -300,13 +390,13 @@
                                 {% endfor %}
                             </select>
                             <div class="invalid-feedback">
-                                Please choose latitude.
+                                Please choose latitude or northing cooordinate column.
                             </div>
                         </div>
                         <div class="select-long-container col-lg-5">
-                            <label for="select-long" class="form-label">Select longitude column</label>
+                            <label for="select-long" class="form-label">Select longitude/easting column</label>
                             <select class="form-select form-select" name="select-long" id="select-long" required>
-                                <option selected disabled>Select longitude</option>
+                                <option selected disabled value="">Select longitude/easting</option>
                                 {% for columns in preview_data.columns %}
 
                                 <option value="{{columns}}">{{columns}}</option>
@@ -314,20 +404,20 @@
                                 {% endfor %}
                             </select>
                             <div class="invalid-feedback">
-                                Please choose longitude.
+                                Please choose longitude or easting cooordinate column.
                             </div>
                         </div>
                         <div class="select-cordSys col-lg-5 me-5 my-3">
                             <fieldset class="border rounded-3 p-3">
                                 <legend class="float-none w-auto px-3" style="font-size: medium;" >Coordinate Systems</legend>
                                 <div class="form-check">
-                                  <input class="form-check-input" type="radio" name="cord-sys" id="cord-sys-gcs" required>
+                                  <input class="form-check-input" type="radio" name="cord-sys" value="gcs" id="cord-sys-gcs" onchange="updateDataUnitOptions()" required>
                                   <label class="form-check-label" for="cord-sys">
                                     GCS - Latitude, Longitude (curved)
                                   </label>
                                 </div>
                                 <div class="form-check">
-                                  <input class="form-check-input" type="radio" name="cord-sys" id="cord-sys-pcs" required>
+                                  <input class="form-check-input" type="radio" name="cord-sys" value="pcs" onchange="updateDataUnitOptions()" id="cord-sys-pcs" required>
                                   <label class="form-check-label" for="cord-sys">
                                     PCS - Projected (cartesian)
                                   </label>
@@ -337,36 +427,44 @@
                                 Please choose valid coordinate system.
                             </div>
                         </div> <!-- select-cordSys end --->
+                        
                         <div class="cord_dataunits col-lg-5 my-3">
                             <fieldset class="border rounded-3 p-3">
-                                <legend class="float-none w-auto px-3" style="font-size: medium;" >Data units</legend>
+                                
+                                <legend class="float-none w-auto px-3" style="font-size: medium;" >Data units
+                                        <i class="fa-solid fa-circle-info" data-bs-toggle="popover" title="Important!" data-bs-content="For GCS - Don't select decimal degrees if coordinates are in simple latitude and longitude converted"></i>
+                                </legend>
                                 <div class="form-check">
-                                  <input class="form-check-input" type="radio" name="cord-sys-units" id="cord-sys-unit-dg" disabled>
+                                  <input class="form-check-input" type="radio" value="decideg" name="cord-sys-units" id="cord-sys-unit-dg" disabled>
                                   <label class="form-check-label" for="cord-sys-units">
-                                    Decimal Degrees
+                                    Decimal Degrees (DMS)
                                   </label>
                                 </div>
                                 <div class="form-check">
-                                  <input class="form-check-input" type="radio" name="cord-sys-units" id="cord-sys-unit-mt" disabled>
+                                  <input class="form-check-input" type="radio" value="meter" name="cord-sys-units" id="cord-sys-unit-mt" disabled>
                                   <label class="form-check-label" for="cord-sys-units">
                                     Meters
                                   </label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="cord-sys-units" id="cord-sys-units-ft" disabled>
+                                    <input class="form-check-input" type="radio" value="feet" name="cord-sys-units" id="cord-sys-units-ft" disabled>
                                     <label class="form-check-label" for="cord-sys-units">
                                       Feets
                                     </label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="cord-sys-units" id="cord-sys-unit-km" disabled>
+                                    <input class="form-check-input" type="radio" value="km" name="cord-sys-units" id="cord-sys-unit-km" disabled>
                                     <label class="form-check-label" for="cord-sys-units">
                                       Kilometers
                                     </label>
                                 </div>
                             </fieldset>
+                            <div class="invalid-feedback">
+                                Please choose valid Data unit of Projected Coordinate System.
+                            </div>
                         </div>
                         </div> <!-- select-menu-latlong end -->
+                        <button type="submit" class="btn btn-success">Compute</button>
 
                         </div>
                     </form>
@@ -378,11 +476,11 @@
 
 
             <!-- ----------- Data types table ----------- -->
-            <div class="datatypetable col-6">
+            <div class="datatypetable col-lg-6 col-sm-12">
                 <div class="container ">
                     <h1>Data Types</h1>
                     <label for="" class="form-label">Data types of column</label>
-                    <table class="table table-bordered table-dark">
+                    <table class="table table-bordered table-dark table-hover">
                         <thead>
                             <tr>
                                 <th>Column Name</th>
@@ -427,9 +525,17 @@
 
     <!-- Bootstrap JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta2/js/bootstrap-select.min.js" integrity="sha512-FHZVRMUW9FsXobt+ONiix6Z0tIkxvQfxtCSirkKc5Sb4TKHmqq1dZa8DphF0XqKb3ldLu/wgMa8mT6uXiLlRlw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
+    
+    <!-- Add this script after bootstrap scripts -->
+    <script type="text/javascript">
+        var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+        var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+        return new bootstrap.Popover(popoverTriggerEl);
+      });
+      </script>
 </body>
 
 </html>
