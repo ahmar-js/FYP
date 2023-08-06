@@ -4,6 +4,10 @@ from django.urls import reverse
 from django.http import HttpResponseRedirect
 from .forms import UploadFileForm
 import re
+import io
+import time
+from geopy.extra.rate_limiter import RateLimiter
+from geopy.geocoders import Nominatim
 from django.contrib import messages
 import pyproj
 # def upload_filee(request):
@@ -359,6 +363,118 @@ def convert_dms_to_decimal(request, dataframe, latitude_col, longitude_col):
 
     return dataframe
 
+def geocode_address(request, address):
+    geolocator = Nominatim(user_agent="ahmaraamir33@gmail.com", timeout=10000)
+    try:
+        # Introduce a delay of 1 second before making the geocoding request
+        time.sleep(1)
+        location = geolocator.geocode(address)
+        if location:
+            return location.latitude, location.longitude
+        else:
+            return None, None
+    except Exception as e:
+        messages.error(request, f"Geocoding error for address: {address}, Error: {e}")
+        return None, None
+
+def concatenate_and_geocode(request, dataframe, columns_to_concatenate):
+    # Check if the user selects only one column (direct geocoding)
+    if len(columns_to_concatenate) == 1:
+        address_col = columns_to_concatenate[0]
+        latitude_list, longitude_list = [], []
+        for index, row in dataframe.iterrows():
+            lat, lon = geocode_address(request, row[address_col])
+            latitude_list.append(lat)
+            longitude_list.append(lon)
+        # Assign the latitude and longitude lists to the DataFrame
+        dataframe['plat'] = latitude_list
+        dataframe['plong'] = longitude_list
+    else:
+        # Check if the provided column names exist in the DataFrame
+        for col in columns_to_concatenate:
+            if col not in dataframe.columns:
+                messages.error(request, f"Error: Column '{col}' does not exist in the DataFrame.")
+                return dataframe
+
+        try:
+            # Concatenate the values of the specified columns into a new column
+            new_column_name = 'concatenated_address'
+            dataframe[new_column_name] = dataframe[columns_to_concatenate].astype(str).apply(' '.join, axis=1)
+
+            # Call geocode_address_with_delay for each concatenated address
+            latitude_list, longitude_list = [], []
+            for index, row in dataframe.iterrows():
+                lat, lon = geocode_address(request, row[new_column_name])
+                latitude_list.append(lat)
+                longitude_list.append(lon)
+
+            # Drop the concatenated column after geocoding
+            # dataframe.drop(columns=[new_column_name], inplace=True)
+
+            # Assign the latitude and longitude lists to the DataFrame
+            dataframe['plat'] = latitude_list
+            dataframe['plong'] = longitude_list
+
+        except Exception as e:
+            messages.error(request, f"Error: Failed to concatenate columns or perform geocoding. Error: {e}")
+
+    return dataframe
+
+#-------------------- Reverse Geocoding ---------------------------
+
+# Reverse Geocoding
+def is_valid_float(value):
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
+
+def rev_geocode(request, latitude, longitude):
+    if not is_valid_float(latitude) or not is_valid_float(longitude):
+        messages.error(request, "Error: Latitude and Longitude should be valid floating-point numbers.")
+        return None
+
+    geolocator = Nominatim(user_agent="ahmaraamir33@gmail.com")
+    reverse = RateLimiter(geolocator.reverse, min_delay_seconds=1)
+    try:
+        location = reverse((latitude, longitude), exactly_one=True, language='en', timeout=10)
+        if location:
+            address = location.address
+            return address
+        else:
+            messages.warning(request, f"Warning: Address not found for latitude={latitude}, longitude={longitude}")
+            return None
+    except Exception as e:
+        messages.error(request, f"Error: Failed to reverse geocode for latitude={latitude}, longitude={longitude}. Error: {e}")
+        return None
+
+def convert_lat_lng_to_addresses(request, dataframe, lat, long):
+    if lat not in dataframe.columns or long not in dataframe.columns:
+        messages.error(request, f"Error: Latitude or Longitude column does not exist in the DataFrame.")
+        return dataframe
+
+    # Check if the provided columns contain valid float values
+    if not all(dataframe[lat].apply(is_valid_float)) or not all(dataframe[long].apply(is_valid_float)):
+        messages.error(request, "Error: Latitude and Longitude columns should contain valid floating-point numbers.")
+        return dataframe
+
+    addresses = []
+    for index, row in dataframe.iterrows():
+        latitude = row[lat]
+        longitude = row[long]
+        address = rev_geocode(request, latitude, longitude)
+        if address is not None:
+            addresses.append(address)
+
+    if len(addresses) == 0:
+        messages.warning(request, "Warning: No valid addresses found for the provided latitude and longitude columns.")
+        return dataframe
+
+    dataframe['new_address'] = addresses
+    return dataframe
+
+
 
 '''
 DataFrames are not natively JSON serializable.
@@ -374,8 +490,8 @@ def dataframe_to_json(df):
 def json_to_dataframe(json_data):
     return pd.read_json(json_data, orient='split')
 
-def preview_dataframe(df):
-    return df.head(11)
+def preview_dataframe(df, limit=10):
+    return df.head(limit)
 
 
 
@@ -384,22 +500,28 @@ def update_stats(df):
     num_rows = df.shape[0]
     num_cols = df.shape[1]
     total_nulls = df.isnull().sum().sum()
+    total_notnull = df.notnull().sum().sum()
     unique_dtypes = len(df.dtypes.unique())
     df_dtype_info = df.dtypes
 
-    return preview_data, num_rows, num_cols, total_nulls, unique_dtypes, df_dtype_info
+        
+    return preview_data, num_rows, num_cols, total_nulls, total_notnull, unique_dtypes, df_dtype_info
+
+
 
 def upload_file(request):
-    file_path = "E:/Dataset/Malaria/MALARIA.csv"
+    file_path = "E:\Dataset\Malaria\MALARIA.csv"
+    
     preview_data = None
+    unique_counts_html = None
 
     # Check for the 'reset' parameter in POST data
     if request.method == 'POST' and 'reset' in request.POST:
-        # request.session.pop('data_frame', None)  # Remove the 'data_frame' from the session 
         request.session.clear()  # Clear the entire session
 
     # Initialize DataFrame from session or read the CSV file
     json_data = request.session.get('data_frame')
+    
     if json_data is None:
         try:
             df = read_csv_file(file_path)
@@ -409,31 +531,23 @@ def upload_file(request):
     else:
         df = json_to_dataframe(json_data)
 
-
-    # Show the stats at initial level
-    preview_data, num_rows, num_cols, total_nulls, unique_dtypes, df_dtype_info = update_stats(df)
+    # Show the stats at the initial level
+    preview_data, num_rows, num_cols, total_nulls, total_notnull, unique_dtypes, df_dtype_info = update_stats(df)
 
 
     if request.method == 'POST':
         try:
-            # ================ Drop column ================
 
-            # Check if the 'dropcolumnmenu' field is in the POST data
+            # Process different POST requests and modify DataFrame accordingly
             if 'dropcolumnmenu' in request.POST:
+                # Drop selected columns
                 selected_column = request.POST['dropcolumnmenu']
                 drop_selected_column(df, selected_column)
-                # Update the DataFrame in the session
-                request.session['data_frame'] = dataframe_to_json(df)
 
-                # Update the statistics with the modified DataFrame
-                preview_data, num_rows, num_cols, total_nulls, unique_dtypes, df_dtype_info = update_stats(df)
-            
-            # ================ Fill null values ================
-            
-            if 'fillnullvalues' in request.POST and 'strategy' in request.POST:
+            elif 'fillnullvalues' in request.POST and 'strategy' in request.POST:
+                # Handle missing values
                 selected_column = request.POST['fillnullvalues']
                 selected_strategy = request.POST['strategy']
-                # To impute constant
                 if selected_strategy == 'input_constant':
                     selected_strategy = request.POST['strategy_constant']
 
@@ -442,82 +556,40 @@ def upload_file(request):
                 else:
                     handle_missing_values(df, strategy=selected_strategy, columns=[selected_column])
 
-                # Update the DataFrame in the session
-                request.session['data_frame'] = dataframe_to_json(df)
-
-                # Update the statistics with the modified DataFrame
-                preview_data, num_rows, num_cols, total_nulls, unique_dtypes, df_dtype_info = update_stats(df)
-            
-            elif 'fillnullvalues' in request.POST and 'strategy_constant' in request.POST:
-                selected_column = request.POST['fillnullvalues']
-                selected_strategy = request.POST['strategy_constant']
-                if selected_column == 'complete_data':
-                    handle_missing_values(df, strategy=selected_strategy)
-                else:
-                    handle_missing_values(df, strategy=selected_strategy, columns=[selected_column])
-                # Update the DataFrame in the session
-                request.session['data_frame'] = dataframe_to_json(df)
-                # Update the statistics with the modified DataFrame
-                preview_data, num_rows, num_cols, total_nulls, unique_dtypes, df_dtype_info = update_stats(df)
-
-            # ================ Drop null rows ================
-
-            if 'select-multi-drop-row' in request.POST or 'row_drop_strategy' in request.POST:
-                
-                selected_column = request.POST.get('select-multi-drop-row', None)
+            elif 'select-multi-drop-row' in request.POST or 'row_drop_strategy' in request.POST:
+                # Drop rows based on conditions
+                selected_columns = request.POST.getlist('select-multi-drop-row', None)
                 selected_strategy = request.POST.get('row_drop_strategy', None)
+                drop_rows(df, how=selected_strategy, subset=selected_columns)
 
-                drop_rows(df, how=selected_strategy, subset=selected_column)
-
-                # Update the DataFrame in the session
-                request.session['data_frame'] = dataframe_to_json(df)
-                # Update the statistics with the modified DataFrame
-                preview_data, num_rows, num_cols, total_nulls, unique_dtypes, df_dtype_info = update_stats(df)
-
-            # =================== Change Data type =================
-
-            if 'select-col-convert-dtype' in request.POST and 'datatype' in request.POST:
+            elif 'select-col-convert-dtype' in request.POST and 'datatype' in request.POST:
+                # Convert column data type
                 selected_column = request.POST['select-col-convert-dtype']
                 selected_column_type = request.POST['datatype']
-                
                 df = convert_column_data_type(request, df, column_name=selected_column, new_data_type=selected_column_type)
 
-                # Update the DataFrame in the session
-                request.session['data_frame'] = dataframe_to_json(df)
-                # Update the statistics with the modified DataFrame
-                preview_data, num_rows, num_cols, total_nulls, unique_dtypes, df_dtype_info = update_stats(df)
-
-            # ================ coordinate system  ================
-
-            if 'select-lat' in request.POST and 'select-long' in request.POST:
+            elif 'select-lat' in request.POST and 'select-long' in request.POST:
+                # Convert coordinate system
                 selected_lat = request.POST['select-lat']
                 selected_long = request.POST['select-long']
-                # Check the data type of the selected columns
-                
                 if 'cord-sys' in request.POST:
                     selected_cordsystem = request.POST['cord-sys']
-                    # projected coordinate system - UTM
                     if selected_cordsystem == 'pcs':
                         if 'cord-sys-units' in request.POST:
                             unit_type = request.POST['cord-sys-units']
                             if unit_type == 'feet':
-                            # Convert UTM coordinates from feet to meters
                                 try:
                                     df = feet_to_meter(df, easting_col=selected_long, northing_col=selected_lat)
                                 except ValueError as e:
                                     messages.error(request, f"Error: {e}")
-                                    # Redirect the user to the form page to correct the input
                                     return HttpResponseRedirect(reverse('preview'))
                             elif unit_type == 'km':
-                                # Convert UTM coordinates from kilometers to meters
                                 try:
                                     df = km_to_meter(df, easting_col=selected_long, northing_col=selected_lat)
                                 except ValueError as e:
                                     messages.error(request, f"Error: {e}")
-                                    # Redirect the user to the form page to correct the input
                                     return HttpResponseRedirect(reverse('preview'))
-                            #UTM are by default in meters
-                            df = utm_to_lat_lon(request, df, easting_col=selected_long, northing_col=selected_lat)
+                        df = utm_to_lat_lon(request, df, easting_col=selected_long, northing_col=selected_lat)
                     elif selected_cordsystem == 'gcs':
                         unit_type = request.POST.get('cord-sys-units', None)
                         if unit_type == 'decideg':
@@ -530,34 +602,59 @@ def upload_file(request):
                             try:
                                 df = convert_lat_lon_columns(request, df, latitude_col=selected_lat, longitude_col=selected_long)
                             except ValueError as e:
-                                    messages.error(request, f"Error: {e}")
-                                    return HttpResponseRedirect(reverse('preview'))
-                            
+                                messages.error(request, f"Error: {e}")
+                                return HttpResponseRedirect(reverse('preview'))
+
                 if not df[selected_long].dtype == float or not df[selected_lat].dtype == float:
                     messages.error(request, "Error: Latitude, Longitude, Easting, or Northing columns should have float data type [clean coordinates]")
-                    # Redirect the user to the form page to correct the input
                     return HttpResponseRedirect(reverse('preview'))
+                
+            #  ==================== forward geocoding ==================
+            elif 'select-multi-addr' in request.POST:
+                selected_columns = request.POST.getlist('select-multi-addr', None)
+                for column in selected_columns:
+                    if column  == 'null':
+                        messages.error(request, "Error: 'Select columns' is invalid column")
+                    
+                df = concatenate_and_geocode(request, df, columns_to_concatenate=selected_columns)
+
+            #  ==================== reverse geocoding ==================
+            elif 'select-rev-gc-lat' in request.POST and 'select-rev-gc-long' in request.POST:
+                selected_rev_lat = request.POST.get('select-rev-gc-lat', None)
+                selected_rev_long = request.POST.get('select-rev-gc-long', None)
+
+                df = convert_lat_lng_to_addresses(request, df, lat = selected_rev_lat, long=selected_rev_long)
+
+                
+
+
             
 
-                request.session['data_frame'] = dataframe_to_json(df)
-                preview_data, num_rows, num_cols, total_nulls, unique_dtypes, df_dtype_info = update_stats(df)
-
-
-                                    
-
-                                
-
-        
-                        
 
 
 
-            
+            # Update the DataFrame in the session
+            request.session['data_frame'] = dataframe_to_json(df)
 
+            # Update the statistics with the modified DataFrame
+            preview_data, num_rows, num_cols, total_nulls, total_notnull, unique_dtypes, df_dtype_info = update_stats(df)
 
+            # Get the user-selected number of rows to display
+            if request.POST.get('datalimit') != 'all':
+                data_limit = int(request.POST.get('datalimit', 10))
+            else:
+                #show complete data
+                data_limit = df.shape[0]
+                
+            # Limit the number of rows to display
+            preview_data = preview_dataframe(df, limit=data_limit)
 
         except Exception as e:
             return render(request, 'error.html', {'error_message': 'An error occurred: ' + str(e)})
+    # Calculate unique value counts for each column
+    unique_value_counts = df.nunique()
+    unique_counts_html = unique_value_counts.to_frame(name='Unique Values').to_html(classes='table table-striped')
+
     
     context = {
         'df_info': df_dtype_info,
@@ -565,8 +662,13 @@ def upload_file(request):
         'num_columns': num_cols,
         'num_rows': num_rows,
         'tot_nulls': total_nulls,
+        'total_notnull': total_notnull,
         'unique_dtypes': unique_dtypes,
-        'messages': messages.get_messages(request)
+        'messages': messages.get_messages(request),
+        'null_col_wise': df.isnull().sum(),
+        'nonnull_col_wise': df.notnull().sum(),
+        'describe' : df.describe().to_html(classes='table table-striped'),
+        'unique' :  unique_counts_html,
     }
 
     return render(request, 'preview.html', context)

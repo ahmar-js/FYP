@@ -51,6 +51,24 @@
         <!-- ----------- Data display -------------- -->
         <div class="displaydata">
             <h1>Preview CSV Data</h1>
+            <div class="limit_data_rows">
+                <div class="mb-3">
+                    <label for="datalimit" class="form-label"></label>
+                    <form method="POST" class="form" id="previewdata-limit">
+                    {% csrf_token %}
+                    <select class="form-select form-select-sm" name="datalimit" id="datalimit">
+                        <option selected value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                        <option value="500">500</option>
+                        <option value="all">All <i class="fa-solid fa-circle-info" data-bs-toggle="popover" title="Important!" 
+                            data-bs-content="Displaying complete data will effect the speed of browser - for large data"></i></option>
+                    </select>
+                    <button type="submit">Show</button>
+                    </form>
+                </div>
+            </div>
             <table class="table table-bordered table-dark table-hover">
                 <thead>
                     <tr>
@@ -85,7 +103,7 @@
                         <div class="icon">
                             <i class="fa-solid fa-chart-simple fa-rotate-90" aria-hidden="true"></i>
                         </div>
-                        <a href="#" class="card-box-footer">View More <i class="fa fa-arrow-circle-right"></i></a>
+                        <a data-bs-target="#data-description" style="cursor: pointer;" data-bs-toggle="modal" class="card-box-footer">View data description <i class="fa fa-arrow-circle-right"></i></a>
                     </div>
                 </div>
 
@@ -98,7 +116,7 @@
                         <div class="icon">
                             <i class="fa-solid fa-chart-simple" aria-hidden="true"></i>
                         </div>
-                        <a href="#" class="card-box-footer">View More <i class="fa fa-arrow-circle-right"></i></a>
+                        <a data-bs-target="#unique-values" data-bs-toggle="modal" style="cursor: pointer;" class="card-box-footer">View unique value <i class="fa fa-arrow-circle-right"></i></a>
                     </div>
                 </div>
                 <div class="col-lg-3 col-sm-6">
@@ -110,23 +128,141 @@
                         <div class="icon">
                             <i class="fa-solid fa-circle-minus" aria-hidden="true"></i>
                         </div>
-                        <a href="#" class="card-box-footer">View More <i class="fa fa-arrow-circle-right"></i></a>
+                        <a data-bs-toggle="modal" data-bs-target="#null_values_col" class="card-box-footer" style="cursor: pointer;" >View total null values <i class="fa fa-arrow-circle-right"></i></a>
+                        
                     </div>
                 </div>
                 <div class="col-lg-3 col-sm-6">
                     <div class="card-box bg-dark">
                         <div class="inner">
-                            <h3> {{unique_dtypes}} </h3>
-                            <p> Different DataTypes </p>
+                            <h3> {{total_notnull}} </h3>
+                            <p> Non null values </p>
                         </div>
                         <div class="icon">
                             <i class="fa-solid fa-diagram-project" aria-hidden="true"></i>
                         </div>
-                        <a href="#" class="card-box-footer">View More <i class="fa fa-arrow-circle-right"></i></a>
+                        <a class="card-box-footer" data-bs-target="#non_null_values_col" data-bs-toggle="modal" style="cursor: pointer;" >View total non-null values <i class="fa fa-arrow-circle-right"></i></a>
                     </div>
                 </div>
             </div>
         </div>
+
+            <!-- ------------ null values View more Modal ----------- -->
+<div class="modal fade" id="null_values_col" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Null count in each column</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Column Name</th>
+                            <th>null Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for column, info in null_col_wise.items %}
+                            <tr>
+                                <td>{{ column }}</td>
+                                <td>{{ info }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <!-- <button type="button" class="btn btn-primary">Save changes</button> -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+              <!-- ------------ non-null values View more Modal ----------- -->
+<div class="modal fade" id="non_null_values_col" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Null count in each column</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Column Name</th>
+                            <th>non-null Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for column, info in nonnull_col_wise.items %}
+                            <tr>
+                                <td>{{ column }}</td>
+                                <td>{{ info }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <!-- <button type="button" class="btn btn-primary">Save changes</button> -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+                <!-- ------------ data description Modal ----------- -->
+<div class="modal fade" id="data-description" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Data description</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div class="table-responsive">
+                {{describe | safe}}
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <!-- <button type="button" class="btn btn-primary">Save changes</button> -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+                  <!-- ------------ Unique values Modal ----------- -->
+<div class="modal fade" id="unique-values" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Unique values</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div class="table-responsive">
+                {{unique | safe}}
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <!-- <button type="button" class="btn btn-primary">Save changes</button> -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  
         <!-- ----------- Data stat cards end ----------- -->
 
 
@@ -432,7 +568,8 @@
                             <fieldset class="border rounded-3 p-3">
                                 
                                 <legend class="float-none w-auto px-3" style="font-size: medium;" >Data units
-                                        <i class="fa-solid fa-circle-info" data-bs-toggle="popover" title="Important!" data-bs-content="For GCS - Don't select decimal degrees if coordinates are in simple latitude and longitude converted"></i>
+                                        <i class="fa-solid fa-circle-info" data-bs-toggle="popover" title="Important!" data-bs-content="For GCS - Don't select decimal degrees if coordinates are in simple latitude and longitude converted.
+                                        PCS - could be time extensive for feet and km (if large data)"></i>
                                 </legend>
                                 <div class="form-check">
                                   <input class="form-check-input" type="radio" value="decideg" name="cord-sys-units" id="cord-sys-unit-dg" disabled>
@@ -441,7 +578,7 @@
                                   </label>
                                 </div>
                                 <div class="form-check">
-                                  <input class="form-check-input" type="radio" value="meter" name="cord-sys-units" id="cord-sys-unit-mt" disabled>
+                                  <input class="form-check-input" type="radio" value="meter" name="cord-sys-units" id="cord-sys-unit-mt" checked disabled>
                                   <label class="form-check-label" for="cord-sys-units">
                                     Meters
                                   </label>
@@ -471,6 +608,69 @@
                 </div>
 
                 <!-- ----------- Lat long filteration end ----------- -->
+
+                <!-- ----------- Geocoding ----------- -->
+                <div class="geocoding_container d-flex justify-content-evenly">
+                    <div class="forward-geocoding">
+                    <form class="form needs-validation" id="fgc-form" method="POST" novalidate>
+                        {% csrf_token %}
+                            <div class="my-3">
+                                <label aria-describedby="helpId-multi-addr" for="select-multi-addr" class="form-label">Select one or more address column 
+                                    <i class="fa-solid fa-circle-info py-1" data-bs-toggle="popover" title="Important!" data-bs-content="Recommended only one column - If select multiple it will merge them and create new address column in your data file"></i>
+                                </label>
+                                <br><small id="helpId-multi-addr" class="form-text text-muted">Choose minimum one column</small><br>
+                                <div>
+                                    <select class="selectpicker" multiple aria-label="size 5 select example" name="select-multi-addr" id="select-multi-addr">
+                                        <option selected value="null">Select columns</option>
+                                        {% for columns in preview_data.columns %}
+                                        <option value="{{columns}}">{{columns}}</option>
+                                        {% endfor %}
+                                    </select><br>
+                                </div>
+                            </div>
+                            <span>
+                                <button type="submit" class="btn btn-secondary" id="forward-geocode-btn">Forward Geocode</button>
+                                <i class="fa-solid fa-circle-info text-muted" data-bs-toggle="popover" title="Important!" data-bs-content="There is a delay of one second between each geocode request to
+                                ensure that the usage limit does not exceed. This will cause slow processing for large data"></i>
+                            </span>
+                    </form>
+                </div>
+
+                    
+                    <div class="reverse-geocoding">
+                        <form class="form needs-validation" id="rgc" method="POST" novalidate>
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="select-rev-gc-lat" class="form-label">Select latitude column</label>
+                            <select class="form-select form-select" name="select-rev-gc-lat" id="select-rev-gc-lat" required>
+                                <option selected disabled value="" >Select one</option>
+                                {% for columns in preview_data.columns %}
+                                        <option value="{{columns}}">{{columns}}</option>
+                                {% endfor %}
+                            </select>
+                            <label for="select-rev-gc-long" class="form-label mt-1">Select longitude column</label>
+                            <select class="form-select form-select" name="select-rev-gc-long" id="select-rev-gc-long" required>
+                                <option selected disabled value="" >Select one</option>
+                                {% for columns in preview_data.columns %}
+                                        <option value="{{columns}}">{{columns}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <span>
+                        <button type="submit" class="btn btn-danger">Reverse Geocode</button>
+                        <i class="fa-solid fa-circle-info text-muted" data-bs-toggle="popover" title="Important!" 
+                        data-bs-content="There is a delay of one second between each reverse geocode request to
+                        ensure that the usage limit does not exceed. This will cause slow processing for large data"></i>
+                        </span>
+
+                    </form>
+                    </div>
+
+                </div>
+                <!-- ----------- Geocoding end ----------- -->
+
+                
 
             </div> <!-- col-6 (1) -->
 
@@ -515,6 +715,10 @@
         <input type="submit" value="Reset">
     </form>
 
+    <pre>
+        
+    </pre>
+
     </div>
 
     <!-- ----------- main container end -----------  -->
@@ -536,6 +740,8 @@
         return new bootstrap.Popover(popoverTriggerEl);
       });
       </script>
+
+
 </body>
 
 </html>
