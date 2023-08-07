@@ -278,13 +278,16 @@ def convert_lat_lon_columns(request, dataframe, latitude_col, longitude_col):
 
     # Convert latitude and longitude columns to numeric type using the custom function
     try:
-        dataframe[latitude_col] = dataframe[latitude_col].apply(extract_valid_lat_lon)
-        dataframe[longitude_col] = dataframe[longitude_col].apply(extract_valid_lat_lon)
-        # Add a success message
-        messages.success(request, f"Latitude and Longitude columns converted to numeric type successfully!")
-        # Drop rows with NaN values in latitude or longitude columns
-        dataframe.dropna(subset=[latitude_col, longitude_col], inplace=True)
-        messages.success(request, f"Computation Success!")
+        if not dataframe[latitude_col].dtype is float and not dataframe[longitude_col].dtype == float:
+            dataframe[latitude_col] = dataframe[latitude_col].apply(extract_valid_lat_lon)
+            dataframe[longitude_col] = dataframe[longitude_col].apply(extract_valid_lat_lon)
+            # Add a success message
+            messages.success(request, f"Latitude and Longitude columns converted to numeric type successfully!")
+            # Drop rows with NaN values in latitude or longitude columns
+            dataframe.dropna(subset=[latitude_col, longitude_col], inplace=True)
+            messages.success(request, f"Computation Success!")
+        else:
+            messages.success(request, f"Computation Success!")
 
     except Exception as e:
         messages.error(request, f"Error: Failed to convert latitude/longitude columns. Error: {e}")
@@ -507,29 +510,56 @@ def update_stats(df):
         
     return preview_data, num_rows, num_cols, total_nulls, total_notnull, unique_dtypes, df_dtype_info
 
+def upload_view(request):
+    if request.method == 'POST' and request.FILES.get('csv_file'):
+        try:
+            csv_file = request.FILES['csv_file']
+            df = read_csv_file(csv_file)
+            # prev_df = df
 
+            # Store the DataFrame in session
+            request.session['data_frame'] = dataframe_to_json(df)
+
+            # Store the original DataFrame in the session
+            request.session['original_data_frame'] = dataframe_to_json(df)
+
+            # Redirect to the preview view
+            return redirect('preview')
+        except Exception as e:
+            return render(request, 'error.html', {'error_message': 'Error reading CSV file: ' + str(e)})
+        
+            # Check if the "reset_session" parameter is in POST data
+    # if request.method == 'POST' and 'reset' in request.POST:
+    #     request.session.clear()  # Clear the entire session
+    #     # return redirect('upload')
+
+    return render(request, 'upload.html')
 
 def upload_file(request):
-    file_path = "E:\Dataset\Malaria\MALARIA.csv"
-    
-    preview_data = None
-    unique_counts_html = None
 
-    # Check for the 'reset' parameter in POST data
+    # Check if the "reset" parameter is in POST data
     if request.method == 'POST' and 'reset' in request.POST:
-        request.session.clear()  # Clear the entire session
-
-    # Initialize DataFrame from session or read the CSV file
-    json_data = request.session.get('data_frame')
-    
-    if json_data is None:
-        try:
-            df = read_csv_file(file_path)
+        # Get the original DataFrame from the session and update the current DataFrame
+        json_data = request.session.get('original_data_frame')
+        if json_data:
+            df = json_to_dataframe(json_data)
             request.session['data_frame'] = dataframe_to_json(df)
-        except Exception as e:
-            return render(request, 'error.html', {'error_message': str(e)})
-    else:
-        df = json_to_dataframe(json_data)
+
+
+    # Get DataFrame from session or redirect back to the upload view
+    json_data = request.session.get('data_frame')
+    if not json_data:
+        return redirect('upload')
+
+    df = json_to_dataframe(json_data)
+
+    # Check if the "reset" parameter is in POST data
+    if request.method == 'POST' and 'reset' in request.POST:
+        print("here")
+        # request.session.clear()  # Clear the entire session
+        request.session.pop('data_frame', None)
+        # del request.session['data_frame']
+        # return redirect('upload')
 
     # Show the stats at the initial level
     preview_data, num_rows, num_cols, total_nulls, total_notnull, unique_dtypes, df_dtype_info = update_stats(df)
