@@ -3,6 +3,10 @@
     margin: 0;
     box-sizing: border-box;
 }
+/* body{
+    margin: 10%;
+    border: 4px solid red;
+} */
 /* Stats cards */
 .card-box {
     position: relative;
@@ -71,8 +75,9 @@
 /* Stats cards end */
 
 /* Preview main data table */
-.displaydata{
+.displaydata .preview-table{
     overflow: auto;
+    max-height: 452px;
     width: 100%;
 }
 /* Preview main data table end */

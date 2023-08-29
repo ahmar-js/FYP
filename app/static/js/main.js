@@ -105,3 +105,45 @@ Array.prototype.slice.call(forms)
 //============= function to handle the coordinae systems and units end
 
 
+// ============ ajax for data limiter
+
+// document.addEventListener("DOMContentLoaded", function () {
+//     const form = document.querySelector("#previewdata-limit");
+//     const tableBody = document.querySelector(".preview-table tbody");
+//     const recordInfo = document.querySelector(".preview-record-info"); // Reference to the record info element
+
+//     form.addEventListener("submit", function (event) {
+//         event.preventDefault();
+//         const dataLimit = form.querySelector("#datalimit").value;
+//         const ajaxUrl = form.getAttribute("data-ajax-url");
+//         const url = `${ajaxUrl}?datalimit=${dataLimit}`;
+
+//         fetch(url)
+//             .then(response => response.json())
+//             .then(data => {
+//                 console.log(data)
+//                 tableBody.innerHTML = "";  // Clear existing table rows
+//                 data.data.forEach(row => {
+//                     const newRow = document.createElement("tr");
+//                     row.forEach(value => {
+//                         const newCell = document.createElement("td");
+//                         // Handle null values by replacing them with a placeholder
+//                         const displayValue = value === null ? "N/A" : value;
+//                         newCell.textContent = displayValue;
+//                         newRow.appendChild(newCell);
+//                     });
+//                     tableBody.appendChild(newRow);
+//                 });
+            
+
+//                 // Update the record info element with the number of records being shown
+//                 const numRecordsShown = data.data.length;
+//                 const recordsText = numRecordsShown === 1 ? "record" : "records";
+//                 recordInfo.textContent = `Showing ${numRecordsShown} ${recordsText}`;
+//             })
+//             .catch(error => console.error("Error fetching data:", error));
+//     });
+// });
+
+
+
