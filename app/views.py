@@ -260,3 +260,16 @@ def upload_file(request):
 #         return JsonResponse({'error': f'An error occurred: {str(e)}'}, status=500)
     
 
+
+
+def preview_data(request):
+    json_data = request.session.get('data_frame')
+    if not json_data:
+        return JsonResponse({'error': 'Data not available'})
+
+    df = json_to_dataframe(json_data)
+
+    selected_limit = int(request.GET.get('limit', 10))
+    paginated_data = df.head(selected_limit).to_html()  # Adjust this based on your data processing logic
+
+    return JsonResponse({'html': paginated_data})

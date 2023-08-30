@@ -146,4 +146,50 @@ Array.prototype.slice.call(forms)
 // });
 
 
+// $(document).ready(function () {
+//     $('#previewdata-limit').submit(function (event) {
+//         event.preventDefault(); // Prevent default form submission
+//         var selectedLimit = $('#datalimit').val();
+
+//         $.ajax({
+//             url: '/preview_data/', // Update with your actual URL
+//             type: 'GET',
+//             data: { limit: 10 }, // Pass the selected limit as a parameter
+//             success: function (data) {
+//                 console.log('AJAX request succeeded:', data);
+//                 $('#preview-data-container').html(data.html); // Update the container with fetched data
+//             },
+//             error: function (error) {
+//                 console.log('Error fetching data: ' + error);
+//             }
+//         });
+//     });
+// });
+
+$(document).ready(function () {
+    // Function to load and display data
+    function loadData(limit) {
+        $.ajax({
+            url: '/preview_data/',
+            type: 'GET',
+            data: { limit: limit },
+            success: function (data) {
+                $('#preview-data-container').html(data.html);
+            },
+            error: function (error) {
+                console.log('Error fetching data:', error);
+            }
+        });
+    }
+
+    // Load default data on page load
+    loadData(10); // Load default 10 rows
+
+    // Handle form submission
+    $('#previewdata-limit').submit(function (event) {
+        event.preventDefault();
+        var selectedLimit = $('#datalimit').val();
+        loadData(selectedLimit); // Load data based on selected limit
+    });
+});
 
