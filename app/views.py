@@ -269,7 +269,12 @@ def preview_data(request):
 
     df = json_to_dataframe(json_data)
 
-    selected_limit = int(request.GET.get('limit', 10))
-    paginated_data = df.head(selected_limit).to_html()  # Adjust this based on your data processing logic
+    selected_limit = int(request.GET.get('limit', default=10))
+    paginated_df = df.head(selected_limit)  # Get the DataFrame with the desired limit
 
-    return JsonResponse({'html': paginated_data})
+    # Further preprocessing here (e.g., dropping columns)
+
+    # Convert the paginated DataFrame to JSON
+    paginated_data_json = paginated_df.to_json(orient='records')
+
+    return JsonResponse({'data': paginated_data_json})

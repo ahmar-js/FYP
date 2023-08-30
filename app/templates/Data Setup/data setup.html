@@ -10,13 +10,13 @@
                                 <form method="POST" class="form" id="previewdata-limit">
                                 {% csrf_token %}
                                 <div class="data-limit-container d-flex align-items-center">
-                                <div class="preview-record-info">Showing 10 records</div>&nbsp;<span> out of {{num_rows}}</span>
+                                <div class="preview-record-info" id="selected-record-info">Showing 10 records</div>&nbsp;<span> out of {{num_rows}}</span>
                                 <select class="form-select form-select-sm ms-auto me-1" style="width: auto;" name="datalimit" id="datalimit">
-                                    <option selected value="10">10</option>
-                                    <option value="25">25</option>
-                                    <option value="50">50</option>
-                                    <option value="100">100</option>
-                                    <option value="500">500</option>
+                                    <option selected value="10" data-limit="10">10</option>
+                                    <option value="25" data-limit="25">25</option>
+                                    <option value="50" data-limit="50">50</option>
+                                    <option value="100" data-limit="100">100</option>
+                                    <option value="500" data-limit="500">500</option>
                                 </select>
                                 <button type="submit" class="btn btn-dark" id="show-data-button" style="padding: .175rem .75rem;">Show</button>
                             </div>

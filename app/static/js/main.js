@@ -167,14 +167,36 @@ Array.prototype.slice.call(forms)
 // });
 
 $(document).ready(function () {
-    // Function to load and display data
     function loadData(limit) {
         $.ajax({
             url: '/preview_data/',
             type: 'GET',
             data: { limit: limit },
             success: function (data) {
-                $('#preview-data-container').html(data.html);
+                // Parse the JSON data received from the server
+                var jsonData = JSON.parse(data.data);
+
+                // Create and populate the table with the JSON data
+                var tableHtml = '<table class = "table table-bordered table-dark table-hover">';
+                tableHtml += '<thead><tr>';
+                for (var key in jsonData[0]) {
+                    tableHtml += '<th>' + key + '</th>';
+                }
+                tableHtml += '</tr></thead>';
+
+                tableHtml += '<tbody>';
+                for (var i = 0; i < jsonData.length; i++) {
+                    tableHtml += '<tr>';
+                    for (var key in jsonData[i]) {
+                        tableHtml += '<td>' + jsonData[i][key] + '</td>';
+                    }
+                    tableHtml += '</tr>';
+                }
+                tableHtml += '</tbody>';
+                tableHtml += '</table>';
+
+                // Update the container with the table
+                $('#preview-data-container').html(tableHtml);
             },
             error: function (error) {
                 console.log('Error fetching data:', error);
@@ -189,7 +211,11 @@ $(document).ready(function () {
     $('#previewdata-limit').submit(function (event) {
         event.preventDefault();
         var selectedLimit = $('#datalimit').val();
-        loadData(selectedLimit); // Load data based on selected limit
+        loadData(selectedLimit);
+
+        // Update selected record info
+        $('#selected-record-info').text('Showing ' + selectedLimit + ' records');
     });
 });
+
 
