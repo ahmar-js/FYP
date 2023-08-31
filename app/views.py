@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.http import HttpResponseRedirect
@@ -30,6 +31,44 @@ def update_stats(df):
 
         
     return preview_data, num_rows, num_cols, total_nulls, total_notnull, unique_dtypes, df_dtype_info
+
+def update_statss(df):
+    preview_data = preview_dataframe(df)
+    num_rows = df.shape[0]
+    num_cols = df.shape[1]
+    total_nulls = df.isnull().sum().sum()
+    total_notnull = df.notnull().sum().sum()
+    describe_data = df.describe().to_html(classes='table table-hover table-bordered table-striped')
+    unique_dtypes = len(df.dtypes.unique())
+    df_dtype_info = df.dtypes.apply(lambda x: x.name)  # Convert dtype objects to strings
+    # Calculate unique value counts for each column
+    unique_value_counts = df.nunique()
+    unique_counts_html = unique_value_counts.to_frame(name='Unique Values').to_html(classes='table table-hover table-striped table-bordered')
+    null_colwise = df.isnull().sum()
+    null_colwise_html = null_colwise.to_frame(name='Null Values').to_html(classes='table table-hover table-striped table-bordered')
+    nonnull_colwise = df.notnull().sum()
+    nonnull_colwise_df = nonnull_colwise.to_frame(name='Not Null Values')
+    nonnull_colwise_html = nonnull_colwise_df.to_html(classes='table table-hover table-striped table-bordered')
+    preview_datatypes = preview_data.dtypes.to_frame()
+    # Reset the index
+    preview_datatypes = preview_datatypes.reset_index()
+    # Rename the columns to match your requirements
+    preview_datatypes.columns = ['Column Name', 'Data Types']
+    preview_datatypes_html = preview_datatypes.to_html(classes='table table-dark table-hover table-bordered')
+
+
+    # df_dtype_info = df_dtype_info.apply(lambda x: int(x) if np.issubdtype(x, np.integer) else x)
+    
+    stats = {
+        'num_rows': str(num_rows),
+        'num_cols': str(num_cols),
+        'total_nulls': str(total_nulls),
+        'total_notnull': str(total_notnull),
+    }
+    
+    
+    return preview_data, preview_datatypes_html, stats, describe_data, unique_counts_html, null_colwise_html, nonnull_colwise_html
+
 
 def upload_view(request):
     if request.method == 'POST' and request.FILES.get('csv_file'):
@@ -90,12 +129,12 @@ def upload_file(request):
         try:
             # data_limit = int(request.POST.get('datalimit', 10))
             # Process different POST requests and modify DataFrame accordingly
-            if 'dropcolumnmenu' in request.POST:
-                # Drop selected columns
-                selected_column = request.POST['dropcolumnmenu']
-                drop_selected_column(df, selected_column)
+            # if 'dropcolumnmenu' in request.POST:
+            #     # Drop selected columns
+            #     selected_column = request.POST['dropcolumnmenu']
+            #     drop_selected_column(df, selected_column)
 
-            elif 'fillnullvalues' in request.POST and 'strategy' in request.POST:
+            if 'fillnullvalues' in request.POST and 'strategy' in request.POST:
                 # Handle missing values
                 selected_column = request.POST['fillnullvalues']
                 selected_strategy = request.POST['strategy']
@@ -192,17 +231,17 @@ def upload_file(request):
 
             
 
-            #==================== Pre view data limiter customer ====================
+            #==================== Pre view data limiter customer without Ajax ====================
 
-            # Get the user-selected number of rows to display
-            if request.POST.get('datalimit') != 'all':
-                data_limit = int(request.POST.get('datalimit', 10))
-            else:
-                #show complete data
-                data_limit = df.shape[0]
+            # # Get the user-selected number of rows to display
+            # if request.POST.get('datalimit') != 'all':
+            #     data_limit = int(request.POST.get('datalimit', 10))
+            # else:
+            #     #show complete data
+            #     data_limit = df.shape[0]
                 
-            # Limit the number of rows to display
-            preview_data = preview_dataframe(df, limit=data_limit)
+            # # Limit the number of rows to display
+            # preview_data = preview_dataframe(df, limit=data_limit)
             
 
 
@@ -231,34 +270,6 @@ def upload_file(request):
     return render(request, 'preview.html', context)
 
 
-# def preview_dataframe_ajax(request):
-#     try:
-#         if 'datalimit' in request.GET:
-#             data_limit = request.GET.get('datalimit')
-#             if data_limit == 'all': # currently disabled this feature because it slows down the page
-#                 data_limit = None  # Set data_limit to None to show complete data
-#             else:
-#                 data_limit = int(data_limit)  # Convert to integer for limited data display
-
-#             json_data = request.session.get('data_frame')
-#             if json_data:
-#                 df = json_to_dataframe(json_data)
-
-#                 if data_limit is None:
-#                     preview_data = df  # Show complete data
-#                 else:
-#                     preview_data = preview_dataframe(df, limit=data_limit)
-                
-#                 data = preview_data.to_dict(orient='split')
-#                 # print data
-#                 return JsonResponse(data)
-#             else:
-#                 return JsonResponse({'error': 'No data available in session.'}, status=400)
-#         else:
-#             return JsonResponse({'error': 'No data limit specified.'}, status=400)
-#     except Exception as e:
-#         return JsonResponse({'error': f'An error occurred: {str(e)}'}, status=500)
-    
 
 
 
@@ -278,3 +289,74 @@ def preview_data(request):
     paginated_data_json = paginated_df.to_json(orient='records')
 
     return JsonResponse({'data': paginated_data_json})
+
+# def describe_data(request):
+#     json_data = request.session.get('data_frame')
+#     if not json_data:
+#         return JsonResponse({'error': 'Data not available to describe'})
+#     df = json_to_dataframe(json_data)
+#     describe_data = df.describe()
+#     describe_data_json = describe_data.to_json(orient='records')
+#     print(describe_data_json)
+#     print(describe_data)
+
+#     return JsonResponse({'data': describe_data.to_html(classes='table table-bordered table-striped table-')})
+
+def handle_drop_columns(request):
+    if request.method == 'POST':
+        selected_column = request.POST.get('column')
+        
+        # Retrieve the DataFrame from the session
+        json_data = request.session.get('data_frame')
+        if json_data:
+            df = json_to_dataframe(json_data)
+            # Drop the selected column
+            # df.drop(columns=[selected_column], inplace=True)
+            
+            # print("Selected: ", selected_column)
+            drop_selected_column(df, selected_column)
+           # Update the describe DataFrame
+            
+            # print(describe_df)
+            
+            # Update the DataFrame and describe DataFrame in the session
+            request.session['data_frame'] = dataframe_to_json(df)
+            # print(describe_df)
+            
+            return JsonResponse({'message': f'<b>{selected_column}</b> column dropped successfully', 'data_frame': dataframe_to_json(df)})
+        else:
+            return JsonResponse({'error': 'Data not available'})
+
+    return JsonResponse({'error': 'Invalid request method'})
+
+
+
+
+            # if 'dropcolumnmenu' in request.POST:
+            #     # Drop selected columns
+            #     selected_column = request.POST['dropcolumnmenu']
+            #     drop_selected_column(df, selected_column)
+            # preview_data, num_rows, num_cols, total_nulls, total_notnull, unique_dtypes, df_dtype_info = update_stats(df)
+
+
+def update_statistics(request):
+    if request.method == 'GET':
+        json_data = request.session.get('data_frame')
+        if json_data:
+            df = json_to_dataframe(json_data)
+            preview_data, preview_datatypes_html, stats, describe_data, unique_counts_html, null_colwise, nonnull_colwise_html = update_statss(df)
+
+            json_stats_response = {
+                'stats': stats,
+                'describe_data': describe_data, 
+                'unique_dtypes': unique_counts_html,
+                'null_colwise': null_colwise,
+                'nonull_colwise': nonnull_colwise_html,
+                'datatypes': preview_datatypes_html,
+            }
+            # print(type(preview_data))
+            return JsonResponse(json_stats_response)
+
+    return JsonResponse({'error': 'Invalid request method'})
+
+

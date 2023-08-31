@@ -173,8 +173,12 @@ $(document).ready(function () {
             type: 'GET',
             data: { limit: limit },
             success: function (data) {
+                // console.log('AJAX request succeeded:');
+                // console.log('AJAX request succeeded:', data);
                 // Parse the JSON data received from the server
                 var jsonData = JSON.parse(data.data);
+
+                // console.log('JSON data received:', jsonData)
 
                 // Create and populate the table with the JSON data
                 var tableHtml = '<table class = "table table-bordered table-dark table-hover">';
@@ -206,6 +210,7 @@ $(document).ready(function () {
 
     // Load default data on page load
     loadData(10); // Load default 10 rows
+    updateStatistics()
 
     // Handle form submission
     $('#previewdata-limit').submit(function (event) {
@@ -216,6 +221,108 @@ $(document).ready(function () {
         // Update selected record info
         $('#selected-record-info').text('Showing ' + selectedLimit + ' records');
     });
+
+    // Handle "Drop Column" form submission
+    $('#dropcolumn-form').submit(function (event) {
+        event.preventDefault();
+        var selectedColumn = $('#dropcolumnmenu').val();
+        // Perform AJAX request to handle column drop
+        // Update the DataFrame in the session, and update statistics
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        $.ajax({
+            headers: {'X-CSRFToken': csrftoken},
+            url: '/handle_drop_columns/',
+            type: 'POST',
+            data: { column: selectedColumn },
+            success: function (response) {
+                showAlert('success', response.message, '#dropcolumn-alert-container');
+                var selectedLimit = $('#datalimit').val();
+                // console.log("here");
+                // Update the DataFrame in the session
+                response.data_frame;
+                // Refresh data
+                loadData(selectedLimit);
+                updateStatistics()
+                // Remove the dropped column from the dropdown menu
+                $('#dropcolumnmenu option[value="' + selectedColumn + '"]').remove();
+            },
+            error: function (error) {
+                console.log('Error handling drop column:', error);
+            }
+        });
+    });
+
+
+    // $('#describe-btn').click(function (event) {
+    //     event.preventDefault();
+    //     $.ajax({
+    //         url: '/describe_data/',
+    //         type: 'GET',
+    //         success: function (responseData) {  
+    //             console.log('AJAX request succeeded:', responseData);
+    //             $('#describe-data-container').html(responseData.data);
+    //         },
+    //         error: function (error) {
+    //             console.log('Error fetching data:', error);
+    //         }
+    //     });
+    // });
+
+    function updateStatistics() {
+        $.ajax({
+            url: '/update_statistics/',  
+            type: 'GET',
+            success: function (data) {
+                // Parse the JSON data received from the server
+                var stats = data.stats;
+                var describe_data = data.describe_data;
+                var unique_dtypes = data.unique_dtypes;
+                var null_colwise = data.null_colwise;
+                var nonull_colwise = data.nonull_colwise;
+                var datatypes = data.datatypes;
+    
+                // Update the statistics on the page
+                $('#num-rows').text(stats.num_rows);
+                $('#num-cols').text(stats.num_cols);
+                $('#tot_null').text(stats.total_nulls);
+                $('#total_notnulls').text(stats.total_notnull);
+                $('#describe-data-container').html(describe_data);
+                $('#unique-vals-cols').html(unique_dtypes);
+                $('#nullwise').html(null_colwise);
+                $('#nonullwise').html(nonull_colwise);
+                $('#datatypes-table').html(datatypes)
+
+                // Update other statistics elements similarly...
+            },
+            error: function (error) {
+                console.log('Error updating statistics:', error);
+            }
+        });
+    }
+    // Function to display alert messages
+    function showAlert(type, message, id) {
+        // console.log(message);
+        var alertHtml = `
+            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        $(id).html(alertHtml);
+    }
+
+
 });
 
 
+
+    // // Handle "Fill Null Values" form submission
+    // $('#fillnullvalues-form').submit(function (event) {
+    //     event.preventDefault();
+    //     var selectedColumn = $('#fillnullvalues').val();
+    //     var selectedStrategy = $('input[name="strategy"]:checked').val();
+    //     var strategyConstant = $('#strategy_constant').val();
+    //     // Perform AJAX request to handle null value filling
+    //     // Update the DataFrame in the session, and update statistics
+    //     // Refresh data if needed
+    // });

@@ -1,4 +1,6 @@
                 <!-- main container -->
+                
+
                 <div class="container">
 
                     <!-- ----------- Data display -------------- -->
@@ -12,11 +14,12 @@
                                 <div class="data-limit-container d-flex align-items-center">
                                 <div class="preview-record-info" id="selected-record-info">Showing 10 records</div>&nbsp;<span> out of {{num_rows}}</span>
                                 <select class="form-select form-select-sm ms-auto me-1" style="width: auto;" name="datalimit" id="datalimit">
-                                    <option selected value="10" data-limit="10">10</option>
-                                    <option value="25" data-limit="25">25</option>
-                                    <option value="50" data-limit="50">50</option>
-                                    <option value="100" data-limit="100">100</option>
-                                    <option value="500" data-limit="500">500</option>
+                                    <option selected value="10">10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                    <option value="500">500</option>
+                                    <option value="{{num_rows}}">All</option>
                                 </select>
                                 <button type="submit" class="btn btn-dark" id="show-data-button" style="padding: .175rem .75rem;">Show</button>
                             </div>
@@ -46,7 +49,7 @@
                         </table>
                     </div> -->
                     </div>
-                    <div id="preview-data-container">
+                    <div id="preview-data-container" class="preview-table table-responsive">
                         <!-- Fetched data will be inserted here -->
                     </div>
                     <!-- ----------- Data display end -------------- -->
@@ -58,20 +61,20 @@
                             <div class="col-lg-3 col-sm-6">
                                 <div class="card-box bg-dark">
                                     <div class="inner">
-                                        <h3> {{num_rows}} </h3>
+                                        <h3 id='num_rows'> {{num_rows}} </h3>
                                         <p> Total Rows </p>
                                     </div>
                                     <div class="icon">
                                         <i class="fa-solid fa-chart-simple fa-rotate-90" aria-hidden="true"></i>
                                     </div>
-                                    <a data-bs-target="#data-description" style="cursor: pointer;" data-bs-toggle="modal" class="card-box-footer">View data description <i class="fa fa-arrow-circle-right"></i></a>
+                                    <a data-bs-target="#data-description" style="cursor: pointer;" data-bs-toggle="modal" class="card-box-footer" id="describe-btn">View data description <i class="fa fa-arrow-circle-right"></i></a>
                                 </div>
                             </div>
             
                             <div class="col-lg-3 col-sm-6">
                                 <div class="card-box bg-dark">
                                     <div class="inner">
-                                        <h3> {{num_columns}} </h3>
+                                        <h3 id='num-cols'> {{num_columns}} </h3>
                                         <p> Total Columns </p>
                                     </div>
                                     <div class="icon">
@@ -83,7 +86,7 @@
                             <div class="col-lg-3 col-sm-6">
                                 <div class="card-box bg-dark">
                                     <div class="inner">
-                                        <h3> {{tot_nulls}} </h3>
+                                        <h3 id="tot_null"> {{tot_nulls}} </h3>
                                         <p> Null Values </p>
                                     </div>
                                     <div class="icon">
@@ -96,7 +99,7 @@
                             <div class="col-lg-3 col-sm-6">
                                 <div class="card-box bg-dark">
                                     <div class="inner">
-                                        <h3> {{total_notnull}} </h3>
+                                        <h3 id="total_notnulls"> {{total_notnull}} </h3>
                                         <p> Non null values </p>
                                     </div>
                                     <div class="icon">
@@ -117,9 +120,9 @@
                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-striped">
-                                <thead class="table-dark">
+                        <div class="table-responsive" id="nullwise">
+                            {% comment %} <table class="table table-bordered table-striped">
+                                <thead>
                                     <tr>
                                         <th>Column Name</th>
                                         <th>null Count</th>
@@ -133,7 +136,7 @@
                                         </tr>
                                     {% endfor %}
                                 </tbody>
-                            </table>
+                            </table> {% endcomment %}
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -149,13 +152,13 @@
                 <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
                   <div class="modal-content">
                     <div class="modal-header">
-                      <h5 class="modal-title" id="exampleModalLabel">Null count in each column</h5>
+                      <h5 class="modal-title" id="exampleModalLabel">Non-Null count in each column</h5>
                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-striped">
-                                <thead class="table-dark">
+                        <div class="table-responsive" id="nonullwise">
+                            {% comment %} <table class="table table-bordered table-striped">
+                                <thead>
                                     <tr>
                                         <th>Column Name</th>
                                         <th>non-null Count</th>
@@ -169,7 +172,7 @@
                                         </tr>
                                     {% endfor %}
                                 </tbody>
-                            </table>
+                            </table> {% endcomment %}
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -189,8 +192,8 @@
                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="table-responsive">
-                            {{describe | safe}}
+                        <div class="table-responsive" id='describe-data-container'>
+                            {% comment %} {{describe | safe}} {% endcomment %}
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -210,8 +213,8 @@
                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="table-responsive">
-                            {{unique | safe}}
+                        <div class="table-responsive" id="unique-vals-cols">
+                            {% comment %} {{unique | safe}} {% endcomment %}
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -271,8 +274,9 @@
                     <div class="d-flex dtype-impute">
                         <div class="col-lg-6 col-sm-12">
                             <h1>Imputation</h1>
-                            <!-- ----------- Column drop form ----------- -->
-                            <form method="post" class="needs-validation" novalidate>
+                            <div id="dropcolumn-alert-container"></div>
+                            {% comment %} <!-- ----------- Column drop form ----------- --> {% endcomment %}
+                            <form method="post" class="needs-validation" id="dropcolumn-form" novalidate>
                                 {% csrf_token %}
                                 <div class="dropcolumn">
                                     <div class="mb-3">
@@ -638,8 +642,9 @@
             
                         <!-- ----------- Data types table ----------- -->
                         <div class="datatypetable col-lg-6 col-sm-12">
-                            <div class="container ">
-                                <h1>Data Types</h1>
+                            <div class="container " id="datatypes-table">
+
+                                {% comment %} <h1>Data Types</h1>
                                 <label for="" class="form-label">Data types of column</label>
                                 <table class="table table-bordered table-dark table-hover">
                                     <thead>
@@ -656,7 +661,7 @@
                                         </tr>
                                         {% endfor %}
                                     </tbody>
-                                </table>
+                                </table> {% endcomment %}
                             </div>
                         </div> <!--- col-6 (2) -->
             
