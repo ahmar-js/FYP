@@ -1,20 +1,45 @@
 import pandas as pd
 import numpy as np
+import geopandas as gpd
 from django.shortcuts import render, redirect
 from django.urls import reverse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib import messages
 from .data_preprocessing import read_csv_file, drop_selected_column, handle_missing_values, drop_rows, convert_column_data_type, convert_lat_lon_columns
 from .projected_coordinate_systems import utm_to_lat_lon, feet_to_meter, km_to_meter
 from .geographical_coordinate_system import convert_dms_to_decimal
 from .Geooding import convert_lat_lng_to_addresses, concatenate_and_geocode
-from .json_serializable import dataframe_to_json, json_to_dataframe
+from .json_serializable import dataframe_to_json, json_to_dataframe, geodataframe_to_json, json_to_geodataframe
 from django.http import JsonResponse
 
 
 #================ For custom preview data limiter ================
 def preview_dataframe(df, limit=10):
     return df.head(limit)
+
+def dataframe_to_Geodataframe(df, x_column, y_column):
+    if not df.empty and x_column is not None and y_column is not None:
+        if x_column not in df.columns or y_column not in df.columns:
+            raise ValueError('Selected columns do not exist in the DataFrame')
+
+        # Check if the X and Y columns are of type float
+        if df[x_column].dtype != 'float64' or df[y_column].dtype != 'float64':
+            raise ValueError(f'X and Y must be of type float. Selected <b>{x_column}</b> and <b>{y_column}</b>')
+
+        # Create a GeoDataFrame using the selected columns
+        data = df
+        gdf = gpd.GeoDataFrame(data, geometry=gpd.points_from_xy(data[x_column], data[y_column]))
+
+        # Drop rows with missing geometries
+        gdf = gdf.dropna(subset=["geometry"])
+
+        # Check if the resulting GeoDataFrame is empty
+        if gdf.empty:
+            raise ValueError('GeoDataFrame is empty after dropping rows with missing geometries')
+
+    return gdf
+
+
 
 
 # def preview_dataframe(df, limit=10):
@@ -39,8 +64,6 @@ def update_statss(df):
     total_nulls = df.isnull().sum().sum()
     total_notnull = df.notnull().sum().sum()
     describe_data = df.describe().to_html(classes='table table-hover table-bordered table-striped')
-    unique_dtypes = len(df.dtypes.unique())
-    df_dtype_info = df.dtypes.apply(lambda x: x.name)  # Convert dtype objects to strings
     # Calculate unique value counts for each column
     unique_value_counts = df.nunique()
     unique_counts_html = unique_value_counts.to_frame(name='Unique Values').to_html(classes='table table-hover table-striped table-bordered')
@@ -71,6 +94,7 @@ def update_statss(df):
 
 
 def upload_view(request):
+    request.session.clear()  # Clear the entire session
     if request.method == 'POST' and request.FILES.get('csv_file'):
         try:
             csv_file = request.FILES['csv_file']
@@ -96,7 +120,7 @@ def upload_view(request):
     return render(request, 'upload.html')
 
 def upload_file(request):
-
+    
     # Check if the "reset" parameter is in POST data
     if request.method == 'POST' and 'reset' in request.POST:
         # Get the original DataFrame from the session and update the current DataFrame
@@ -112,6 +136,19 @@ def upload_file(request):
         return redirect('upload')
 
     df = json_to_dataframe(json_data)
+    # ...
+
+    json_geodata = request.session.get('geodata_frame')
+    if not json_geodata:
+        gdf = None
+        preview_geodataframe = preview_dataframe(df, limit=5)
+    else:
+        gdf = json_to_geodataframe(json_geodata)
+        preview_geodataframe = preview_dataframe(gdf, limit=5)
+
+
+
+
 
     # # Check if the "reset" parameter is in POST data
     # if request.method == 'POST' and 'reset' in request.POST:
@@ -121,11 +158,13 @@ def upload_file(request):
     #     # del request.session['data_frame']
     #     # return redirect('upload')
 
+    #original dataframe will show at initial level
     # Show the stats at the initial level
     preview_data, num_rows, num_cols, total_nulls, total_notnull, unique_dtypes, df_dtype_info = update_stats(df)
 
 
     if request.method == 'POST':
+    
         try:
             # data_limit = int(request.POST.get('datalimit', 10))
             # Process different POST requests and modify DataFrame accordingly
@@ -214,17 +253,28 @@ def upload_file(request):
                 selected_rev_long = request.POST.get('select-rev-gc-long', None)
 
                 df = convert_lat_lng_to_addresses(request, df, lat = selected_rev_lat, long=selected_rev_long)
+            
+            elif 'select-x' in request.POST and 'select-y' in request.POST:
+                selected_x = request.POST.get('select-x', None)
+                selected_y = request.POST.get('select-y', None)
 
-                
-
+                gdf = dataframe_to_Geodataframe(df, selected_x, selected_y)
+                request.session['geodata_frame'] = geodataframe_to_json(gdf)
+                preview_geodataframe = preview_dataframe(gdf, limit=5)
 
             
 
 
 
 
+
+
+
+
             # Update the DataFrame in the session
             request.session['data_frame'] = dataframe_to_json(df)
+
+            # request.session['geodata_frame'] = geodataframe_to_json(gdf)
 
             # Update the statistics with the modified DataFrame
             preview_data, num_rows, num_cols, total_nulls, total_notnull, unique_dtypes, df_dtype_info = update_stats(df)
@@ -253,6 +303,7 @@ def upload_file(request):
 
     
     context = {
+        'gdf': preview_geodataframe,
         'df_info': df_dtype_info,
         'preview_data': preview_data,
         'num_columns': num_cols,
@@ -282,25 +333,50 @@ def preview_data(request):
 
     selected_limit = int(request.GET.get('limit', default=10))
     paginated_df = df.head(selected_limit)  # Get the DataFrame with the desired limit
-
+    # print(paginated_df)
     # Further preprocessing here (e.g., dropping columns)
+    # paginated_df['date'] = pd.to_datetime(paginated_df['date'])
 
     # Convert the paginated DataFrame to JSON
     paginated_data_json = paginated_df.to_json(orient='records')
+    # print(paginated_data_json)
 
     return JsonResponse({'data': paginated_data_json})
 
-# def describe_data(request):
-#     json_data = request.session.get('data_frame')
-#     if not json_data:
-#         return JsonResponse({'error': 'Data not available to describe'})
-#     df = json_to_dataframe(json_data)
-#     describe_data = df.describe()
-#     describe_data_json = describe_data.to_json(orient='records')
-#     print(describe_data_json)
-#     print(describe_data)
+def convert_to_geodataframe(request):
+    try:
+        json_data = request.session.get('data_frame')
+        if not json_data:
+            return JsonResponse({'error': 'GeoDataFrame not found'})
+        df = json_to_dataframe(json_data)
+        if request.method == 'POST':
+            selected_x = request.POST.get('select-x', None)
+            selected_y = request.POST.get('select-y', None)
 
-#     return JsonResponse({'data': describe_data.to_html(classes='table table-bordered table-striped table-')})
+            # Perform the conversion here and save the GeoDataFrame in the session
+            gdf = dataframe_to_Geodataframe(df, selected_x, selected_y)
+            request.session['geodata_frame'] = geodataframe_to_json(gdf)
+            preview_geodataframe = preview_dataframe(gdf, limit=5)
+
+            # Get the column names of the GeoDataFrame
+            columns = gdf.columns.tolist()
+
+            # Convert the GeoDataFrame to HTML content
+            geodataframe_html = preview_geodataframe.to_html(classes='table table-dark fade-out table-bordered')  # Implement this function
+
+            return JsonResponse({'message': 'Conversion successful', 'geodataframe': geodataframe_html, 'columns': columns})
+        else:
+            return JsonResponse({'error': 'Invalid request method'})
+        
+    except ValueError as e:
+        return JsonResponse({'error': str(e)})
+
+    except Exception as e:
+        return JsonResponse({'error': 'An error occurred during conversion. ' + str(e)})
+    
+
+    
+    
 
 def handle_drop_columns(request):
     if request.method == 'POST':
@@ -360,3 +436,81 @@ def update_statistics(request):
     return JsonResponse({'error': 'Invalid request method'})
 
 
+def download_csv(request):
+    # Store the CSV data in the session
+    # request.session['csv_data'] = csv_file.read().decode('utf-8')
+
+    # Retrieve the CSV data from the session
+    csv_data = request.session.get('data_frame')
+
+    if csv_data:
+        # Parse the JSON data into a DataFrame
+        df = pd.read_json(csv_data)
+
+        # Convert the DataFrame to CSV format
+        csv_data = df.to_csv(index=False)
+        # Create a response with the CSV data as a file attachment
+        response = HttpResponse(csv_data, content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="data.csv"'
+        return response
+
+    return HttpResponse('CSV data not available in the session.')
+
+
+def handle_fill_null_values(request):
+    if request.method == 'POST':
+        selected_column = request.POST.get('column')
+        selected_strategy = request.POST.get('strategy')
+        if selected_strategy == 'input_constant':
+            selected_strategy = request.POST.get('constant_value')
+        
+            # print(selected_strategy)
+
+        # Retrieve the DataFrame from the session
+        json_data = request.session.get('data_frame')
+        if json_data:
+            df = json_to_dataframe(json_data)
+
+            if selected_column == 'complete_data':
+                # Handle missing values based on the selected strate
+                handle_missing_values(df, strategy=selected_strategy)
+                # selected_column = 'Complete dataframe'
+            else:
+                handle_missing_values(df, strategy=selected_strategy, columns=[selected_column])
+
+            # Update the DataFrame in the session
+            request.session['data_frame'] = dataframe_to_json(df)
+
+            return JsonResponse({'message': f'<b>{selected_column}</b> null values filled successfully with strategy {selected_strategy}'})
+        else:
+            return JsonResponse({'error': 'Data not available'})
+
+    return JsonResponse({'error': 'Invalid request method'})
+
+
+
+def handle_drop_rows(request):
+    if request.method == 'POST':
+        selected_columns = request.POST.getlist('select-multi-drop-row[]', None)
+        selected_strategy = request.POST.get('row_drop_strategy', None)
+
+        if not selected_columns or not selected_strategy:
+            return JsonResponse({'error': 'Invalid input'})
+
+        # Retrieve the DataFrame from the session
+        json_data = request.session.get('data_frame')
+        if json_data:
+            df = json_to_dataframe(json_data)
+            drop_rows(df, how=selected_strategy, subset=selected_columns)
+            request.session['data_frame'] = dataframe_to_json(df)
+
+            return JsonResponse({'message': 'Rows dropped successfully'})
+        else:
+            return JsonResponse({'error': 'Data not available'})
+
+    return JsonResponse({'error': 'Invalid request method'})
+
+#  # Drop rows based on conditions
+#                 selected_columns = request.POST.getlist('select-multi-drop-row', None)
+#                 selected_strategy = request.POST.get('row_drop_strategy', None)
+#                 drop_rows(df, how=selected_strategy, subset=selected_columns)

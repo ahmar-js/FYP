@@ -32,10 +32,10 @@
 
     <ul class="nav nav-tabs">
         <li class="nav-item">
-          <a class="nav-link active" data-bs-toggle="tab" href="#datasetup">Data Setup</a>
+          <a class="nav-link " data-bs-toggle="tab" href="#datasetup">Data Setup</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" data-bs-toggle="tab" href="#hotspot">Hotspot Analysis</a>
+          <a class="nav-link active" data-bs-toggle="tab" href="#hotspot">Hotspot Analysis</a>
         </li>
         <li class="nav-item">
           <a class="nav-link"  data-bs-toggle="tab" href="#modeling">Data Modeling</a>
@@ -47,12 +47,12 @@
 
       <div class="tab-content" id="myTabContent">
 
-        <div class="datasetup_container tab-pane fade show active" id="datasetup">
+        <div class="datasetup_container tab-pane fade show " id="datasetup">
             {% include "Data Setup/data setup.html" %} 
         </div>
 
 
-    <div id="hotspot" class="hotspotanalysis_container tab-pane fade">
+    <div id="hotspot" class="hotspotanalysis_container tab-pane fade active show">
         {% include "Hotspot Analysis/hotspot.html" %} 
     </div>
 

@@ -7,6 +7,12 @@ urlpatterns = [
     path('preview_data/', views.preview_data, name='preview_data'),
     path('handle_drop_columns/', views.handle_drop_columns, name='handle_drop_columns'),
     path('update_statistics/', views.update_statistics, name='update_statistics'),
+    path('download_csv/', views.download_csv, name='download_csv'),
+    path('handle_fill_null_values/', views.handle_fill_null_values, name='handle_fill_null_values/'),
+    path('handle_drop_rows/', views.handle_drop_rows, name='handle_drop_rows/'),
+    path('convert_to_geodataframe/', views.convert_to_geodataframe, name='convert_to_geodataframe/'),
+
+
     # path('describe_data/', views.describe_data, name='describe_data'),
     # path('preview_dataframe_ajax/', views.preview_dataframe_ajax, name='preview_dataframe_ajax'),
 ]

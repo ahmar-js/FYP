@@ -1,21 +1,98 @@
-<div class="container">
+<div class="container my-5">
     <div class="hotspot-setup">
-        <div class="df-to-gdf">
-            <div class="title">
-                <h2>Convert to geodataframe</h2>
-            </div>
-            <div class="select-cord-form">
-                <form method="post">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="" class="form-label">Select xy coordinates</label>
-                        <select class="form-select form-select-lg" name="select-xy" id="select-xy">
-                            <option selected value="">Select Lat</option>
-                            
-                        </select>
+        <div class="selectxy-flex-cointainer d-flex flex-column-reverse flex-lg-row flex-wrap justify-content-between">
+            <div class="df-to-gdf col-12 col-lg-5 mb-lg-0 mb-3">
+                <div class="title">
+                    <h2>Convert to geodataframe</h2>
+                </div>
+                <div id="geodataframe-alert-container"></div>
+                <div class="select-cord-form">
+                    <form method="post" id="geodata-conversion-form" class="form needs-validation" novalidate>
+                        {% csrf_token %}
+                        <div class="mb-3 select-y">
+                            <label for="select-y" class="form-label">Select y coordinate column</label>
+                            <select class="form-select" name="select-y" id="select-y" required>
+                                <option selected disabled value="">Select Lat</option>
+                                {% for column in preview_data.columns %}
+                                    <option value="{{ column }}">{{ column }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3 select-x">
+                            <label for="select-x" class="form-label">Select x coordinate column</label>
+                            <select class="form-select" name="select-x" id="select-x" required>
+                                <option selected disabled value="">Select Long</option>
+                                {% for column in preview_data.columns %}
+                                    <option value="{{ column }}">{{ column }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-success" type="submit">Convert</button>
+                        </div>
+                    </form>
+                    <div class="selectKNN my-3">
+                        <div class="title">
+                            <h2>Calculate K-nearest neighbors (KNN) spatial weights matrix</h2>
+                        </div>
+                        <div class="subtitle">
+                            <label for="choose-opt-k">Choose k</label>
+                        </div>
+                        <div class="description">
+                            <p>The parameter <b>k</b> specifies the number of nearest neighbors to consider when creating spatial weights in methods like K-nearest neighbors (KNN) spatial weights matrix.</p>
+                        </div>
+                        <div class="chooseK">
+                            <form class="form needs-validation" novalidate method="post">
+                                <input type="number" placeholder="Defaullt 2 max 1000" value="2" min="2" max="1000" class="form-control" name="K_val" id="choose-opt-k" required>
+                                <small class="text-muted">Defaullt 2 max 1000</small>
+                            </form>
+                            <div class="d-grid gap-2 mt-1">
+                                <button class="btn btn-success" type="submit">Submit</button>
+                            </div>
+                        </div>
+
                     </div>
-                </form>
+                </div>
             </div>
+            <div class="preview-gdf col-12 col-lg-7 ps-0 ps-lg-4" style="font-size: 12px;">
+                <div class="title">
+                    <div class="d-flex align-items-center">
+                    <div><h2>Preview Data</h2></div>
+                    <div class="ms-2"><!-- Spinner for loading indicator -->
+                        <div id="loading-spinner-preview-gdf" class="d-none spinner-border spinner-border-sm text-dark" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+                </div>
+                <div class="geodataframe">
+                    <div id="geodataframe-container" class="table-responsive preview-table">
+                        <!-- The GeoDataFrame will be displayed here -->
+                        <table class="table table-bordered table-dark table-hover">
+                            <thead>
+                                <tr>
+                                    {% for column in gdf.columns %}
+                                    <th>{{ column }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in gdf.iterrows %}
+                                <tr>
+                                    {% for value in row.1 %}
+                                    <td>{{ value }}</td>
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- {% for column in gdf.columns %}
+                    {{ column }}
+                {% endfor %}
+                {{geodataframe}}
+            </div> -->
         </div>
     </div>
 </div>

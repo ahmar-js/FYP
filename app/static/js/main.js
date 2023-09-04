@@ -177,6 +177,17 @@ $(document).ready(function () {
                 // console.log('AJAX request succeeded:', data);
                 // Parse the JSON data received from the server
                 var jsonData = JSON.parse(data.data);
+                // Check if the data is empty
+                if (jsonData.length === 0) {
+                    $('#preview-data-container').html('<p class="text-info"><b>Nothing to show.<b></p><br><p>Redirecting in 5 seconds...</p>');
+                    // Set a timeout to redirect after 5 seconds
+                    setTimeout(function () {
+                        window.location.href = '/upload/'; // Replace with your desired URL
+                    }, 5000); // 5000 milliseconds (5 seconds)
+                    return; // Exit the function early
+                }
+                
+                // console.log('jsonData:', jsonData);
 
                 // console.log('JSON data received:', jsonData)
 
@@ -200,6 +211,7 @@ $(document).ready(function () {
                 tableHtml += '</table>';
 
                 // Update the container with the table
+                // console.log(tableHtml);
                 $('#preview-data-container').html(tableHtml);
             },
             error: function (error) {
@@ -245,28 +257,203 @@ $(document).ready(function () {
                 updateStatistics()
                 // Remove the dropped column from the dropdown menu
                 $('#dropcolumnmenu option[value="' + selectedColumn + '"]').remove();
+                $('#fillnullvalues option[value="' + selectedColumn + '"]').remove();
+                $('#select-col-convert-dtype option[value="' + selectedColumn + '"]').remove();
+
+                $('#select-multi-drop-row').selectpicker('deselectAll'); // Deselect all options
+                $('#select-multi-drop-row').selectpicker('val', ''); // Clear the selected values
+                // Remove the dropped column from the Bootstrap Selectpicker
+                $('#select-multi-drop-row option[value="' + selectedColumn + '"]').remove();
+                $('#select-multi-drop-row').selectpicker('refresh'); // Refresh the Selectpicker
+                
+                
             },
             error: function (error) {
                 console.log('Error handling drop column:', error);
             }
         });
     });
+    
+    // Handle "Fill Null Values" form submission
+    $('#fill_na_values').submit(function (event) {
+        event.preventDefault();
+        var selectedColumn = $('#fillnullvalues').val();
+        var selectedStrategy = $('input[name="strategy"]:checked').val();
+        if (selectedStrategy == 'input_constant'){
+            var constantValue = $('input[name="strategy_constant"').val();
+        }
+        // Perform client-side validation to check the data type
+        else if ((selectedStrategy === 'mean' || selectedStrategy === 'median') && !isNumericColumn(selectedColumn)) {
+            showAlert('danger', '<b>Mean</b> or <b>Median</b> strategies can only be applied to numeric columns.', '#fillna-alert-container');
+            return;
+        }
+        // console.log(selectedStrategy);
+        // console.log(constantValue);
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        $.ajax({
+            headers: { 'X-CSRFToken': csrftoken },
+            url: '/handle_fill_null_values/',
+            type: 'POST',
+            data: {
+                column: selectedColumn,
+                strategy: selectedStrategy,
+                constant_value: constantValue
+            },
+            success: function (response) {
+                // console.log(response)
+                showAlert('success', response.message, '#fillna-alert-container');
+                var selectedLimit = $('#datalimit').val();
+                loadData(selectedLimit);
+                updateStatistics();
+            },
+            error: function (error) {
+                console.log('Error handling fill null values:', error);
+            }
+        });
+
+        // Function to check if a column is numeric (int or float)
+        function isNumericColumn(columnName) {
+            // Retrieve the DataFrame data types from a global variable or AJAX call
+            var dataTypes = {}; // Replace with actual data types
+            return dataTypes[columnName] === 'int64' || dataTypes[columnName] === 'float64';
+        }
+    });
+    
+    // Handle "Drop Rows" form submission
+    $('#drop_null_rows').submit(function (event) {
+        event.preventDefault();
+
+        // Get selected columns and strategy
+        var selectedColumns = $('#select-multi-drop-row').val();
+        var selectedStrategy = $('input[name="row_drop_strategy"]:checked').val();
+
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        $.ajax({
+            headers: { 'X-CSRFToken': csrftoken },
+            url: '/handle_drop_rows/',
+            type: 'POST',
+            data: {
+                'select-multi-drop-row': selectedColumns,  // Use the correct key here
+                row_drop_strategy: selectedStrategy,
+                
+            },
+            success: function (response) {
+                console.log(response);
+                showAlert('success', response.message, '#dropnullrows-alert-container');
+
+                var selectedLimit = $('#datalimit').val();
+                loadData(selectedLimit);
+                updateStatistics();
+            },
+            error: function (error) {
+                console.log('Error handling drop rows:', error);
+            }
+        });
+    });
+
+    // Hide the loading spinner initially
+    // hideLoadingSpinner();
+    // Function to reload the page and show the spinner
+    function reloadPageWithSpinner() {
+        // Show the loading spinner before reloading the page
+        showLoadingSpinner('#loading-spinner-preview-gdf');
+        window.location.reload();
+    }
+    // Handle GeoDataFrame conversion form submission
+    $('#geodata-conversion-form').submit(function (event) {
+        event.preventDefault();
+
+        // Show the loading spinner when the request starts
+        // showLoadingSpinner();
+        showLoadingSpinner('#loading-spinner-preview-gdf');
+        
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const selectedX = $('#select-x').val();
+        const selectedY = $('#select-y').val();
+        // console.log(selectedX, selectedY);
+        if ((selectedX == null || selectedY == null) || (selectedX === selectedY)){
+            showAlert('warning', `Please select valid columns.<br> Selected columns <b> ${selectedX}</b> and <b>${selectedY}</b>.`, '#geodataframe-alert-container');
+            return;
+        }
+
+        $.ajax({
+            headers: { 'X-CSRFToken': csrftoken },
+            url: '/convert_to_geodataframe/',
+            type: 'POST',
+            data: {
+                'select-x': selectedX,
+                'select-y': selectedY,
+            },
+            success: function (response) {
+                // Hide the loading spinner when the request is successful
+                hideLoadingSpinner('#loading-spinner-preview-gdf');
+                
+                // Handle the response, e.g., show a success message
+                // console.log(response);
+
+                // Check if the response contains the GeoDataFrame
+                // Check if the response contains the GeoDataFrame and its columns
+                if (response.geodataframe && response.columns) {
+                    // Display the GeoDataFrame in the specified container
+                    $('#geodataframe-container').html(response.geodataframe);
+
+                    // Populate the select menus with the new column names
+                    populateSelectMenus(response.columns);
+            
+                    // Show success message
+                    showAlert('success', response.message, '#geodataframe-alert-container');
+                    reloadPageWithSpinner('#loading-spinner-preview-gdf');
+                }
+                else if (response.error) {
+                    // Show error message
+                    showAlert('danger', response.error, '#geodataframe-alert-container');
+                } else {
+                    showAlert('danger', 'An error occurred during conversion.', '#geodataframe-alert-container');
+                }
+            },
+            error: function (error) {
+                hideLoadingSpinner('#loading-spinner-preview-gdf');
+                console.log('Error converting to GeoDataFrame:', error);
+                // Show error message
+                showAlert('danger', `An error occurred during conversion. `, '#geodataframe-alert-container');
+            }
+        });
+
+    });
 
 
-    // $('#describe-btn').click(function (event) {
-    //     event.preventDefault();
-    //     $.ajax({
-    //         url: '/describe_data/',
-    //         type: 'GET',
-    //         success: function (responseData) {  
-    //             console.log('AJAX request succeeded:', responseData);
-    //             $('#describe-data-container').html(responseData.data);
-    //         },
-    //         error: function (error) {
-    //             console.log('Error fetching data:', error);
-    //         }
-    //     });
-    // });
+    // Function to populate select menus with column names
+    function populateSelectMenus(columns) {
+        // Clear existing options
+        $('#select-x, #select-y').empty();
+
+        // Add a default disabled option
+        $('#select-x').append('<option selected disabled value="">Select Long</option>');
+        $('#select-y').append('<option selected disabled value="">Select Lat</option>');
+
+        // Add columns as options
+        columns.forEach(function (column) {
+            $('#select-x').append('<option value="' + column + '">' + column + '</option>');
+            $('#select-y').append('<option value="' + column + '">' + column + '</option>');
+        });
+    }
+
+
+    // Function to show the loading spinner
+    function showLoadingSpinner(id) {
+        $(id).removeClass('d-none');
+        $(id).addClass('d-inline-block');
+        
+    }
+
+    // Function to hide the loading spinner
+    function hideLoadingSpinner(id) {
+        $(id).addClass('d-none');
+        $(id).removeClass('d-inline-block');
+
+    }
 
     function updateStatistics() {
         $.ajax({

@@ -303,8 +303,9 @@
             
                             <!-- ----------- Fill null values form ----------- -->
             
-                            <div class="fill_naValues">
-                                <form class="form needs-validation" method="post" novalidate>
+                            <div class="fill_naValues mb-3">
+                                <div id="fillna-alert-container"></div>
+                                <form class="form needs-validation" method="post" id="fill_na_values" novalidate>
                                     {% csrf_token %}
             
                                     <div class="mb-3">
@@ -347,7 +348,7 @@
                                         <div class="form-check form-check-inline">
                                             <input class="form-check-input" type="radio" name="strategy" id="strategy_input"
                                                 value="input_constant" required>
-                                            <label class="form-check-label" for="strategy_pad">Fill Constant</label>
+                                            <label class="form-check-label" for="strategy_input">Fill Constant</label>
                                         </div>
                                         <div class="invalid-feedback">
                                             Please select any of the strategy.
@@ -363,13 +364,14 @@
                             <!-- ----------- fill null values form end ----------- -->
             
                             <!-- ----------- nullrows-dtype-container ----------- -->
-            
+                            <div id="dropnullrows-alert-container"></div>
+
                             <div class="nullrows-dtype-container d-flex">
             
                             <!-- ----------- drop null rows  ----------- -->
             
                             <div class="dropnullrows col-lg-5">
-                                <form class="form needs-validation" method="POST" novalidate>
+                                <form class="form needs-validation" method="POST" id="drop_null_rows" novalidate>
                                     {% csrf_token %}
                                     <div class="my-3">
                                         <label aria-describedby="helpId-multi" for="select-multi-drop-row" class="form-label">Select subset to null drop
@@ -677,7 +679,8 @@
                     <input type="submit" value="Reset">
                 </form>
             
+                <a href="{% url 'download_csv' %}" class="btn btn-primary my-2">Download CSV</a>
+
             
                 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
