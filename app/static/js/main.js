@@ -104,6 +104,50 @@ Array.prototype.slice.call(forms)
 
 //============= function to handle the coordinae systems and units end
 
+//============= function to handle star parameter option
+
+function updateStarParameterOptions() {
+    var selectStarParameterCheckbox = document.getElementById('select_star_parameter');
+    var starParameterInput = document.getElementById('star_parameter');
+
+    // Enable/disable the star_parameter input based on checkbox state
+    if (selectStarParameterCheckbox.checked) {
+        starParameterInput.removeAttribute('disabled');
+        starParameterInput.setAttribute('required', 'true');
+    } else {
+        starParameterInput.setAttribute('disabled', 'true');
+        starParameterInput.removeAttribute('required');
+    }
+}
+
+// Attach the onchange event handler to the checkbox
+document.getElementById('select_star_parameter').onchange = updateStarParameterOptions;
+
+//============= function to handle star parameter option end
+
+//============= function to handle view report button
+
+// document.addEventListener('DOMContentLoaded', function() {
+//     // Check if the form has been submitted recently (you can use a hidden input field to track this)
+//     var formSubmitted = localStorage.getItem('formSubmitted');
+    
+//     // Get the "View report" button element
+//     var viewReportButton = document.getElementById('view_hotspot_report');
+    
+//     // Check if the form has been submitted and enable the button if necessary
+//     if (formSubmitted === 'true') {
+//         viewReportButton.removeAttribute('disabled');
+//     }
+    
+//     // Add an event listener to the form submission
+//     document.querySelector('form-hotspot').addEventListener('submit', function() {
+//         // Set a flag in local storage to indicate that the form has been submitted
+//         localStorage.setItem('formSubmitted', 'true');
+//     });
+// });
+
+//============= function to handle view report button end
+
 
 // ============ ajax for data limiter
 
@@ -404,7 +448,10 @@ $(document).ready(function () {
             
                     // Show success message
                     showAlert('success', response.message, '#geodataframe-alert-container');
-                    reloadPageWithSpinner('#loading-spinner-preview-gdf');
+                    reloadPageWithSpinner();
+                    $('#Loading').removeClass('d-none');
+                    $('#preview_dataframe_title').addClass('d-none');
+
                 }
                 else if (response.error) {
                     // Show error message
@@ -422,6 +469,50 @@ $(document).ready(function () {
         });
 
     });
+
+    // Handle Getis-Ord Gi* Hotspot Analysis form submission
+    $('#gistar-form').submit(function (event) {
+        event.preventDefault();
+
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const selectedKVal = $('#choose-opt-k').val();
+        const selectedGIFeature = $('#select_gi_feature').val();
+        const selectStarParameter = $('#select_star_parameter').is(':checked');
+        const starParameter = selectStarParameter ? $('#star_parameter').val() : null;
+
+        $.ajax({
+            headers: { 'X-CSRFToken': csrftoken },
+            url: '/getis_ord_gi_hotspot_analysis/',
+            type: 'POST',
+            data: {
+                K_val: selectedKVal,
+                select_gi_feature: selectedGIFeature,
+                select_star_parameter: selectStarParameter,
+                star_parameter: starParameter,
+            },
+            success: function (response) {
+                // Handle the response, e.g., display results
+                console.log(response);
+
+                // Check if the response contains the analysis results
+                if (response.analysis_results) {
+                    
+                    $('#gi-star-reportbody').html(response.analysis_results);
+                    $('#geodataframe-container').html(response.geodataframe);
+                    $('#stats').html(response.stats);
+                    showAlert('success', response.message, '#gistar-alert-container');
+
+                }
+
+                // Enable the "View report" button
+                $('#view_hotspot_report').prop('disabled', false);
+            },
+            error: function (error) {
+                console.log('Error performing Getis-Ord Gi* Hotspot Analysis:', error);
+            }
+        });
+    });
+
 
 
     // Function to populate select menus with column names

@@ -11,6 +11,7 @@ urlpatterns = [
     path('handle_fill_null_values/', views.handle_fill_null_values, name='handle_fill_null_values/'),
     path('handle_drop_rows/', views.handle_drop_rows, name='handle_drop_rows/'),
     path('convert_to_geodataframe/', views.convert_to_geodataframe, name='convert_to_geodataframe/'),
+    path('getis_ord_gi_hotspot_analysis/', views.getis_ord_gi_hotspot_analysis, name='getis_ord_gi_hotspot_analysis/'),
 
 
     # path('describe_data/', views.describe_data, name='describe_data'),

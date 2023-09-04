@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import geopandas as gpd
+from pysal.lib import weights
+from pysal.explore import esda
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.http import HttpResponseRedirect, HttpResponse
@@ -142,9 +144,15 @@ def upload_file(request):
     if not json_geodata:
         gdf = None
         preview_geodataframe = preview_dataframe(df, limit=5)
+        columns = df.columns.tolist()
+        numeric_columns = [col for col in columns if pd.api.types.is_numeric_dtype(df[col])]
+
     else:
         gdf = json_to_geodataframe(json_geodata)
         preview_geodataframe = preview_dataframe(gdf, limit=5)
+        columns = gdf.columns.tolist()
+        numeric_columns = [col for col in columns if pd.api.types.is_numeric_dtype(gdf[col])]
+
 
 
 
@@ -260,7 +268,39 @@ def upload_file(request):
 
                 gdf = dataframe_to_Geodataframe(df, selected_x, selected_y)
                 request.session['geodata_frame'] = geodataframe_to_json(gdf)
-                preview_geodataframe = preview_dataframe(gdf, limit=5)
+
+            elif 'K_val' in request.POST and 'select_gi_feature' in request.POST:
+                selected_k_val = request.POST.get('k_val', None)
+                selected_gi_feature = request.POST.get('select_gi_feature', None)
+
+
+                # Check if the checkbox is selected in the POST data
+                select_star_parameter = request.POST.get('select_star_parameter', False)
+
+                star_parameter = None  # Initialize star_parameter as None
+
+
+                ## If the checkbox is selected, get the star_parameter value
+                if select_star_parameter:
+                    star_parameter_str = request.POST.get('star_parameter', None)
+                    if star_parameter_str is not None:
+                        try:
+                            star_parameter = float(star_parameter_str)
+                        except (ValueError, TypeError):
+                            star_parameter = None
+
+                gdf = Getis_ord_hotspot_Analysis(gdf, selected_k_val, selected_gi_feature, star_parameter, request)
+                request.session['geodata_frame'] = geodataframe_to_json(gdf)
+
+
+
+
+    # Handle the case when 'K_val' and 'select_gi_feature' are not in request.POST
+
+                    
+                            # df = star_parameter(request, df, star_parameter_col=selected_star_parameter)
+                
+
 
             
 
@@ -270,9 +310,12 @@ def upload_file(request):
 
 
 
-
+            columns = gdf.columns.tolist()
+            numeric_columns = [col for col in columns if pd.api.types.is_numeric_dtype(gdf[col])]
             # Update the DataFrame in the session
             request.session['data_frame'] = dataframe_to_json(df)
+            preview_geodataframe = preview_dataframe(gdf, limit=5)
+
 
             # request.session['geodata_frame'] = geodataframe_to_json(gdf)
 
@@ -304,6 +347,7 @@ def upload_file(request):
     
     context = {
         'gdf': preview_geodataframe,
+        'gdf_numeric': numeric_columns,
         'df_info': df_dtype_info,
         'preview_data': preview_data,
         'num_columns': num_cols,
@@ -321,6 +365,57 @@ def upload_file(request):
     return render(request, 'preview.html', context)
 
 
+def Getis_ord_hotspot_Analysis(geodata, selected_k_val=2, selected_gi_feature=None, selected_star_parameter=False, request=None):
+    
+    if selected_gi_feature is None:
+        if request is not None:
+            messages.error(request, 'Please Select a valid feature')
+        return None
+    else:
+        geodata[selected_gi_feature] = geodata[selected_gi_feature].astype(float)
+
+    if selected_k_val is None or not isinstance(selected_k_val, int):
+        selected_k_val = 2  # Set a default value for selected_k_val if it's None or not an integer
+    
+    w_knn = weights.KNN.from_dataframe(geodata, k=selected_k_val)
+
+    if not selected_star_parameter:
+        # Calculate K-nearest neighbors (KNN) spatial weights matrix
+        w_knn.transform = 'R'  # This will row-standardize the weights
+        weights.fill_diagonal(w_knn, w_knn.max_neighbors)  # Set diagonal to max weight
+        gi_knn = esda.G_Local(geodata[selected_gi_feature], w_knn, star=False)
+    else:
+        gi_knn = esda.G_Local(geodata[selected_gi_feature], w_knn, star=float(selected_star_parameter))
+    
+    # Calculate p-values for the Gi statistic using KNN weights
+    p_values_knn = gi_knn.p_sim
+
+    # Identify significant hotspots and coldspots using KNN weights
+    significant_hotspots_knn = (gi_knn.z_sim > 1.96) & (p_values_knn <= 0.05)
+    significant_coldspots_knn = (gi_knn.z_sim < -1.96) & (p_values_knn <= 0.05)
+
+    # Calculate Gi_bins
+    num_bins = 7
+    gi_bin_values = pd.cut(gi_knn.z_sim, bins=num_bins, labels=range(-3, 4))
+
+    # Create a mapping of Gi_bin values to hotspot analysis labels
+    hotspot_analysis_mapping = {
+        -3: "Cold Spot with 99% Confidence",
+        -2: "Cold Spot with 95% Confidence",
+        -1: "Cold Spot with 90% Confidence",
+        0: "Not Significant",
+        1: "Hot Spot with 90% Confidence",
+        2: "Hot Spot with 95% Confidence",
+        3: "Hot Spot with 99% Confidence"
+    }
+    
+    # Add z-scores, p-values, Gi_bins, and hotspot analysis to the DataFrame
+    geodata["z_score"] = gi_knn.z_sim
+    geodata["p_value"] = p_values_knn
+    geodata["gi_bin"] = gi_bin_values
+    geodata["hotspot_analysis"] = geodata["gi_bin"].map(hotspot_analysis_mapping)
+
+    return geodata
 
 
 
@@ -361,10 +456,13 @@ def convert_to_geodataframe(request):
             # Get the column names of the GeoDataFrame
             columns = gdf.columns.tolist()
 
-            # Convert the GeoDataFrame to HTML content
-            geodataframe_html = preview_geodataframe.to_html(classes='table table-dark fade-out table-bordered')  # Implement this function
+            # Filter columns based on data types (int or float)
+            numeric_columns = [col for col in columns if pd.api.types.is_numeric_dtype(gdf[col])]
 
-            return JsonResponse({'message': 'Conversion successful', 'geodataframe': geodataframe_html, 'columns': columns})
+            # Convert the GeoDataFrame to HTML content
+            geodataframe_html = preview_geodataframe.to_html(classes='table table-dark fade-out table-bordered') 
+
+            return JsonResponse({'message': 'Conversion successful', 'geodataframe': geodataframe_html, 'columns': numeric_columns})
         else:
             return JsonResponse({'error': 'Invalid request method'})
         
@@ -375,6 +473,52 @@ def convert_to_geodataframe(request):
         return JsonResponse({'error': 'An error occurred during conversion. ' + str(e)})
     
 
+
+def getis_ord_gi_hotspot_analysis(request):
+    json_geodata = request.session.get('geodata_frame')
+
+    if not json_geodata:
+        return JsonResponse({'error': 'GeoDataFrame not found'})
+    
+    gdf = json_to_geodataframe(json_geodata)
+
+    if request.method == 'POST':
+        selected_k_val = request.POST.get('K_val', None)
+        selected_gi_feature = request.POST.get('select_gi_feature', None)
+        select_star_parameter = request.POST.get('select_star_parameter', False)
+        star_parameter_str = request.POST.get('star_parameter', None)
+
+        # Check if the checkbox is selected in the POST data
+        select_star_parameter = request.POST.get('select_star_parameter', False)
+
+        star_parameter = None  # Initialize star_parameter as None
+
+        # If the checkbox is selected, get the star_parameter value
+        if select_star_parameter:
+            star_parameter_str = request.POST.get('star_parameter', None)
+            if star_parameter_str is not None:
+                try:
+                    star_parameter = float(star_parameter_str)
+                except (ValueError, TypeError):
+                    star_parameter = None
+        gdf = Getis_ord_hotspot_Analysis(gdf, selected_k_val, selected_gi_feature, star_parameter, request)
+        request.session['geodata_frame'] = geodataframe_to_json(gdf)
+        preview_geodataframe = preview_dataframe(gdf, limit=5)
+
+        stats_column = ['z_score', 'p_value', 'gi_bin', 'hotspot_analysis']
+        subset_gdf = gdf[stats_column]
+
+        # Calculate statistics using pandas
+        stats = subset_gdf.describe().to_html(classes='table table-hover table-bordered table-striped')
+
+        geodataframe_html = preview_geodataframe.to_html(classes='table table-dark fade-out table-bordered') 
+
+
+        analysis_results = f"K Value: <b>{selected_k_val}</b><br>Selected Feature: <b>{selected_gi_feature}</b></br>Star Parameter: <b>{star_parameter}</b><br>"
+
+        return JsonResponse({'message': 'Getis-ord Gi* calculated successfully!', 'analysis_results': analysis_results,'geodataframe': geodataframe_html, 'stats': stats})
+    else:
+        return JsonResponse({'error': 'Invalid request method'})
     
     
 
