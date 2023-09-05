@@ -492,14 +492,42 @@ $(document).ready(function () {
             },
             success: function (response) {
                 // Handle the response, e.g., display results
-                console.log(response);
+                // console.log(response.json_response);
+                var uniqueBins = JSON.parse(response.json_response.unique_bins);
+                // Sort the uniqueBins array in ascending order
+                uniqueBins.sort(function(a, b) {
+                    return a - b;
+                });
+                var unique_significance_levels = JSON.parse(response.json_response.unique_hotspots);
+                console.log('auniqueBins',  unique_significance_levels)
+
+                // Parse the JSON response
+                var graphData = JSON.parse(response.json_response.graph);
+                console.log('graphData', graphData);
+
+
+                // if (window.Plotly) {
+                //     // Plotly is defined, you can use it here
+                //     Plotly.plot('graph-container', graphData.data, graphData.layout, graphData.frames);
+                // } else {
+                //     console.error('Plotly library is not loaded.');
+                // }
+
+                Plotly.react('graph-container', graphData);
 
                 // Check if the response contains the analysis results
-                if (response.analysis_results) {
+                if (response.json_response.analysis_results) {
+                    // Get the span element by its ID
+                    var spanElement = document.getElementById('extra_stats_unique_bins');
+
+                    // Set the text content of the span element
+                    spanElement.textContent = uniqueBins.join(', '); // Join array elements with a comma and space
                     
-                    $('#gi-star-reportbody').html(response.analysis_results);
-                    $('#geodataframe-container').html(response.geodataframe);
-                    $('#stats').html(response.stats);
+                    $('#gi-star-reportbody').html(response.json_response.analysis_results);
+                    $('#geodataframe-container').html(response.json_response.geodataframe);
+                    $('#stats').html(response.json_response.stats);
+                    // $('#extra_stats_unique_bins').html(uniqueBins);
+                    // $('#extra_stats_unique_significance_levels').text(unique_significance_levels);
                     showAlert('success', response.message, '#gistar-alert-container');
 
                 }

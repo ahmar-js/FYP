@@ -1,4 +1,6 @@
+import json
 import pandas as pd
+import plotly.express as px
 import numpy as np
 import geopandas as gpd
 from pysal.lib import weights
@@ -392,6 +394,7 @@ def Getis_ord_hotspot_Analysis(geodata, selected_k_val=2, selected_gi_feature=No
 
     # Identify significant hotspots and coldspots using KNN weights
     significant_hotspots_knn = (gi_knn.z_sim > 1.96) & (p_values_knn <= 0.05)
+    print(significant_hotspots_knn)
     significant_coldspots_knn = (gi_knn.z_sim < -1.96) & (p_values_knn <= 0.05)
 
     # Calculate Gi_bins
@@ -408,12 +411,16 @@ def Getis_ord_hotspot_Analysis(geodata, selected_k_val=2, selected_gi_feature=No
         2: "Hot Spot with 95% Confidence",
         3: "Hot Spot with 99% Confidence"
     }
+
+    # Identify points that are not significant
+    # not_significant = (gi_knn.z_sim >= -1.96) & (gi_knn.z_sim <= 1.96) & (p_values_knn > 0.05)
     
     # Add z-scores, p-values, Gi_bins, and hotspot analysis to the DataFrame
     geodata["z_score"] = gi_knn.z_sim
     geodata["p_value"] = p_values_knn
     geodata["gi_bin"] = gi_bin_values
     geodata["hotspot_analysis"] = geodata["gi_bin"].map(hotspot_analysis_mapping)
+    # geodata.loc[not_significant, "hotspot_analysis"] = "Not Significant"
 
     return geodata
 
@@ -437,6 +444,11 @@ def preview_data(request):
     # print(paginated_data_json)
 
     return JsonResponse({'data': paginated_data_json})
+
+# def generate_hotspot_plot(request):
+    
+    
+#     return JsonResponse({'graph': graph_json})
 
 def convert_to_geodataframe(request):
     try:
@@ -505,18 +517,70 @@ def getis_ord_gi_hotspot_analysis(request):
         request.session['geodata_frame'] = geodataframe_to_json(gdf)
         preview_geodataframe = preview_dataframe(gdf, limit=5)
 
-        stats_column = ['z_score', 'p_value', 'gi_bin', 'hotspot_analysis']
+        stats_column = ['z_score', 'p_value']
         subset_gdf = gdf[stats_column]
+
+        unique_bins = gdf['gi_bin'].unique().tolist()
+        # Serialize the list to JSON
+        unique_bins_json = json.dumps(unique_bins)
+        unique_hotspots = gdf['hotspot_analysis'].unique().tolist()
+        unique_hotspots_json = json.dumps(unique_hotspots)
 
         # Calculate statistics using pandas
         stats = subset_gdf.describe().to_html(classes='table table-hover table-bordered table-striped')
 
         geodataframe_html = preview_geodataframe.to_html(classes='table table-dark fade-out table-bordered') 
+        analysis_results = f"Selected K Value: <b>{selected_k_val}</b><br>Selected Feature: <b>{selected_gi_feature}</b></br>Star Parameter: <b>{star_parameter}</b><br>"
+
+        # Load the GeoJSON file
+        with open('C:/Users/Ahmer/Downloads/PAK_adm3.json', 'r') as geojson_file:
+            data = json.load(geojson_file)
+
+        # Create an empty list to store districts in Punjab
+        punjab_districts = []
+
+        # Iterate through the features and filter those in Punjab
+        for feature in data['features']:
+            if feature['properties']['NAME_1'] == 'Punjab':
+                punjab_districts.append(feature)
+
+        # Create a new GeoJSON object with only Punjab districts
+        punjab_geojson = {
+            'type': 'FeatureCollection',
+            'features': punjab_districts
+        }
+        colors = {
+            "Cold Spot with 99% Confidence": "#4475B4",
+            "Cold Spot with 95% Confidence": "#849EBA",
+            "Cold Spot with 90% Confidence": "#C0CCBE",
+            "Not Significant" : "#9C9C9C",
+            "Hot Spot with 99% Confidence" : "#D62F27",
+            "Hot Spot with 90% Confidence" : "#FAB984",
+            "Hot Spot with 95% Confidence" : "#ED7551",
+        }
+        # Replace gdf, punjab_geojson, colors with your actual data and parameters
+        fig = px.choropleth(gdf, geojson=punjab_geojson, color="z_score",
+                        locations="pdistrict", featureidkey="properties.NAME_3",
+                         color_discrete_map=colors, hover_data=['patient_count'], hover_name='pdistrict', animation_frame='year'
+                       )
+
+        fig.update_geos(fitbounds="locations", visible=False)
+        fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+
+        # Convert the figure to JSON
+        graph_json = fig.to_json()
+
+        json_response = {
+            'analysis_results': analysis_results,
+            'geodataframe': geodataframe_html, 
+            'stats': stats, 
+            'unique_bins': unique_bins_json, 
+            'unique_hotspots': unique_hotspots_json,
+            'graph': graph_json,
+        }
 
 
-        analysis_results = f"K Value: <b>{selected_k_val}</b><br>Selected Feature: <b>{selected_gi_feature}</b></br>Star Parameter: <b>{star_parameter}</b><br>"
-
-        return JsonResponse({'message': 'Getis-ord Gi* calculated successfully!', 'analysis_results': analysis_results,'geodataframe': geodataframe_html, 'stats': stats})
+        return JsonResponse({'message': 'Getis-ord Gi* calculated successfully!', 'json_response': json_response})
     else:
         return JsonResponse({'error': 'Invalid request method'})
     

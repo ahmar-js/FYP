@@ -56,19 +56,24 @@
                     <div id="gistar-alert-container"></div>
                     <button class="btn btn-success" type="submit">Submit</button>
                     <button class="btn btn-secondary" type="button" id="view_hotspot_report" data-bs-toggle="modal" data-bs-target="#view_report_modal" disabled>View report</button>
+            
+                    
+                
                 </div>
                 <!-- Modal -->
-                <div class="modal fade" id="view_report_modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal fade" id="view_report_modal" tabindex="-1" aria-labelledby="view_report_modal_label" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered">
                       <div class="modal-content">
                         <div class="modal-header">
-                          <h1 class="modal-title fs-5" id="exampleModalLabel">Getis-ord Gi* Report</h1>
+                          <h1 class="modal-title fs-5" id="view_report_modal_label">Getis-ord Gi* statistics report</h1>
                           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
                             <div id="gi-star-reportbody"></div>
                           <!-- Data will be added here using js -->
                           <div id="stats" class="table-responsive"></div>
+                          <p><strong>Unique GiBins: </strong><span id="extra_stats_unique_bins"></dispanv></p>
+                          <div id="extra_stats_unique_significance_levels"></div>
                         </div>
                         <div class="modal-footer">
                           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -78,6 +83,7 @@
                     </div>
                   </div>
                 </form>
+                <div id="graph-container"></div>
             </div>
             
             <div class="df-to-gdf col-12 col-lg-3 mb-lg-0 mb-3">

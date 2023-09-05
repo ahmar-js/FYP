@@ -12,7 +12,7 @@ urlpatterns = [
     path('handle_drop_rows/', views.handle_drop_rows, name='handle_drop_rows/'),
     path('convert_to_geodataframe/', views.convert_to_geodataframe, name='convert_to_geodataframe/'),
     path('getis_ord_gi_hotspot_analysis/', views.getis_ord_gi_hotspot_analysis, name='getis_ord_gi_hotspot_analysis/'),
-
+    # path('generate_plot/', views.generate_plot, name='generate_plot'),
 
     # path('describe_data/', views.describe_data, name='describe_data'),
     # path('preview_dataframe_ajax/', views.preview_dataframe_ajax, name='preview_dataframe_ajax'),

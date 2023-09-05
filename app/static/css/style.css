@@ -99,3 +99,8 @@ thead tr th{
 /* .hotspotsetup .select_star_parameterz_container .form-control{
     width: auto!important;
 } */
+#extra_stats_unique_bins li{
+    list-style-type: none !important;
+    display: inline-block;
+    color: red;
+}
