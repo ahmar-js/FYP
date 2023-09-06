@@ -56,11 +56,12 @@
                     <div id="gistar-alert-container"></div>
                     <button class="btn btn-success" type="submit">Submit</button>
                     <button class="btn btn-secondary" type="button" id="view_hotspot_report" data-bs-toggle="modal" data-bs-target="#view_report_modal" disabled>View report</button>
+                    <button class="btn btn-outline-dark" type="button" id="visualize_hotspot" data-bs-toggle="modal" data-bs-target="#visualize_hotspot_modal" >Visualize results</button>
             
                     
                 
                 </div>
-                <!-- Modal -->
+                <!-- Modal view report -->
                 <div class="modal fade" id="view_report_modal" tabindex="-1" aria-labelledby="view_report_modal_label" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered">
                       <div class="modal-content">
@@ -82,8 +83,30 @@
                       </div>
                     </div>
                   </div>
+
+                <!-- Modal visualize hotspot results -->
+                <div class="modal fade" id="visualize_hotspot_modal" tabindex="-1" aria-labelledby="visualize_hotspot_modal_label" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-xl">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h1 class="modal-title fs-5" id="visualize_hotspot_modal_label">Gi* Results</h1>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body" style="border: 1px solid red;">
+                            <div class="controlvisualization-hotspot-container d-flex flex-wrap justify-content-between">
+                                <div class="control" style="border: 1px solid blue;">controls</div>
+                            <div id="graph-container" class="col-12 col-lg-8" style="border:1px solid palevioletred"> I am graph</div>
+
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                          <button type="button" class="btn btn-primary">Save changes</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </form>
-                <div id="graph-container"></div>
             </div>
             
             <div class="df-to-gdf col-12 col-lg-3 mb-lg-0 mb-3">
@@ -159,6 +182,8 @@
                 {% comment %} {{geodataframe}} {% endcomment %}
             </div> 
         </div>
+        
+
     </div>
 </div>
 </div>

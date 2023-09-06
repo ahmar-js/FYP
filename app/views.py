@@ -271,28 +271,28 @@ def upload_file(request):
                 gdf = dataframe_to_Geodataframe(df, selected_x, selected_y)
                 request.session['geodata_frame'] = geodataframe_to_json(gdf)
 
-            elif 'K_val' in request.POST and 'select_gi_feature' in request.POST:
-                selected_k_val = request.POST.get('k_val', None)
-                selected_gi_feature = request.POST.get('select_gi_feature', None)
+            # elif 'K_val' in request.POST and 'select_gi_feature' in request.POST:
+            #     selected_k_val = request.POST.get('k_val', None)
+            #     selected_gi_feature = request.POST.get('select_gi_feature', None)
 
 
-                # Check if the checkbox is selected in the POST data
-                select_star_parameter = request.POST.get('select_star_parameter', False)
+            #     # Check if the checkbox is selected in the POST data
+            #     select_star_parameter = request.POST.get('select_star_parameter', False)
 
-                star_parameter = None  # Initialize star_parameter as None
+            #     star_parameter = None  # Initialize star_parameter as None
 
 
-                ## If the checkbox is selected, get the star_parameter value
-                if select_star_parameter:
-                    star_parameter_str = request.POST.get('star_parameter', None)
-                    if star_parameter_str is not None:
-                        try:
-                            star_parameter = float(star_parameter_str)
-                        except (ValueError, TypeError):
-                            star_parameter = None
+            #     ## If the checkbox is selected, get the star_parameter value
+            #     if select_star_parameter:
+            #         star_parameter_str = request.POST.get('star_parameter', None)
+            #         if star_parameter_str is not None:
+            #             try:
+            #                 star_parameter = float(star_parameter_str)
+            #             except (ValueError, TypeError):
+            #                 star_parameter = None
 
-                gdf = Getis_ord_hotspot_Analysis(gdf, selected_k_val, selected_gi_feature, star_parameter, request)
-                request.session['geodata_frame'] = geodataframe_to_json(gdf)
+            #     gdf = Getis_ord_hotspot_Analysis(gdf, selected_k_val, selected_gi_feature, star_parameter, request)
+            #     request.session['geodata_frame'] = geodataframe_to_json(gdf)
 
 
 
@@ -366,6 +366,11 @@ def upload_file(request):
 
     return render(request, 'preview.html', context)
 
+def set_random_seed(seed=42):
+    """
+    Set a random seed for reproducibility.
+    """
+    np.random.seed(seed)
 
 def Getis_ord_hotspot_Analysis(geodata, selected_k_val=2, selected_gi_feature=None, selected_star_parameter=False, request=None):
     
@@ -376,17 +381,26 @@ def Getis_ord_hotspot_Analysis(geodata, selected_k_val=2, selected_gi_feature=No
     else:
         geodata[selected_gi_feature] = geodata[selected_gi_feature].astype(float)
 
-    if selected_k_val is None or not isinstance(selected_k_val, int):
-        selected_k_val = 2  # Set a default value for selected_k_val if it's None or not an integer
-    
-    w_knn = weights.KNN.from_dataframe(geodata, k=selected_k_val)
+    # if not isinstance(selected_k_val, int):
+    #     selected_k_val = 2  # Set a default value for selected_k_val if it's not an integer
+    # if not isinstance(selected_star_parameter, bool):
+    #     selected_star_parameter = False  # Set a default value for selected_star_parameter if it's not a bool
 
+     # Create a random seed for reproducibility
+    # set_random_seed()
+    w_knn = weights.KNN.from_dataframe(geodata, k=int(selected_k_val))
+    
+    print('here:', selected_star_parameter)
     if not selected_star_parameter:
+        print('here1:', selected_star_parameter)
         # Calculate K-nearest neighbors (KNN) spatial weights matrix
         w_knn.transform = 'R'  # This will row-standardize the weights
         weights.fill_diagonal(w_knn, w_knn.max_neighbors)  # Set diagonal to max weight
         gi_knn = esda.G_Local(geodata[selected_gi_feature], w_knn, star=False)
     else:
+        print('here2:', selected_star_parameter)
+        w_knn.transform = 'R'  # This will row-standardize the weights
+        weights.fill_diagonal(w_knn, w_knn.max_neighbors)  # Set diagonal to max weight
         gi_knn = esda.G_Local(geodata[selected_gi_feature], w_knn, star=float(selected_star_parameter))
     
     # Calculate p-values for the Gi statistic using KNN weights
@@ -394,7 +408,7 @@ def Getis_ord_hotspot_Analysis(geodata, selected_k_val=2, selected_gi_feature=No
 
     # Identify significant hotspots and coldspots using KNN weights
     significant_hotspots_knn = (gi_knn.z_sim > 1.96) & (p_values_knn <= 0.05)
-    print(significant_hotspots_knn)
+    # print(significant_hotspots_knn)
     significant_coldspots_knn = (gi_knn.z_sim < -1.96) & (p_values_knn <= 0.05)
 
     # Calculate Gi_bins
@@ -420,9 +434,126 @@ def Getis_ord_hotspot_Analysis(geodata, selected_k_val=2, selected_gi_feature=No
     geodata["p_value"] = p_values_knn
     geodata["gi_bin"] = gi_bin_values
     geodata["hotspot_analysis"] = geodata["gi_bin"].map(hotspot_analysis_mapping)
+
+    # print(geodata['z_score'].max())
     # geodata.loc[not_significant, "hotspot_analysis"] = "Not Significant"
 
     return geodata
+
+
+def getis_ord_gi_hotspot_analysis(request):
+    json_geodata = request.session.get('geodata_frame')
+
+    if not json_geodata:
+        return JsonResponse({'error': 'GeoDataFrame not found'})
+    
+    gdf = json_to_geodataframe(json_geodata)
+    print(gdf.head())
+    print(gdf.shape)
+
+    if request.method == 'POST':
+        selected_k_val = request.POST.get('K_val', None)
+        selected_gi_feature = request.POST.get('select_gi_feature', None)
+        # select_star_parameter = request.POST.get('select_star_parameter', False)
+        star_parameter_str = request.POST.get('star_parameter', None)
+
+        # Check if the checkbox is selected in the POST data
+        select_star_parameter = request.POST.get('select_star_parameter', False)
+
+        star_parameter = None  # Initialize star_parameter as None
+
+        # If the checkbox is selected, get the star_parameter value
+        if select_star_parameter:
+            star_parameter_str = request.POST.get('star_parameter', None)
+            if star_parameter_str is not None:
+                try:
+                    star_parameter = float(star_parameter_str)
+                except (ValueError, TypeError):
+                    star_parameter = None
+        # Set a random seed for reproducibility
+        # set_random_seed()
+        gdf = Getis_ord_hotspot_Analysis(gdf, selected_k_val, selected_gi_feature, star_parameter, request)
+        print("dgdf: ", gdf.head())
+        print(gdf['z_score'].max())
+        print(selected_k_val)
+        print(selected_gi_feature)
+        print(select_star_parameter)
+        print(star_parameter)
+        request.session['geodata_frame'] = geodataframe_to_json(gdf)
+        preview_geodataframe = preview_dataframe(gdf, limit=5)
+
+        stats_column = ['z_score', 'p_value']
+        subset_gdf = gdf[stats_column]
+
+        unique_bins = gdf['gi_bin'].unique().tolist()
+        # Serialize the list to JSON
+        unique_bins_json = json.dumps(unique_bins)
+        unique_hotspots = gdf['hotspot_analysis'].unique().tolist()
+        unique_hotspots_json = json.dumps(unique_hotspots)
+
+        # Calculate statistics using pandas
+        stats = subset_gdf.describe().to_html(classes='table table-hover table-bordered table-striped')
+
+        geodataframe_html = preview_geodataframe.to_html(classes='table table-dark fade-out table-bordered') 
+        analysis_results = f"Selected K Value: <b>{selected_k_val}</b><br>Selected Feature: <b>{selected_gi_feature}</b></br>Star Parameter: <b>{star_parameter}</b><br>"
+
+        # Load the GeoJSON file
+        with open('C:/Users/Ahmer/Downloads/PAK_adm3.json', 'r') as geojson_file:
+            data = json.load(geojson_file)
+
+        # Create an empty list to store districts in Punjab
+        punjab_districts = []
+
+        # Iterate through the features and filter those in Punjab
+        for feature in data['features']:
+            if feature['properties']['NAME_1'] == 'Punjab':
+                punjab_districts.append(feature)
+
+        # Create a new GeoJSON object with only Punjab districts
+        punjab_geojson = {
+            'type': 'FeatureCollection',
+            'features': punjab_districts
+        }
+        colors = {
+            "Cold Spot with 99% Confidence": "#4475B4",
+            "Cold Spot with 95% Confidence": "#849EBA",
+            "Cold Spot with 90% Confidence": "#C0CCBE",
+            "Not Significant" : "#9C9C9C",
+            "Hot Spot with 99% Confidence" : "#D62F27",
+            "Hot Spot with 90% Confidence" : "#FAB984",
+            "Hot Spot with 95% Confidence" : "#ED7551",
+        }
+        # Replace gdf, punjab_geojson, colors with your actual data and parameters
+        fig = px.choropleth(gdf, 
+                            geojson=punjab_geojson, 
+                            color="hotspot_analysis",
+                            locations="pdistrict", 
+                            featureidkey="properties.NAME_3",
+                            color_discrete_map=colors, 
+                            hover_data=['patient_count'], 
+                            hover_name='pdistrict',
+                            
+                       )
+
+        fig.update_geos(fitbounds="locations", visible=False)
+        fig.update_layout(margin={"r":10,"t":40,"l":10,"b":10})
+
+        # Convert the figure to JSON
+        graph_json = fig.to_json()
+
+        json_response = {
+            'analysis_results': analysis_results,
+            'geodataframe': geodataframe_html, 
+            'stats': stats, 
+            'unique_bins': unique_bins_json, 
+            'unique_hotspots': unique_hotspots_json,
+            'graph': graph_json,
+        }
+
+
+        return JsonResponse({'message': 'Getis-ord Gi* calculated successfully!', 'json_response': json_response})
+    else:
+        return JsonResponse({'error': 'Invalid request method'})
 
 
 
@@ -486,103 +617,7 @@ def convert_to_geodataframe(request):
     
 
 
-def getis_ord_gi_hotspot_analysis(request):
-    json_geodata = request.session.get('geodata_frame')
 
-    if not json_geodata:
-        return JsonResponse({'error': 'GeoDataFrame not found'})
-    
-    gdf = json_to_geodataframe(json_geodata)
-
-    if request.method == 'POST':
-        selected_k_val = request.POST.get('K_val', None)
-        selected_gi_feature = request.POST.get('select_gi_feature', None)
-        select_star_parameter = request.POST.get('select_star_parameter', False)
-        star_parameter_str = request.POST.get('star_parameter', None)
-
-        # Check if the checkbox is selected in the POST data
-        select_star_parameter = request.POST.get('select_star_parameter', False)
-
-        star_parameter = None  # Initialize star_parameter as None
-
-        # If the checkbox is selected, get the star_parameter value
-        if select_star_parameter:
-            star_parameter_str = request.POST.get('star_parameter', None)
-            if star_parameter_str is not None:
-                try:
-                    star_parameter = float(star_parameter_str)
-                except (ValueError, TypeError):
-                    star_parameter = None
-        gdf = Getis_ord_hotspot_Analysis(gdf, selected_k_val, selected_gi_feature, star_parameter, request)
-        request.session['geodata_frame'] = geodataframe_to_json(gdf)
-        preview_geodataframe = preview_dataframe(gdf, limit=5)
-
-        stats_column = ['z_score', 'p_value']
-        subset_gdf = gdf[stats_column]
-
-        unique_bins = gdf['gi_bin'].unique().tolist()
-        # Serialize the list to JSON
-        unique_bins_json = json.dumps(unique_bins)
-        unique_hotspots = gdf['hotspot_analysis'].unique().tolist()
-        unique_hotspots_json = json.dumps(unique_hotspots)
-
-        # Calculate statistics using pandas
-        stats = subset_gdf.describe().to_html(classes='table table-hover table-bordered table-striped')
-
-        geodataframe_html = preview_geodataframe.to_html(classes='table table-dark fade-out table-bordered') 
-        analysis_results = f"Selected K Value: <b>{selected_k_val}</b><br>Selected Feature: <b>{selected_gi_feature}</b></br>Star Parameter: <b>{star_parameter}</b><br>"
-
-        # Load the GeoJSON file
-        with open('C:/Users/Ahmer/Downloads/PAK_adm3.json', 'r') as geojson_file:
-            data = json.load(geojson_file)
-
-        # Create an empty list to store districts in Punjab
-        punjab_districts = []
-
-        # Iterate through the features and filter those in Punjab
-        for feature in data['features']:
-            if feature['properties']['NAME_1'] == 'Punjab':
-                punjab_districts.append(feature)
-
-        # Create a new GeoJSON object with only Punjab districts
-        punjab_geojson = {
-            'type': 'FeatureCollection',
-            'features': punjab_districts
-        }
-        colors = {
-            "Cold Spot with 99% Confidence": "#4475B4",
-            "Cold Spot with 95% Confidence": "#849EBA",
-            "Cold Spot with 90% Confidence": "#C0CCBE",
-            "Not Significant" : "#9C9C9C",
-            "Hot Spot with 99% Confidence" : "#D62F27",
-            "Hot Spot with 90% Confidence" : "#FAB984",
-            "Hot Spot with 95% Confidence" : "#ED7551",
-        }
-        # Replace gdf, punjab_geojson, colors with your actual data and parameters
-        fig = px.choropleth(gdf, geojson=punjab_geojson, color="z_score",
-                        locations="pdistrict", featureidkey="properties.NAME_3",
-                         color_discrete_map=colors, hover_data=['patient_count'], hover_name='pdistrict', animation_frame='year'
-                       )
-
-        fig.update_geos(fitbounds="locations", visible=False)
-        fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
-
-        # Convert the figure to JSON
-        graph_json = fig.to_json()
-
-        json_response = {
-            'analysis_results': analysis_results,
-            'geodataframe': geodataframe_html, 
-            'stats': stats, 
-            'unique_bins': unique_bins_json, 
-            'unique_hotspots': unique_hotspots_json,
-            'graph': graph_json,
-        }
-
-
-        return JsonResponse({'message': 'Getis-ord Gi* calculated successfully!', 'json_response': json_response})
-    else:
-        return JsonResponse({'error': 'Invalid request method'})
     
     
 

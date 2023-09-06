@@ -400,10 +400,12 @@ $(document).ready(function () {
     // Hide the loading spinner initially
     // hideLoadingSpinner();
     // Function to reload the page and show the spinner
-    function reloadPageWithSpinner() {
+    function reloadPageWithSpinner(response) {
         // Show the loading spinner before reloading the page
         showLoadingSpinner('#loading-spinner-preview-gdf');
         window.location.reload();
+        showAlert('success', response.message, '#geodataframe-alert-container');
+
     }
     // Handle GeoDataFrame conversion form submission
     $('#geodata-conversion-form').submit(function (event) {
@@ -447,8 +449,7 @@ $(document).ready(function () {
                     populateSelectMenus(response.columns);
             
                     // Show success message
-                    showAlert('success', response.message, '#geodataframe-alert-container');
-                    reloadPageWithSpinner();
+                    reloadPageWithSpinner(response);
                     $('#Loading').removeClass('d-none');
                     $('#preview_dataframe_title').addClass('d-none');
 
@@ -492,7 +493,7 @@ $(document).ready(function () {
             },
             success: function (response) {
                 // Handle the response, e.g., display results
-                // console.log(response.json_response);
+                console.log(response.json_response);
                 var uniqueBins = JSON.parse(response.json_response.unique_bins);
                 // Sort the uniqueBins array in ascending order
                 uniqueBins.sort(function(a, b) {
@@ -516,7 +517,7 @@ $(document).ready(function () {
                 Plotly.react('graph-container', graphData);
 
                 // Check if the response contains the analysis results
-                if (response.json_response.analysis_results) {
+                if (response.json_response) {
                     // Get the span element by its ID
                     var spanElement = document.getElementById('extra_stats_unique_bins');
 
@@ -532,8 +533,10 @@ $(document).ready(function () {
 
                 }
 
-                // Enable the "View report" button
+                // Enable the "View report", "visualize_hotspot" button
                 $('#view_hotspot_report').prop('disabled', false);
+                $('#visualize_hotspot').prop('disabled', false);
+
             },
             error: function (error) {
                 console.log('Error performing Getis-Ord Gi* Hotspot Analysis:', error);

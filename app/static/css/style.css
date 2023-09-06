@@ -95,6 +95,7 @@ thead tr th{
 }
 .hotspotsetup .container{
     max-width: 1920px;
+    padding: 25px;
 }
 /* .hotspotsetup .select_star_parameterz_container .form-control{
     width: auto!important;
