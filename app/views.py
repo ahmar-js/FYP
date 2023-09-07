@@ -5,7 +5,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import geopandas as gpd
 import io
-import pdfkit
 import urllib
 import base64
 from pysal.lib import weights
@@ -244,6 +243,7 @@ def upload_file(request):
                                 return HttpResponseRedirect(reverse('preview'))
                         else:
                             try:
+                                print("here ahmer")
                                 df = convert_lat_lon_columns(request, df, latitude_col=selected_lat, longitude_col=selected_long)
                             except ValueError as e:
                                 messages.error(request, f"Error: {e}")
@@ -276,28 +276,28 @@ def upload_file(request):
                 gdf = dataframe_to_Geodataframe(df, selected_x, selected_y)
                 request.session['geodata_frame'] = geodataframe_to_json(gdf)
 
-            # elif 'K_val' in request.POST and 'select_gi_feature' in request.POST:
-            #     selected_k_val = request.POST.get('k_val', None)
-            #     selected_gi_feature = request.POST.get('select_gi_feature', None)
+            elif 'K_val' in request.POST and 'select_gi_feature' in request.POST:
+                selected_k_val = request.POST.get('k_val', None)
+                selected_gi_feature = request.POST.get('select_gi_feature', None)
 
 
-            #     # Check if the checkbox is selected in the POST data
-            #     select_star_parameter = request.POST.get('select_star_parameter', False)
+                # Check if the checkbox is selected in the POST data
+                select_star_parameter = request.POST.get('select_star_parameter', False)
 
-            #     star_parameter = None  # Initialize star_parameter as None
+                star_parameter = None  # Initialize star_parameter as None
 
 
-            #     ## If the checkbox is selected, get the star_parameter value
-            #     if select_star_parameter:
-            #         star_parameter_str = request.POST.get('star_parameter', None)
-            #         if star_parameter_str is not None:
-            #             try:
-            #                 star_parameter = float(star_parameter_str)
-            #             except (ValueError, TypeError):
-            #                 star_parameter = None
+                ## If the checkbox is selected, get the star_parameter value
+                if select_star_parameter:
+                    star_parameter_str = request.POST.get('star_parameter', None)
+                    if star_parameter_str is not None:
+                        try:
+                            star_parameter = float(star_parameter_str)
+                        except (ValueError, TypeError):
+                            star_parameter = None
 
-            #     gdf = Getis_ord_hotspot_Analysis(gdf, selected_k_val, selected_gi_feature, star_parameter, request)
-            #     request.session['geodata_frame'] = geodataframe_to_json(gdf)
+                gdf = Getis_ord_hotspot_Analysis(gdf, selected_k_val, selected_gi_feature, star_parameter, request)
+                request.session['geodata_frame'] = geodataframe_to_json(gdf)
 
 
 
@@ -309,19 +309,13 @@ def upload_file(request):
                 
 
 
-            
+            if gdf is not None:
+                columns = gdf.columns.tolist()
+                numeric_columns = [col for col in columns if pd.api.types.is_numeric_dtype(gdf[col])]
+                preview_geodataframe = preview_dataframe(gdf, limit=5)
 
-
-
-
-
-
-
-            columns = gdf.columns.tolist()
-            numeric_columns = [col for col in columns if pd.api.types.is_numeric_dtype(gdf[col])]
             # Update the DataFrame in the session
             request.session['data_frame'] = dataframe_to_json(df)
-            preview_geodataframe = preview_dataframe(gdf, limit=5)
 
 
             # request.session['geodata_frame'] = geodataframe_to_json(gdf)
