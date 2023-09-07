@@ -503,8 +503,8 @@ $(document).ready(function () {
                 console.log('auniqueBins',  unique_significance_levels)
 
                 // Parse the JSON response
-                var graphData = JSON.parse(response.json_response.graph);
-                console.log('graphData', graphData);
+                // var graphData = JSON.parse(response.json_response.graph);
+                // console.log('graphData', graphData);
 
 
                 // if (window.Plotly) {
@@ -514,7 +514,7 @@ $(document).ready(function () {
                 //     console.error('Plotly library is not loaded.');
                 // }
 
-                Plotly.react('graph-container', graphData);
+                // Plotly.react('graph-container', graphData);
 
                 // Check if the response contains the analysis results
                 if (response.json_response) {
@@ -527,6 +527,7 @@ $(document).ready(function () {
                     $('#gi-star-reportbody').html(response.json_response.analysis_results);
                     $('#geodataframe-container').html(response.json_response.geodataframe);
                     $('#stats').html(response.json_response.stats);
+                    $("#graph-container").html('<img class="img-fluid" src="data:image/png;base64,' + response.json_response.sangi + '" alt="Moran\'s Scatterplot">');
                     // $('#extra_stats_unique_bins').html(uniqueBins);
                     // $('#extra_stats_unique_significance_levels').text(unique_significance_levels);
                     showAlert('success', response.message, '#gistar-alert-container');

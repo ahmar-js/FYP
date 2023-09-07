@@ -55,37 +55,35 @@
                 <div class="mt-1">
                     <div id="gistar-alert-container"></div>
                     <button class="btn btn-success" type="submit">Submit</button>
-                    <button class="btn btn-secondary" type="button" id="view_hotspot_report" data-bs-toggle="modal" data-bs-target="#view_report_modal" disabled>View report</button>
-                    <button class="btn btn-outline-dark" type="button" id="visualize_hotspot" data-bs-toggle="modal" data-bs-target="#visualize_hotspot_modal" >Visualize results</button>
-            
+                    <button class="btn btn-secondary" type="button" id="view_hotspot_report" data-bs-toggle="modal" data-bs-target="#view_report_modal" disabled>View report</button>            
                     
                 
                 </div>
                 <!-- Modal view report -->
                 <div class="modal fade" id="view_report_modal" tabindex="-1" aria-labelledby="view_report_modal_label" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-dialog modal-dialog-centered modal-xl">
                       <div class="modal-content">
                         <div class="modal-header">
                           <h1 class="modal-title fs-5" id="view_report_modal_label">Getis-ord Gi* statistics report</h1>
                           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <div id="gi-star-reportbody"></div>
-                          <!-- Data will be added here using js -->
+                            <div id="graph-container" class="d-flex justify-content-center"></div>
                           <div id="stats" class="table-responsive"></div>
+                          <div id="gi-star-reportbody"></div>
                           <p><strong>Unique GiBins: </strong><span id="extra_stats_unique_bins"></dispanv></p>
                           <div id="extra_stats_unique_significance_levels"></div>
                         </div>
                         <div class="modal-footer">
                           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                          <button type="button" class="btn btn-primary">Save changes</button>
+                          <button type="button" class="btn btn-primary">Download</button>
                         </div>
                       </div>
                     </div>
                   </div>
 
                 <!-- Modal visualize hotspot results -->
-                <div class="modal fade" id="visualize_hotspot_modal" tabindex="-1" aria-labelledby="visualize_hotspot_modal_label" aria-hidden="true">
+                <!-- <div class="modal fade" id="visualize_hotspot_modal" tabindex="-1" aria-labelledby="visualize_hotspot_modal_label" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered modal-xl">
                       <div class="modal-content">
                         <div class="modal-header">
@@ -94,8 +92,27 @@
                         </div>
                         <div class="modal-body" style="border: 1px solid red;">
                             <div class="controlvisualization-hotspot-container d-flex flex-wrap justify-content-between">
-                                <div class="control" style="border: 1px solid blue;">controls</div>
-                            <div id="graph-container" class="col-12 col-lg-8" style="border:1px solid palevioletred"> I am graph</div>
+                                <div class="control" style="border: 1px solid blue;">
+                                    <div class="mb-3 select-color-control-container">
+                                        <label for="control-color-col" class="form-label">Color</label>
+                                        <select class="form-select form-select" name="control-color-col" id="control-color-col">
+                                            <option disabled value="" selected>Select one</option>
+                                            {% for column in gdf.columns %}
+                                                <option value="{{ column }}">{{ column }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="mb-3 select-color-control-container">
+                                        <label for="control-color-col" class="form-label">Color</label>
+                                        <select class="form-select form-select" name="control-color-col" id="control-color-col">
+                                            <option disabled value="" selected>Select one</option>
+                                            {% for column in gdf.columns %}
+                                                <option value="{{ column }}">{{ column }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            <div id="graph-containegr" class="col-12 col-lg-8" style="border:1px solid palevioletred"> I am graph</div>
 
                             </div>
                         </div>
@@ -105,7 +122,7 @@
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </div> -->
                 </form>
             </div>
             

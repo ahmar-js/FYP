@@ -2,7 +2,12 @@ import json
 import pandas as pd
 import plotly.express as px
 import numpy as np
+import matplotlib.pyplot as plt
 import geopandas as gpd
+import io
+import pdfkit
+import urllib
+import base64
 from pysal.lib import weights
 from pysal.explore import esda
 from django.shortcuts import render, redirect
@@ -366,11 +371,7 @@ def upload_file(request):
 
     return render(request, 'preview.html', context)
 
-def set_random_seed(seed=42):
-    """
-    Set a random seed for reproducibility.
-    """
-    np.random.seed(seed)
+
 
 def Getis_ord_hotspot_Analysis(geodata, selected_k_val=2, selected_gi_feature=None, selected_star_parameter=False, request=None):
     
@@ -381,13 +382,7 @@ def Getis_ord_hotspot_Analysis(geodata, selected_k_val=2, selected_gi_feature=No
     else:
         geodata[selected_gi_feature] = geodata[selected_gi_feature].astype(float)
 
-    # if not isinstance(selected_k_val, int):
-    #     selected_k_val = 2  # Set a default value for selected_k_val if it's not an integer
-    # if not isinstance(selected_star_parameter, bool):
-    #     selected_star_parameter = False  # Set a default value for selected_star_parameter if it's not a bool
 
-     # Create a random seed for reproducibility
-    # set_random_seed()
     w_knn = weights.KNN.from_dataframe(geodata, k=int(selected_k_val))
     
     print('here:', selected_star_parameter)
@@ -437,8 +432,41 @@ def Getis_ord_hotspot_Analysis(geodata, selected_k_val=2, selected_gi_feature=No
 
     # print(geodata['z_score'].max())
     # geodata.loc[not_significant, "hotspot_analysis"] = "Not Significant"
+    
+    # Calculate the local Moran's I values
+    moran_loc = esda.Moran_Local(gi_knn.z_sim, w_knn, permutations=9999)
 
-    return geodata
+    # Create a Moran's Scatterplot with quadrants and labels
+    fig, ax = plt.subplots(figsize=(10, 8))
+
+    # Plot High-High (HH) Quadrant
+    plt.scatter(gi_knn.z_sim[moran_loc.q==1], moran_loc.Is[moran_loc.q==1], color='red', alpha=0.5, label='HH')
+
+    # Plot Low-Low (LL) Quadrant
+    plt.scatter(gi_knn.z_sim[moran_loc.q==3], moran_loc.Is[moran_loc.q==3], color='blue', alpha=0.5, label='LL')
+
+    # Plot High-Low (HL) Quadrant
+    plt.scatter(gi_knn.z_sim[moran_loc.q==2], moran_loc.Is[moran_loc.q==2], color='green', alpha=0.5, label='HL')
+
+    # Plot Low-High (LH) Quadrant
+    plt.scatter(gi_knn.z_sim[moran_loc.q==4], moran_loc.Is[moran_loc.q==4], color='orange', alpha=0.5, label='LH')
+    # Add labels and title
+    plt.xlabel("Getis-Ord Gi* Z-Score")
+    plt.ylabel("Local Moran's I")
+    plt.title("Moran's Scatterplot for Getis-Ord Gi* Analysis")
+    # Add a dashed reference line
+    plt.axhline(0, color="gray", linestyle="--")
+    plt.axvline(0, color="gray", linestyle="--")
+    # Add a legend
+    plt.legend()
+    # Save the plot as an image
+    img_data = io.BytesIO()
+    plt.savefig(img_data, format='png')
+    img_data.seek(0)
+    # Encode the image data to base64
+    base64_img = base64.b64encode(img_data.read()).decode()
+
+    return geodata, base64_img
 
 
 def getis_ord_gi_hotspot_analysis(request):
@@ -448,8 +476,6 @@ def getis_ord_gi_hotspot_analysis(request):
         return JsonResponse({'error': 'GeoDataFrame not found'})
     
     gdf = json_to_geodataframe(json_geodata)
-    print(gdf.head())
-    print(gdf.shape)
 
     if request.method == 'POST':
         selected_k_val = request.POST.get('K_val', None)
@@ -472,13 +498,8 @@ def getis_ord_gi_hotspot_analysis(request):
                     star_parameter = None
         # Set a random seed for reproducibility
         # set_random_seed()
-        gdf = Getis_ord_hotspot_Analysis(gdf, selected_k_val, selected_gi_feature, star_parameter, request)
-        print("dgdf: ", gdf.head())
-        print(gdf['z_score'].max())
-        print(selected_k_val)
-        print(selected_gi_feature)
-        print(select_star_parameter)
-        print(star_parameter)
+        gdf, base64_img = Getis_ord_hotspot_Analysis(gdf, selected_k_val, selected_gi_feature, star_parameter, request)
+
         request.session['geodata_frame'] = geodataframe_to_json(gdf)
         preview_geodataframe = preview_dataframe(gdf, limit=5)
 
@@ -497,49 +518,51 @@ def getis_ord_gi_hotspot_analysis(request):
         geodataframe_html = preview_geodataframe.to_html(classes='table table-dark fade-out table-bordered') 
         analysis_results = f"Selected K Value: <b>{selected_k_val}</b><br>Selected Feature: <b>{selected_gi_feature}</b></br>Star Parameter: <b>{star_parameter}</b><br>"
 
-        # Load the GeoJSON file
-        with open('C:/Users/Ahmer/Downloads/PAK_adm3.json', 'r') as geojson_file:
-            data = json.load(geojson_file)
+        # # Load the GeoJSON file
+        # with open('C:/Users/Ahmer/Downloads/PAK_adm3.json', 'r') as geojson_file:
+        #     data = json.load(geojson_file)
 
-        # Create an empty list to store districts in Punjab
-        punjab_districts = []
+        # # Create an empty list to store districts in Punjab
+        # punjab_districts = []
 
-        # Iterate through the features and filter those in Punjab
-        for feature in data['features']:
-            if feature['properties']['NAME_1'] == 'Punjab':
-                punjab_districts.append(feature)
+        # # Iterate through the features and filter those in Punjab
+        # for feature in data['features']:
+        #     if feature['properties']['NAME_1'] == 'Punjab':
+        #         punjab_districts.append(feature)
 
-        # Create a new GeoJSON object with only Punjab districts
-        punjab_geojson = {
-            'type': 'FeatureCollection',
-            'features': punjab_districts
-        }
-        colors = {
-            "Cold Spot with 99% Confidence": "#4475B4",
-            "Cold Spot with 95% Confidence": "#849EBA",
-            "Cold Spot with 90% Confidence": "#C0CCBE",
-            "Not Significant" : "#9C9C9C",
-            "Hot Spot with 99% Confidence" : "#D62F27",
-            "Hot Spot with 90% Confidence" : "#FAB984",
-            "Hot Spot with 95% Confidence" : "#ED7551",
-        }
-        # Replace gdf, punjab_geojson, colors with your actual data and parameters
-        fig = px.choropleth(gdf, 
-                            geojson=punjab_geojson, 
-                            color="hotspot_analysis",
-                            locations="pdistrict", 
-                            featureidkey="properties.NAME_3",
-                            color_discrete_map=colors, 
-                            hover_data=['patient_count'], 
-                            hover_name='pdistrict',
+        # # Create a new GeoJSON object with only Punjab districts
+        # punjab_geojson = {
+        #     'type': 'FeatureCollection',
+        #     'features': punjab_districts
+        # }
+        # colors = {
+        #     "Cold Spot with 99% Confidence": "#4475B4",
+        #     "Cold Spot with 95% Confidence": "#849EBA",
+        #     "Cold Spot with 90% Confidence": "#C0CCBE",
+        #     "Not Significant" : "#9C9C9C",
+        #     "Hot Spot with 99% Confidence" : "#D62F27",
+        #     "Hot Spot with 90% Confidence" : "#FAB984",
+        #     "Hot Spot with 95% Confidence" : "#ED7551",
+        # }
+        # # Replace gdf, punjab_geojson, colors with your actual data and parameters
+        # fig = px.choropleth(gdf, 
+        #                     geojson=punjab_geojson, 
+        #                     color="hotspot_analysis",
+        #                     locations="pdistrict", 
+        #                     featureidkey="properties.NAME_3",
+        #                     color_discrete_map=colors, 
+        #                     hover_data=['patient_count'], 
+        #                     hover_name='pdistrict',
                             
-                       )
+        #                )
 
-        fig.update_geos(fitbounds="locations", visible=False)
-        fig.update_layout(margin={"r":10,"t":40,"l":10,"b":10})
+        # fig.update_geos(fitbounds="locations", visible=False)
+        # fig.update_layout(margin={"r":10,"t":40,"l":10,"b":10})
 
-        # Convert the figure to JSON
-        graph_json = fig.to_json()
+        # # Convert the figure to JSON
+        # graph_json = fig.to_json()
+
+
 
         json_response = {
             'analysis_results': analysis_results,
@@ -547,7 +570,8 @@ def getis_ord_gi_hotspot_analysis(request):
             'stats': stats, 
             'unique_bins': unique_bins_json, 
             'unique_hotspots': unique_hotspots_json,
-            'graph': graph_json,
+            # 'graph': graph_json,
+            'sangi': base64_img,
         }
 
 

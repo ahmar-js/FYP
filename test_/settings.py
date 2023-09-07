@@ -82,6 +82,12 @@ DATABASES = {
     }
 }
 
+PDFKIT_CONFIG = {
+    'WKHTMLTOPDF_BIN': 'C:/Program Files/wkhtmltopdf',  # Replace with the actual path to wkhtmltopdf executable
+    'OPTIONS': {
+        'quiet': '',
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators

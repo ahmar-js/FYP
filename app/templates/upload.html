@@ -4,12 +4,17 @@
     <title>Upload CSV File</title>
 </head>
 <body>
-    <h1>Upload CSV File</h1>
+    <div style="display: flex; justify-content: center; margin-top: 20px;">
+        <div style="margin-top: 10px;">
+    <h1>AI Based Health Informatics Analytical Dashboard</h1>
+    <h3>Upload CSV File</h3>
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <input type="file" name="csv_file" accept=".csv">
         <button type="submit">Upload CSV</button>
     </form>
+</div>
+</div>
     
 </body>
 </html>
