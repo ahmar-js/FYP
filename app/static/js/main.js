@@ -499,22 +499,6 @@ $(document).ready(function () {
                 uniqueBins.sort(function(a, b) {
                     return a - b;
                 });
-                var unique_significance_levels = JSON.parse(response.json_response.unique_hotspots);
-                console.log('auniqueBins',  unique_significance_levels)
-
-                // Parse the JSON response
-                // var graphData = JSON.parse(response.json_response.graph);
-                // console.log('graphData', graphData);
-
-
-                // if (window.Plotly) {
-                //     // Plotly is defined, you can use it here
-                //     Plotly.plot('graph-container', graphData.data, graphData.layout, graphData.frames);
-                // } else {
-                //     console.error('Plotly library is not loaded.');
-                // }
-
-                // Plotly.react('graph-container', graphData);
 
                 // Check if the response contains the analysis results
                 if (response.json_response) {
@@ -536,7 +520,6 @@ $(document).ready(function () {
 
                 // Enable the "View report", "visualize_hotspot" button
                 $('#view_hotspot_report').prop('disabled', false);
-                $('#visualize_hotspot').prop('disabled', false);
 
             },
             error: function (error) {
@@ -544,6 +527,48 @@ $(document).ready(function () {
             }
         });
     });
+
+    // Handle Facebook Prophet model form submission
+    $('#fb_prophet_modeling_form').submit(function (event) {
+        event.preventDefault();
+
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const selectedDateFeature = $('#select-date-column-fb').val();
+        const selectedDistrictFeature = $('#select-district-column-fb').val();
+        const selectedForecastFeature = $('#select-forecast-column-fb').val();
+        const selectedForecastFreq = $('#select-forecast-mode-fb').val();
+        const selectedForecastPeriod = parseInt($('#Enter-forecast-interval-fb').val());
+        const selectedSeasonalityMode = $('#select-seasonality-mode-fb').val();
+
+        $.ajax({
+            headers: { 'X-CSRFToken': csrftoken },
+            url: '/model_fb_prophet/',
+            type: 'POST',
+            data: {
+                'select-date-column-fb': selectedDateFeature,
+                'select-district-column-fb': selectedDistrictFeature,
+                'select-forecast-column-fb': selectedForecastFeature,
+                'select-forecast-mode-fb': selectedForecastFreq,
+                'Enter-forecast-interval-fb': selectedForecastPeriod,
+                'select-seasonality-mode-fb': selectedSeasonalityMode,
+            },
+            success: function (response) {
+                // Handle the response, e.g., display results
+                console.log(response);
+
+                // Check if the response contains the Prophet model results
+                if (response.prophet_results) {
+                    // Display the results in the prophet-results container
+                    $('#prophet-results').html(response.prophet_results.observed_range);
+                    $('#prophet-resultsp').html(response.prophet_results.predicted_range);
+                }
+            },
+            error: function (error) {
+                console.log('Error modeling with Facebook Prophet:', error);
+            }
+        });
+    });
+
 
 
 

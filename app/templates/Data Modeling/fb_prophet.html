@@ -1,0 +1,94 @@
+<div class="container">
+    <div id="prophet-results"></div>
+    <div id="prophet-resultsp"></div>
+    
+    <div class="model-title">
+        <h1>Facebook Prophet</h1>
+    </div>
+    <form class="form needs-validation" novalidate method="post" id="fb_prophet_modeling_form">
+        {% csrf_token %}
+        <div class="select-features d-flex flex-wrap justify-content-around">
+            <div class="select-date-col col-lg-5 col-12">
+                <div class="mb-3">
+                    <label for="select-date-column-fb" class="form-label">Select date column</label>
+                    <select class="form-select form-select-sm" name="select-date-column-fb" id="select-date-column-fb"
+                        required>
+                        <option disabled value="" selected>Select feature</option>
+                        {% for column in gdf.columns %}
+                            <option value="{{ column }}">{{ column }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="select-district-col col-lg-5 col-12">
+                <div class="mb-3">
+                    <label for="select-district-column-fb" class="form-label">Select district column</label>
+                    <select class="form-select form-select-sm" name="select-district-column-fb"
+                        id="select-district-column-fb">
+                        <option disabled selected>Select feature</option>
+                        {% for column in gdf.columns %}
+                            <option value="{{ column }}">{{ column }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="select-target-col col-lg-5 col-12">
+                <div class="mb-3">
+                    <label for="select-forecast-column-fb" class="form-label">Feature variable to forecast</label>
+                    <select class="form-select form-select-sm" name="select-forecast-column-fb"
+                        id="select-forecast-column-fb" required>
+                        <option disabled value="" selected>Select feature</option>
+                        {% for column in gdf.columns %}
+                            <option value="{{ column }}">{{ column }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="select-forecasting-mode col-lg-5 col-12">
+                <div class="mb-3">
+                    <label for="select-forecast-mode-fb" class="form-label">Forecasting frequency</label>
+                    <select class="form-select form-select-sm" name="select-forecast-mode-fb"
+                        id="select-forecast-mode-fb" required>
+                        <option disabled value="" selected>Select mode</option>
+                        <option value="A">Year</option>
+                        <option value="Q">Quarter</option>
+                        <option value="M">Month</option>
+                        <option value="W">Week</option>
+                        <option value="D">Day</option>
+                        <option value="H">Hour</option>
+                        <option value="T">Minute</option>
+                        <option value="S">Second</option>
+                        <option value="L">Millisecond</option>
+                        <option value="U">Microsecond</option>
+                        <option value="N">Nanosecond</option>
+                    </select>
+                </div>
+            </div>
+            <div class="Enter-forecasting-interval col-lg-5 col-12">
+                <div class="mb-3">
+                    <label for="Enter-forecast-interval-fb" class="form-label">Intervals to forecast</label>
+                    <input type="number" class="form-control form-control-sm" min="1" max="10000"
+                        name="Enter-forecast-interval-fb" placeholder="e.g, No of days to forecast"
+                        id="Enter-forecast-interval-fb" required>
+                    <small class="text-muted">min 1 max 10000 </small>
+                </div>
+            </div>
+            <div class="select-seasonality-mode col-lg-5 col-12">
+                <div class="mb-3">
+                    <label for="select-seasonality-mode-fb" class="form-label">Seasonality mode</label>
+                    <select class="form-select form-select-sm" name="select-seasonality-mode-fb"
+                        id="select-seasonality-mode-fb" required>
+                        <option value="additive" selected>Additive (Default)</option>
+                        <option value="multiplicative">Multiplicative</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="ms-lg-4">
+            <button class="btn btn-sm btn-success ms-lg-3" data-bs-toggle="tooltip" data-bs-placement="top" title="Forecast results!" type="submit">Forecast</button>
+            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Detailed Results" disabled>View Report</button>
+
+        </div>
+    </form>
+
+</div>

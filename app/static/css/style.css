@@ -93,7 +93,8 @@
 thead tr th{
     text-align: left!important;
 }
-.hotspotsetup .container{
+.hotspotsetup .container,
+.data_modeling .container{
     max-width: 1920px;
     padding: 25px;
 }

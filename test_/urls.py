@@ -12,6 +12,7 @@ urlpatterns = [
     path('handle_drop_rows/', views.handle_drop_rows, name='handle_drop_rows/'),
     path('convert_to_geodataframe/', views.convert_to_geodataframe, name='convert_to_geodataframe/'),
     path('getis_ord_gi_hotspot_analysis/', views.getis_ord_gi_hotspot_analysis, name='getis_ord_gi_hotspot_analysis/'),
+    path('model_fb_prophet/', views.model_fb_prophet, name='model_fb_prophet/'),
     # path('generate_plot/', views.generate_plot, name='generate_plot'),
 
     # path('describe_data/', views.describe_data, name='describe_data'),

@@ -5,8 +5,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import geopandas as gpd
 import io
-import urllib
 import base64
+from prophet.plot import plot_plotly, plot_components_plotly
+from prophet import Prophet
 from pysal.lib import weights
 from pysal.explore import esda
 from django.shortcuts import render, redirect
@@ -367,6 +368,12 @@ def upload_file(request):
 
 
 
+
+
+
+
+
+
 def Getis_ord_hotspot_Analysis(geodata, selected_k_val=2, selected_gi_feature=None, selected_star_parameter=False, request=None):
     
     if selected_gi_feature is None:
@@ -462,6 +469,119 @@ def Getis_ord_hotspot_Analysis(geodata, selected_k_val=2, selected_gi_feature=No
 
     return geodata, base64_img
 
+def facebook_prophet(dataframe, date_col, feature_y, freq, intervals, seasonality, district=None):
+    """
+    Perform forecasting using Facebook Prophet.
+
+    Parameters:
+        - dataframe: pandas DataFrame containing time series data.
+        - date_col: Name of the column in the dataframe containing date values.
+        - feature_y: Name of the column in the dataframe containing the target variable.
+        - district: Optional, specify a district for forecasting.
+        - freq: specify the frequency for the time series data.
+        - intervals: specify the number of intervals for forecasting.
+        - seasonality: specify the seasonality components.
+
+    Returns:
+        - dataframe: Original dataframe used for forecasting.
+        - forecast: Prophet forecast result.
+        - observed_range: Tuple with observed date range information.
+        - predicted_range: Tuple with predicted date range information.
+        - pred_result_fig: Plotly figure for forecast results.
+        - forcast_component_fig: Plotly figure for forecast components.
+    """
+    if district is not None:
+        # Apply district filter (replace 'district_column' with the actual column name)
+        # dataframe = dataframe[dataframe['district_column'] == district]
+        print('here sas')
+
+    features = [date_col, feature_y]
+    dataframe = dataframe[features]
+
+    # Drop rows with any null values
+    dataframe = dataframe.dropna()
+
+    # Renaming the columns with respect to the prophet library
+    dataframe.columns = ['ds', 'y']
+
+    # Convert date column to pandas datetime
+    dataframe['ds'] = pd.to_datetime(dataframe['ds'])
+
+    # Sort the DataFrame by the 'ds' column in ascending order
+    dataframe = dataframe.sort_values(by='ds')
+
+    # Reset index
+    dataframe.reset_index(drop=True, inplace=True)
+    print('df length', len(dataframe))
+
+    # Forecasting
+    m = Prophet(seasonality_mode=seasonality)
+    m.fit(dataframe)
+    future = m.make_future_dataframe(periods=intervals, freq=freq)
+    forecast = m.predict(future)
+
+    # Getting observed and predicted date ranges
+    o_first_date = dataframe['ds'].head(1).values[0]
+    o_last_date = dataframe['ds'].tail(1).values[0]
+    # observed_range = (o_first_date, o_last_date)
+
+    # Convert the observed range to a list of strings
+    observed_range = 'Observed range ', str(o_first_date), ' to ', str(o_last_date)
+
+
+    p_first_date = forecast['ds'].head(1).values[0]
+    p_last_date = forecast['ds'].tail(1).values[0]
+    # predicted_range = (p_first_date, p_last_date)
+
+    # Convert the predicted range to a list of strings
+    predicted_range = 'Predicted range ', str(p_first_date), ' to ', str(p_last_date)
+
+    # Plotting results
+    pred_result_fig = plot_plotly(m, forecast)
+
+    # Plotting components
+    forcast_component_fig = plot_components_plotly(m, forecast)
+
+    return dataframe, forecast, observed_range, predicted_range, pred_result_fig, forcast_component_fig
+
+
+def model_fb_prophet(request):
+    json_geodata = request.session.get('geodata_frame')
+    json_data = request.session.get('data_frame')
+    if not json_geodata and not json_data:
+        return JsonResponse({'error': 'GeoDataFrame not found to model' })
+    
+    if json_geodata:
+        mdf = json_to_geodataframe(json_geodata)
+    else:
+        mdf = json_to_dataframe(json_data)
+
+    if request.method == 'POST':
+        selected_date_feature = request.POST.get('select-date-column-fb', None)
+        selected_district_feature = request.POST.get('select-district-column-fb', None)
+        selected_forecast_feature = request.POST.get('select-forecast-column-fb', None)
+        selected_forecast_freq = request.POST.get('select-forecast-mode-fb', None)
+        selected_forecast_period = int(request.POST.get('Enter-forecast-interval-fb',None))
+        selected_seasonality_mode = request.POST.get('select-seasonality-mode-fb', None)
+
+        if selected_district_feature is None:
+          dataframe, forecast, observed_range, predicted_range, pred_result_fig, forcast_component_fig  = facebook_prophet(mdf, selected_date_feature, selected_forecast_feature, selected_forecast_freq, selected_forecast_period, selected_seasonality_mode, selected_district_feature)
+        else:
+          dataframe, forecast, observed_range, predicted_range, pred_result_fig, forcast_component_fig = facebook_prophet(mdf, selected_date_feature, selected_forecast_feature, selected_forecast_freq, selected_forecast_period, selected_seasonality_mode, selected_district_feature)
+
+        
+         # Assuming you have results as a string or HTML
+        # prophet_results = "<p>Prophet model results:</p>"
+        jsonresponse = {
+            'observed_range': observed_range,
+            'predicted_range': predicted_range,
+        }
+
+        return JsonResponse({'prophet_results': jsonresponse})
+    else:
+        return JsonResponse({'error': 'Invalid request method'})
+
+        
 
 def getis_ord_gi_hotspot_analysis(request):
     json_geodata = request.session.get('geodata_frame')
