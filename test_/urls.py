@@ -13,8 +13,11 @@ urlpatterns = [
     path('convert_to_geodataframe/', views.convert_to_geodataframe, name='convert_to_geodataframe/'),
     path('getis_ord_gi_hotspot_analysis/', views.getis_ord_gi_hotspot_analysis, name='getis_ord_gi_hotspot_analysis/'),
     path('model_fb_prophet/', views.model_fb_prophet, name='model_fb_prophet/'),
+    path('fetch_unique_districts/', views.fetch_unique_districts, name='fetch_unique_districts'),
+    path('export_fb_forecasted_csv/', views.export_fb_forecasted_csv, name='export_fb_forecasted_csv'),
+]
     # path('generate_plot/', views.generate_plot, name='generate_plot'),
 
     # path('describe_data/', views.describe_data, name='describe_data'),
     # path('preview_dataframe_ajax/', views.preview_dataframe_ajax, name='preview_dataframe_ajax'),
-]
+

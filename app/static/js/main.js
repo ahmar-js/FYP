@@ -518,7 +518,7 @@ $(document).ready(function () {
 
                 }
 
-                // Enable the "View report", "visualize_hotspot" button
+                // Enable the "View report", button
                 $('#view_hotspot_report').prop('disabled', false);
 
             },
@@ -535,6 +535,7 @@ $(document).ready(function () {
         const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
         const selectedDateFeature = $('#select-date-column-fb').val();
         const selectedDistrictFeature = $('#select-district-column-fb').val();
+        const selecteduniquedistrictvalue = $('#select-unique-district').val();
         const selectedForecastFeature = $('#select-forecast-column-fb').val();
         const selectedForecastFreq = $('#select-forecast-mode-fb').val();
         const selectedForecastPeriod = parseInt($('#Enter-forecast-interval-fb').val());
@@ -547,6 +548,7 @@ $(document).ready(function () {
             data: {
                 'select-date-column-fb': selectedDateFeature,
                 'select-district-column-fb': selectedDistrictFeature,
+                'select-unique-district':selecteduniquedistrictvalue,
                 'select-forecast-column-fb': selectedForecastFeature,
                 'select-forecast-mode-fb': selectedForecastFreq,
                 'Enter-forecast-interval-fb': selectedForecastPeriod,
@@ -555,21 +557,30 @@ $(document).ready(function () {
             success: function (response) {
                 // Handle the response, e.g., display results
                 console.log(response);
-
+                
                 // Check if the response contains the Prophet model results
                 if (response.prophet_results) {
                     // Display the results in the prophet-results container
-                    $('#prophet-results').html(response.prophet_results.observed_range);
-                    $('#prophet-resultsp').html(response.prophet_results.predicted_range);
+                    $('#op_range').html(response.prophet_results.forecasted_range);
+                    $('#forecasted_head_data').html(response.prophet_results.forecast_head);
+                    $('#forecasted_tail_data').html(response.prophet_results.forecast_tail);
+
+                    var received_pred_Figure = JSON.parse(response.prophet_results.pred_result_fig);
+
+                    Plotly.newPlot('pred-res-fig-container', received_pred_Figure);
+                    var received_component_Figure = JSON.parse(response.prophet_results.forcast_component_fig);
+
+                    Plotly.newPlot('forcast_component_fig_container', received_component_Figure);
+
                 }
+                $('#fbprop_report_btn').prop('disabled', false);
+
             },
             error: function (error) {
                 console.log('Error modeling with Facebook Prophet:', error);
             }
         });
     });
-
-
 
 
     // Function to populate select menus with column names
@@ -649,6 +660,42 @@ $(document).ready(function () {
 
 });
 
+$(document).ready(function () {
+    // Event listener for changes in the district column select menu
+    $('#select-district-column-fb').change(function () {
+        var selectedDistrictColumn = $(this).val();
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        // Make an AJAX request to fetch unique district values
+        $.ajax({
+            headers: { 'X-CSRFToken': csrftoken },
+            url: '/fetch_unique_districts/',
+            type: 'POST', 
+            data: {
+                selected_district_column: selectedDistrictColumn
+            },
+            success: function (response) {
+                console.log(response);
+                // Clear existing options in the unique district select menu
+                $('#select-unique-district').empty();
+                
+                // Populate the unique district values from the response
+                for (var i = 0; i < response.unique_districts.length; i++) {
+                    var districtValue = response.unique_districts[i];
+                    $('#select-unique-district').append($('<option>', {
+                        value: districtValue,
+                        text: districtValue
+                    }));
+                }
+            $('#select-unique-district').prop('disabled', false);
+            },
+            error: function (error) {
+                console.log('Error fetching unique districts:', error);
+            }
+        });
+    });
+});
+
 
 
     // // Handle "Fill Null Values" form submission
@@ -660,4 +707,15 @@ $(document).ready(function () {
     //     // Perform AJAX request to handle null value filling
     //     // Update the DataFrame in the session, and update statistics
     //     // Refresh data if needed
+    // });
+
+
+    // for fbprophet
+    // Enable or disable "select-unique-district" based on selection
+    // $('#select-district-column-fb').change(function () {
+    //     if ($(this).val() !== "") {
+    //         $('#select-unique-district').prop('disabled', false);
+    //     } else {
+    //         $('#select-unique-district').prop('disabled', true);
+    //     }
     // });

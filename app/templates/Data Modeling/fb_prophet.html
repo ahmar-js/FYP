@@ -1,7 +1,5 @@
 <div class="container">
-    <div id="prophet-results"></div>
-    <div id="prophet-resultsp"></div>
-    
+    <div class="fbprophet_prep mb-4">
     <div class="model-title">
         <h1>Facebook Prophet</h1>
     </div>
@@ -21,16 +19,25 @@
                 </div>
             </div>
             <div class="select-district-col col-lg-5 col-12">
-                <div class="mb-3">
+                <div class="mb-3 d-flex flex-wrap">
+                    <div class="select-district-col-container col-lg-6 col-12 pe-2">
                     <label for="select-district-column-fb" class="form-label">Select district column</label>
                     <select class="form-select form-select-sm" name="select-district-column-fb"
                         id="select-district-column-fb">
                         <option disabled selected>Select feature</option>
-                        {% for column in gdf.columns %}
+                        {% for column in non_numeric_frame %}
                             <option value="{{ column }}">{{ column }}</option>
                         {% endfor %}
                     </select>
                 </div>
+                <div class="select-district-val-container col-lg-6 col-12">
+                    <!-- Select menu for unique district values -->
+                    <label for="select-unique-district" class="form-label">Select district or reigon</label>
+                    <select class="form-select form-select-sm" name="select-unique-district" id="select-unique-district" disabled>
+                        <option disabled selected>Select value</option>
+                    </select>
+                </div>
+            </div>
             </div>
             <div class="select-target-col col-lg-5 col-12">
                 <div class="mb-3">
@@ -38,7 +45,7 @@
                     <select class="form-select form-select-sm" name="select-forecast-column-fb"
                         id="select-forecast-column-fb" required>
                         <option disabled value="" selected>Select feature</option>
-                        {% for column in gdf.columns %}
+                        {% for column in gdf_numeric %}
                             <option value="{{ column }}">{{ column }}</option>
                         {% endfor %}
                     </select>
@@ -86,9 +93,48 @@
         </div>
         <div class="ms-lg-4">
             <button class="btn btn-sm btn-success ms-lg-3" data-bs-toggle="tooltip" data-bs-placement="top" title="Forecast results!" type="submit">Forecast</button>
-            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Detailed Results" disabled>View Report</button>
-
+            <button class="btn btn-sm btn-outline-secondary" type="button" id="fbprop_report_btn" data-bs-target="#fbprop_view_report_modal" data-bs-toggle="modal" disabled>View Report</button>
         </div>
     </form>
+</div>
+    <!-- fbprophet view report modal -->
+    <div class="modal fade" id="fbprop_view_report_modal" tabindex="-1" aria-labelledby="fb_prop_view_report_modal_label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-fullscreen">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="fb_prop_view_report_modal_label">Facebook Prophet Forecasting Report</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="prophet-results">
+                    <div class="figs d-flex justify-content-center flex-wrap">
+                    <div id="pred-res-fig-container" class="col-lg-6 col-12 d-flex justify-content-center"></div>
+                    <div id="forcast_component_fig_container" class="col-lg-6 col-12 d-flex justify-content-center"></div>
+                </div>
+                    <div id="op_range"></div>
+                    <span class="text-muted">Showing top 5 forecasted records</span>
+                    <div id="forecasted_head_data" class="table-responsive"></div>
+                    <span class="text-muted">Showing last 5 forecasted records</span>
+                    <div id="forecasted_tail_data" class="table-responsive"></div>
+                    
+                </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-primary">Download</button>
+              <a href="{% url 'export_fb_forecasted_csv' %}" class="btn btn-success btn-export-csv">Export CSV</a>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="diagnostix_validation">
+        <div class="title">
+            <h1>Model Diagnostic & Cross Validation</h1>
+        </div>
+      </div>
+
 
 </div>

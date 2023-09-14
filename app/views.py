@@ -1,3 +1,7 @@
+import warnings
+# Filter out specific warnings
+warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 import json
 import pandas as pd
 import plotly.express as px
@@ -20,6 +24,7 @@ from .geographical_coordinate_system import convert_dms_to_decimal
 from .Geooding import convert_lat_lng_to_addresses, concatenate_and_geocode
 from .json_serializable import dataframe_to_json, json_to_dataframe, geodataframe_to_json, json_to_geodataframe
 from django.http import JsonResponse
+
 
 
 #================ For custom preview data limiter ================
@@ -153,12 +158,14 @@ def upload_file(request):
         preview_geodataframe = preview_dataframe(df, limit=5)
         columns = df.columns.tolist()
         numeric_columns = [col for col in columns if pd.api.types.is_numeric_dtype(df[col])]
+        non_numeric_columns = [col for col in columns if not pd.api.types.is_numeric_dtype(df[col])]
 
     else:
         gdf = json_to_geodataframe(json_geodata)
         preview_geodataframe = preview_dataframe(gdf, limit=5)
         columns = gdf.columns.tolist()
         numeric_columns = [col for col in columns if pd.api.types.is_numeric_dtype(gdf[col])]
+        non_numeric_columns = [col for col in columns if not pd.api.types.is_numeric_dtype(gdf[col])]
 
 
 
@@ -313,6 +320,8 @@ def upload_file(request):
             if gdf is not None:
                 columns = gdf.columns.tolist()
                 numeric_columns = [col for col in columns if pd.api.types.is_numeric_dtype(gdf[col])]
+                non_numeric_columns = [col for col in columns if not pd.api.types.is_numeric_dtype(gdf[col])]
+
                 preview_geodataframe = preview_dataframe(gdf, limit=5)
 
             # Update the DataFrame in the session
@@ -342,6 +351,9 @@ def upload_file(request):
 
         except Exception as e:
             return render(request, 'error.html', {'error_message': 'An error occurred: ' + str(e)})
+        
+    columns = df.columns.tolist()    
+    non_numeric_columns = [col for col in columns if not pd.api.types.is_numeric_dtype(df[col])]
     # Calculate unique value counts for each column
     unique_value_counts = df.nunique()
     unique_counts_html = unique_value_counts.to_frame(name='Unique Values').to_html(classes='table table-striped')
@@ -350,6 +362,7 @@ def upload_file(request):
     context = {
         'gdf': preview_geodataframe,
         'gdf_numeric': numeric_columns,
+        'non_numeric_frame': non_numeric_columns,
         'df_info': df_dtype_info,
         'preview_data': preview_data,
         'num_columns': num_cols,
@@ -469,7 +482,7 @@ def Getis_ord_hotspot_Analysis(geodata, selected_k_val=2, selected_gi_feature=No
 
     return geodata, base64_img
 
-def facebook_prophet(dataframe, date_col, feature_y, freq, intervals, seasonality, district=None):
+def facebook_prophet(dataframe, date_col, feature_y, freq, intervals, seasonality, district=None, unique_district=None):
     """
     Perform forecasting using Facebook Prophet.
 
@@ -477,7 +490,8 @@ def facebook_prophet(dataframe, date_col, feature_y, freq, intervals, seasonalit
         - dataframe: pandas DataFrame containing time series data.
         - date_col: Name of the column in the dataframe containing date values.
         - feature_y: Name of the column in the dataframe containing the target variable.
-        - district: Optional, specify a district for forecasting.
+        - district: Optional, specify a district column for forecasting.
+        - unique_district: Optional, spedify unique district for forecasts.
         - freq: specify the frequency for the time series data.
         - intervals: specify the number of intervals for forecasting.
         - seasonality: specify the seasonality components.
@@ -490,10 +504,10 @@ def facebook_prophet(dataframe, date_col, feature_y, freq, intervals, seasonalit
         - pred_result_fig: Plotly figure for forecast results.
         - forcast_component_fig: Plotly figure for forecast components.
     """
-    if district is not None:
+    if district is not None and unique_district is not None and district != '' and unique_district != '':
         # Apply district filter (replace 'district_column' with the actual column name)
-        # dataframe = dataframe[dataframe['district_column'] == district]
-        print('here sas')
+        dataframe = dataframe[dataframe[district] == unique_district]
+        # print('here sas')
 
     features = [date_col, feature_y]
     dataframe = dataframe[features]
@@ -512,7 +526,7 @@ def facebook_prophet(dataframe, date_col, feature_y, freq, intervals, seasonalit
 
     # Reset index
     dataframe.reset_index(drop=True, inplace=True)
-    print('df length', len(dataframe))
+    # print('df length', len(dataframe))
 
     # Forecasting
     m = Prophet(seasonality_mode=seasonality)
@@ -534,15 +548,16 @@ def facebook_prophet(dataframe, date_col, feature_y, freq, intervals, seasonalit
     # predicted_range = (p_first_date, p_last_date)
 
     # Convert the predicted range to a list of strings
-    predicted_range = 'Predicted range ', str(p_first_date), ' to ', str(p_last_date)
+    predicted_range = '<br> Forecasted range ', str(p_first_date), ' to ', str(p_last_date)
 
+    forecasted_range = observed_range + predicted_range
     # Plotting results
     pred_result_fig = plot_plotly(m, forecast)
 
     # Plotting components
     forcast_component_fig = plot_components_plotly(m, forecast)
 
-    return dataframe, forecast, observed_range, predicted_range, pred_result_fig, forcast_component_fig
+    return dataframe, forecast, forecasted_range, pred_result_fig, forcast_component_fig
 
 
 def model_fb_prophet(request):
@@ -559,27 +574,73 @@ def model_fb_prophet(request):
     if request.method == 'POST':
         selected_date_feature = request.POST.get('select-date-column-fb', None)
         selected_district_feature = request.POST.get('select-district-column-fb', None)
+        selected_district_feature_value = request.POST.get('select-unique-district', None)
         selected_forecast_feature = request.POST.get('select-forecast-column-fb', None)
         selected_forecast_freq = request.POST.get('select-forecast-mode-fb', None)
         selected_forecast_period = int(request.POST.get('Enter-forecast-interval-fb',None))
         selected_seasonality_mode = request.POST.get('select-seasonality-mode-fb', None)
 
         if selected_district_feature is None:
-          dataframe, forecast, observed_range, predicted_range, pred_result_fig, forcast_component_fig  = facebook_prophet(mdf, selected_date_feature, selected_forecast_feature, selected_forecast_freq, selected_forecast_period, selected_seasonality_mode, selected_district_feature)
+          dataframe, forecast, forecasted_range, pred_result_fig, forcast_component_fig  = facebook_prophet(mdf, selected_date_feature, selected_forecast_feature, selected_forecast_freq, selected_forecast_period, selected_seasonality_mode, selected_district_feature, selected_district_feature_value)
         else:
-          dataframe, forecast, observed_range, predicted_range, pred_result_fig, forcast_component_fig = facebook_prophet(mdf, selected_date_feature, selected_forecast_feature, selected_forecast_freq, selected_forecast_period, selected_seasonality_mode, selected_district_feature)
+          dataframe, forecast, forecasted_range, pred_result_fig, forcast_component_fig = facebook_prophet(mdf, selected_date_feature, selected_forecast_feature, selected_forecast_freq, selected_forecast_period, selected_seasonality_mode, selected_district_feature, selected_district_feature_value)
+
+        forecast_head = forecast.head().to_html(classes='table table-striped table-bordered table-hover')
+        forecast_tail = forecast.tail().to_html(classes='table table-striped table-bordered table-hover')
+        
+        if forecast is not None:
+            request.session['fb_forcasted_df'] = dataframe_to_json(forecast) 
+
+        if selected_district_feature_value is None or selected_district_feature_value == '':
+          selected_district_feature_value = 'Complete Data'
+
+        pred_result_fig.update_layout(
+            title_text=f"Forcasted next {selected_forecast_period}{selected_forecast_freq} {selected_forecast_feature} of {selected_district_feature_value} ",  
+        )
+
+        forcast_component_fig.update_layout(
+        title_text=f"Seasonal decomposition with {selected_seasonality_mode} regressor"
+        )
 
         
-         # Assuming you have results as a string or HTML
-        # prophet_results = "<p>Prophet model results:</p>"
         jsonresponse = {
-            'observed_range': observed_range,
-            'predicted_range': predicted_range,
+            'forecasted_range': forecasted_range,
+            'forecast_head': forecast_head,
+            'forecast_tail': forecast_tail,
+            'pred_result_fig': pred_result_fig.to_json(),
+            'forcast_component_fig' : forcast_component_fig.to_json(),
         }
 
         return JsonResponse({'prophet_results': jsonresponse})
     else:
         return JsonResponse({'error': 'Invalid request method'})
+    
+
+#for forecasting only    
+def fetch_unique_districts(request):
+    if request.method == 'POST':
+        selected_district_column = request.POST.get('selected_district_column', None)
+
+        # Check if a district column was selected
+        if selected_district_column is not None:
+            json_geodata = request.session.get('geodata_frame')
+            json_data = request.session.get('data_frame')
+            if not json_geodata and not json_data:
+                return JsonResponse({'error': 'GeoDataFrame not found to model' })
+    
+            if json_geodata:
+                mdf = json_to_geodataframe(json_geodata)
+            else:
+                mdf = json_to_dataframe(json_data)
+                # Get the unique district values
+                unique_districts = mdf[selected_district_column].unique()
+                # Return the unique district values as JSON
+                return JsonResponse({'unique_districts': list(unique_districts)})
+
+    # Handle invalid or missing data
+    return JsonResponse({'error': 'Invalid request or missing data'})
+
+
 
         
 
@@ -836,6 +897,26 @@ def download_csv(request):
         return response
 
     return HttpResponse('CSV data not available in the session.')
+
+def export_fb_forecasted_csv(request):
+    # Store the CSV data in the session
+    # request.session['csv_data'] = csv_file.read().decode('utf-8')
+
+    # Retrieve the CSV data from the session
+    csv_data = request.session.get('fb_forcasted_df')
+
+    if csv_data:
+        # Parse the JSON data into a DataFrame
+        df = pd.read_json(csv_data)
+
+        # Convert the DataFrame to CSV format
+        csv_data = df.to_csv(index=False)
+        # Create a response with the CSV data as a file attachment
+        response = HttpResponse(csv_data, content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="fbprophet_forecasted_results.csv"'
+        return response
+
+    return HttpResponse('Forecast data not available in the session to export.')
 
 
 def handle_fill_null_values(request):
