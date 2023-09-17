@@ -1,3 +1,4 @@
+import re
 import warnings
 # Filter out specific warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -6,6 +7,9 @@ import json
 import pandas as pd
 import plotly.express as px
 import numpy as np
+from prophet.diagnostics import cross_validation
+from prophet.diagnostics import performance_metrics
+from prophet.plot import plot_cross_validation_metric
 import matplotlib.pyplot as plt
 import geopandas as gpd
 import io
@@ -504,10 +508,12 @@ def facebook_prophet(dataframe, date_col, feature_y, freq, intervals, seasonalit
         - pred_result_fig: Plotly figure for forecast results.
         - forcast_component_fig: Plotly figure for forecast components.
     """
-    if district is not None and unique_district is not None and district != '' and unique_district != '':
+    if district is not None and unique_district is not None and district != '' and unique_district != []:
         # Apply district filter (replace 'district_column' with the actual column name)
-        dataframe = dataframe[dataframe[district] == unique_district]
-        # print('here sas')
+        # dataframe = dataframe[dataframe[district] == unique_district]
+        dataframe = dataframe[dataframe[district].isin(unique_district)]
+
+
 
     features = [date_col, feature_y]
     dataframe = dataframe[features]
@@ -557,63 +563,110 @@ def facebook_prophet(dataframe, date_col, feature_y, freq, intervals, seasonalit
     # Plotting components
     forcast_component_fig = plot_components_plotly(m, forecast)
 
-    return dataframe, forecast, forecasted_range, pred_result_fig, forcast_component_fig
+    return dataframe, forecast, forecasted_range, pred_result_fig, forcast_component_fig, m
+
+
+# Add a function to validate the input against the regex pattern
+def validate_input(input_str):
+    pattern = r'^(\d+)\s+(seconds|minutes|hours|days|microsecond|milliseconds|nanoseconds)$'
+    if input_str is None:
+        return True  # Allow None as a valid input
+    return re.match(pattern, input_str)
+
+def fbprophet_dignostic(m, horizon, initial, period):
+
+    #cross validation
+    if initial is not None and period is not None and horizon is not None:
+        df_cv = cross_validation(m, initial=initial, horizon=horizon, period=period)
+
+    #performance metrics
+    df_p = performance_metrics(df_cv)
+
+    #plot cross validation metrics
+    fig = plot_cross_validation_metric(df_cv, metric='rmse')
+
+    img_data = io.BytesIO()
+    fig.savefig(img_data, format='png')
+    img_data.seek(0)
+    # Encode the image data to base64
+    base64_img = base64.b64encode(img_data.read()).decode()
+
+    return df_cv, df_p, base64_img
+        
 
 
 def model_fb_prophet(request):
-    json_geodata = request.session.get('geodata_frame')
-    json_data = request.session.get('data_frame')
-    if not json_geodata and not json_data:
-        return JsonResponse({'error': 'GeoDataFrame not found to model' })
-    
-    if json_geodata:
-        mdf = json_to_geodataframe(json_geodata)
-    else:
-        mdf = json_to_dataframe(json_data)
-
-    if request.method == 'POST':
-        selected_date_feature = request.POST.get('select-date-column-fb', None)
-        selected_district_feature = request.POST.get('select-district-column-fb', None)
-        selected_district_feature_value = request.POST.get('select-unique-district', None)
-        selected_forecast_feature = request.POST.get('select-forecast-column-fb', None)
-        selected_forecast_freq = request.POST.get('select-forecast-mode-fb', None)
-        selected_forecast_period = int(request.POST.get('Enter-forecast-interval-fb',None))
-        selected_seasonality_mode = request.POST.get('select-seasonality-mode-fb', None)
-
-        if selected_district_feature is None:
-          dataframe, forecast, forecasted_range, pred_result_fig, forcast_component_fig  = facebook_prophet(mdf, selected_date_feature, selected_forecast_feature, selected_forecast_freq, selected_forecast_period, selected_seasonality_mode, selected_district_feature, selected_district_feature_value)
+    try:
+        json_geodata = request.session.get('geodata_frame')
+        json_data = request.session.get('data_frame')
+        
+        if not json_geodata and not json_data:
+            return JsonResponse({'error': 'GeoDataFrame not found to model' })
+        
+        if json_geodata:
+            mdf = json_to_geodataframe(json_geodata)
         else:
-          dataframe, forecast, forecasted_range, pred_result_fig, forcast_component_fig = facebook_prophet(mdf, selected_date_feature, selected_forecast_feature, selected_forecast_freq, selected_forecast_period, selected_seasonality_mode, selected_district_feature, selected_district_feature_value)
+            mdf = json_to_dataframe(json_data)
 
-        forecast_head = forecast.head().to_html(classes='table table-striped table-bordered table-hover')
-        forecast_tail = forecast.tail().to_html(classes='table table-striped table-bordered table-hover')
-        
-        if forecast is not None:
-            request.session['fb_forcasted_df'] = dataframe_to_json(forecast) 
+        if request.method == 'POST':
+            selected_date_feature = request.POST.get('select-date-column-fb', None)
+            selected_district_feature = request.POST.get('select-district-column-fb', None)
+            selected_district_feature_value = request.POST.getlist('select-unique-district[]', None)
+            selected_forecast_feature = request.POST.get('select-forecast-column-fb', None)
+            selected_forecast_freq = request.POST.get('select-forecast-mode-fb', None)
+            selected_forecast_period = int(request.POST.get('Enter-forecast-interval-fb', None))
+            selected_seasonality_mode = request.POST.get('select-seasonality-mode-fb', None)
+            if selected_district_feature is None:
+                dataframe, forecast, forecasted_range, pred_result_fig, forcast_component_fig, m  = facebook_prophet(mdf, selected_date_feature, selected_forecast_feature, selected_forecast_freq, selected_forecast_period, selected_seasonality_mode, selected_district_feature, selected_district_feature_value)
+            else:
+                dataframe, forecast, forecasted_range, pred_result_fig, forcast_component_fig, m = facebook_prophet(mdf, selected_date_feature, selected_forecast_feature, selected_forecast_freq, selected_forecast_period, selected_seasonality_mode, selected_district_feature, selected_district_feature_value)
 
-        if selected_district_feature_value is None or selected_district_feature_value == '':
-          selected_district_feature_value = 'Complete Data'
+            if forecast is not None:
+                request.session['fb_forcasted_df'] = dataframe_to_json(forecast) 
 
-        pred_result_fig.update_layout(
-            title_text=f"Forcasted next {selected_forecast_period}{selected_forecast_freq} {selected_forecast_feature} of {selected_district_feature_value} ",  
-        )
+            if selected_district_feature_value is None or selected_district_feature_value == '':
+                selected_district_feature_value = 'Complete Data'
 
-        forcast_component_fig.update_layout(
-        title_text=f"Seasonal decomposition with {selected_seasonality_mode} regressor"
-        )
+            pred_result_fig.update_layout(
+                title_text=f"Forcasted next {selected_forecast_period}{selected_forecast_freq} {selected_forecast_feature} of {selected_district_feature_value}"  
+            )
 
-        
-        jsonresponse = {
-            'forecasted_range': forecasted_range,
-            'forecast_head': forecast_head,
-            'forecast_tail': forecast_tail,
-            'pred_result_fig': pred_result_fig.to_json(),
-            'forcast_component_fig' : forcast_component_fig.to_json(),
-        }
+            forcast_component_fig.update_layout(
+                title_text=f"Seasonal decomposition with {selected_seasonality_mode} regressor"
+            )
 
-        return JsonResponse({'prophet_results': jsonresponse})
-    else:
-        return JsonResponse({'error': 'Invalid request method'})
+            try:
+                # Cross-validation
+                horizon = request.POST.get('Horizon', None)
+                period = request.POST.get('period', None)
+                initial = request.POST.get('initial-fbpv', None)
+
+                if all(map(validate_input, [horizon, period, initial])):
+                    df_cv, df_p, p_fig = fbprophet_dignostic(m, horizon, initial, period)
+                    df_cv_head = df_cv.tail().to_html(classes='table table-bordered table-hover')
+                    df_p_tail = df_p.tail().to_html(classes='table table-bordered table-hover')
+                else:
+                    return JsonResponse({'error': 'Input should be in terms of (<number> <space> <interval>) e.g., 365 days/minutes/hours/seconds/microsecond/milliseconds/nanoseconds' })
+            
+            except Exception as e:
+                # Handle diagnostic errors (e.g., invalid input)
+                return JsonResponse({'error': "An error occurred during cross-validation: " + str(e)})
+
+            jsonresponse = {
+                'forecasted_range': forecasted_range,
+                'pred_result_fig': pred_result_fig.to_json(),
+                'df_cv_tail': df_cv_head,
+                'df_p_tail': df_p_tail,
+                'p_fig': p_fig,
+            }
+
+            return JsonResponse({'message': 'Successs', 'prophet_results': jsonresponse})
+
+        else:
+            return JsonResponse({'error': 'Invalid request method'})
+
+    except Exception as e:
+        return JsonResponse({'error': 'An unexpected error occurred: ' + str(e)})
     
 
 #for forecasting only    

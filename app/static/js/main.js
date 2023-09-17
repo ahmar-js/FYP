@@ -531,6 +531,7 @@ $(document).ready(function () {
     // Handle Facebook Prophet model form submission
     $('#fb_prophet_modeling_form').submit(function (event) {
         event.preventDefault();
+        $('#fbprop_report_btn').prop('disabled', true);
 
         const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
         const selectedDateFeature = $('#select-date-column-fb').val();
@@ -540,6 +541,10 @@ $(document).ready(function () {
         const selectedForecastFreq = $('#select-forecast-mode-fb').val();
         const selectedForecastPeriod = parseInt($('#Enter-forecast-interval-fb').val());
         const selectedSeasonalityMode = $('#select-seasonality-mode-fb').val();
+        //Diagnostics
+        const horizon = $('#Horizon').val();
+        const period = $('#period').val();
+        const initial = $('#initial-fbpv').val();
 
         $.ajax({
             headers: { 'X-CSRFToken': csrftoken },
@@ -553,24 +558,37 @@ $(document).ready(function () {
                 'select-forecast-mode-fb': selectedForecastFreq,
                 'Enter-forecast-interval-fb': selectedForecastPeriod,
                 'select-seasonality-mode-fb': selectedSeasonalityMode,
+                'Horizon':horizon,
+                'period':period,
+                'initial-fbpv':initial,
             },
             success: function (response) {
                 // Handle the response, e.g., display results
                 console.log(response);
-                
+                console.log('selected district', selecteduniquedistrictvalue)
                 // Check if the response contains the Prophet model results
                 if (response.prophet_results) {
                     // Display the results in the prophet-results container
                     $('#op_range').html(response.prophet_results.forecasted_range);
-                    $('#forecasted_head_data').html(response.prophet_results.forecast_head);
-                    $('#forecasted_tail_data').html(response.prophet_results.forecast_tail);
+                    $('#cv_tail_data').html(response.prophet_results.df_cv_tail);
+                    $('#p_tail_data').html(response.prophet_results.df_p_tail);
 
                     var received_pred_Figure = JSON.parse(response.prophet_results.pred_result_fig);
 
                     Plotly.newPlot('pred-res-fig-container', received_pred_Figure);
-                    var received_component_Figure = JSON.parse(response.prophet_results.forcast_component_fig);
+                    // var received_component_Figure = JSON.parse(response.prophet_results.forcast_component_fig);
 
-                    Plotly.newPlot('forcast_component_fig_container', received_component_Figure);
+                    // Plotly.newPlot('forcast_component_fig_container', received_component_Figure);
+
+                    $("#performance_metric_fig_img").html('<img class="img-fluid" src="data:image/png;base64,' + response.prophet_results.p_fig + '" alt="Performance metric plot">');
+                    showAlert('success', response.message, '#fbprop-alert-container');
+
+                }
+                else if(response.error){
+                    showAlert('danger', response.error, '#fbprop-alert-container');
+                }
+                else{
+                    showAlert('danger', `Error: `, '#fbprop-alert-container');
 
                 }
                 $('#fbprop_report_btn').prop('disabled', false);
@@ -578,6 +596,7 @@ $(document).ready(function () {
             },
             error: function (error) {
                 console.log('Error modeling with Facebook Prophet:', error);
+                // alert(error.responseText)
             }
         });
     });
@@ -664,6 +683,7 @@ $(document).ready(function () {
     // Event listener for changes in the district column select menu
     $('#select-district-column-fb').change(function () {
         var selectedDistrictColumn = $(this).val();
+        $('#select-unique-district').selectpicker();
         const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
         
         // Make an AJAX request to fetch unique district values
@@ -677,7 +697,10 @@ $(document).ready(function () {
             success: function (response) {
                 console.log(response);
                 // Clear existing options in the unique district select menu
-                $('#select-unique-district').empty();
+                // $('#select-unique-district').empty();
+                $('#select-unique-district').selectpicker('deselectAll'); // Deselect all options
+                $('#select-unique-district').selectpicker('val', '');
+                $('#select-unique-district').selectpicker('refresh'); // Refresh the select picker
                 
                 // Populate the unique district values from the response
                 for (var i = 0; i < response.unique_districts.length; i++) {
@@ -687,7 +710,10 @@ $(document).ready(function () {
                         text: districtValue
                     }));
                 }
-            $('#select-unique-district').prop('disabled', false);
+            $('#select-unique-district').prop('disabled', false); // Enable the select
+            $('#select-unique-district').selectpicker('refresh'); // Refresh the select picker
+            $('#select-unique-district').selectpicker('render'); // Render the select picker
+            $('#select-unique-district').selectpicker('refresh'); // Refresh the select picker
             },
             error: function (error) {
                 console.log('Error fetching unique districts:', error);

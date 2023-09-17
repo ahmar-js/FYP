@@ -88,6 +88,10 @@
     border: 1px solid grey;
 }
 
+.fbprophet_prep .select-district-val-container .bootstrap-select > select{
+    
+}
+
 /* Multi select option menu end */
 
 thead tr th{
