@@ -1,4 +1,277 @@
 <div class="container">
-    <h1>forecasting</h1>
-    Lorem ipsum dolor sit amet consectetur, adipisicing elit. Consequatur, quas? Inventore nulla a nesciunt quaerat quod quibusdam sunt itaque quis consequatur et, odio illo quo voluptate ad corrupti, odit, impedit ut possimus sequi placeat ullam? Doloremque praesentium id possimus animi optio eius dicta quisquam quasi itaque consequatur minus officia, pariatur fugit corporis, necessitatibus reiciendis voluptatem impedit odit debitis nihil, iure ut saepe omnis laborum. Suscipit sint officiis velit ex aperiam necessitatibus, blanditiis quod laboriosam similique molestiae perferendis odit impedit cupiditate facilis consequuntur inventore! Sequi commodi deleniti voluptatem dolores tempore eos aperiam vitae in sunt libero magnam, provident atque fugiat at aut excepturi non ex! Eligendi repellat nulla corrupti provident odit dolorem non libero porro esse laborum error eius ad dolores perferendis maxime quaerat fugit voluptas eaque, commodi itaque sapiente. Nostrum esse atque id repellat explicabo repudiandae officia? Perferendis maiores aliquam magni, nisi ad qui adipisci sed. Accusamus expedita labore doloribus veritatis dolorem officiis deleniti reprehenderit, dignissimos tempore repudiandae corrupti laudantium reiciendis accusantium exercitationem sequi ad temporibus magni non similique esse. Deserunt ab molestias, tempora cum nostrum quia accusantium dolorum consequuntur aliquid ipsum officia molestiae officiis recusandae quas provident placeat necessitatibus nihil fugiat error voluptatem culpa. Voluptas laborum ipsa eum deleniti quasi corporis mollitia? Unde porro delectus dolore quam iure consectetur facilis, sed velit dolores animi laboriosam maiores nemo? Dolor quia odit hic et nobis neque illum, expedita impedit? Obcaecati mollitia, dolore inventore ex animi facilis reiciendis commodi impedit accusamus rerum illo deleniti aut alias quia dolorum, id ratione quos? Excepturi, ex sapiente. Eos sapiente obcaecati ea minus aspernatur beatae facere eaque quam repudiandae esse excepturi quo consequuntur, laboriosam voluptatem reprehenderit sequi, ipsam odio repellendus quibusdam quas nobis illum cum iusto fugit. Dolorem rerum dignissimos enim illum quo temporibus dolore accusamus itaque, impedit error fugit laudantium sunt adipisci accusantium hic minima officiis odio nostrum asperiores perferendis fugiat vel quas inventore! Minima molestias officia aut sit. Iste, quaerat. Eveniet expedita error quae. Magni architecto debitis totam asperiores, natus repellat adipisci mollitia, quo itaque qui fugiat iure? Nobis similique nihil, explicabo laboriosam obcaecati sint ullam ducimus nostrum officiis ratione, nesciunt aliquam quasi commodi architecto? Quidem officiis nostrum accusantium! Culpa ea eius dolor omnis beatae vero laborum vel quos cumque voluptates? At, facere fuga. Cupiditate, ab facere perspiciatis tenetur voluptatem fugit quasi impedit dolores dolorem? Iusto odit praesentium expedita totam harum consequuntur excepturi quaerat, eaque rerum voluptates deserunt eligendi ipsum enim vel. Commodi veritatis tenetur laudantium molestias deleniti, quaerat exercitationem suscipit, mollitia nulla sunt, sint eius eos sed soluta molestiae cum natus enim. Quae qui quam eligendi, vero autem atque deleniti laboriosam, nobis necessitatibus sint dolorum enim ducimus praesentium aliquam expedita mollitia! Ratione esse earum at nesciunt quae quibusdam soluta autem ut fuga perferendis eius possimus natus magni ea, repellendus aut aliquid, iure odit quia dolore doloribus corporis tenetur temporibus. Est deleniti quia voluptatem similique porro. Dignissimos ratione, quos beatae doloribus facere, quo nihil tempore mollitia aliquid adipisci amet delectus ab. Reiciendis harum iste consequatur eligendi atque! Minima rerum eveniet ab, aspernatur provident culpa.
+    <div class="autoarimaprep mb-3">
+        <div class="modal-title">
+            <h1>ARMA/arima/Sarima forecasting</h1>
+        </div>
+        <div class="autoarimaprep-form">
+            <form method="POST" class="form needs-validation" id="arima-form" novalidate>
+        {% csrf_token %}
+
+                <div class="auto-arima-main-container d-flex justify-content-between flex-wrap">
+                    <div class="autoarima-target-feature col-lg-5 col-12">
+                        <div class="mb-3">
+                            <label for="autoarima-feature-to-forecast" class="form-label">Select feature to
+                                forecast</label>
+                            <select class="form-select form-select-sm" name="autoarima-feature-to-forecast"
+                                id="autoarima-feature-to-forecast">
+                                <option disabled selected>Select feature</option>
+                                {% for column in gdf.columns %}
+                                <option value="{{ column }}">{{ column }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="selectautoarimaparams">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="autoarima_seasonality_checkbox"
+                                        name="autoarima_seasonality_checkbox" value="auto_arima_seasonality" disabled>
+                                    <label class="form-check-label"
+                                        for="autoarima_seasonality_checkbox">Seasonality</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="autoarima-datecolumn col-lg-5 col-12">
+                        <div class="select-date-col">
+                            <div class="mb-3">
+                                <label for="select-date-column-autoarima" class="form-label">Select date feature</label>
+                                <select class="form-select form-select-sm" name="select-date-column-autoarima"
+                                    id="select-date-column-autoarima" required>
+                                    <option disabled value="" selected>Select option</option>
+                                    {% for column in gdf.columns %}
+                                    <option value="{{ column }}">{{ column }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="autoarima-filterdata col-12 col-lg-5">
+                        <div class="mb-3">
+                            <div class="select-district-col-container">
+                                <label for="select-district-column-autoarima" class="form-label">Select district
+                                    column</label>
+                                <select class="form-select form-select-sm" name="select-district-column-autoarima"
+                                    id="select-district-column-autoarima">
+                                    <option disabled selected>Select feature</option>
+                                    {% for column in non_numeric_frame %}
+                                    <option value="{{ column }}">{{ column }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="activatefilteringmenu col-12 col-lg-5">
+                        <div class="select-district-val-container">
+                            <!-- Select menu for unique district values -->
+                            <label for="autoarima-select-unique-district" class="form-label">Select district or
+                                reigon</label><br>
+                            <select class="selectpicker w-100" multiple aria-label="size 2 select example"
+                                name="autoarima-select-unique-district" id="autoarima-select-unique-district" disabled>
+                                <option disabled selected>Select columns</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="selectautoarma_params d-flex flex-wrap justify-content-around">
+                    <div class="find_best_params_auto_arima_checkbox_container">
+                        <div class="form-check form-check-inline mb-3">
+                            <input class="form-check-input" type="checkbox" id="find_best_params_auto_arima_checkbox" name="find_best_params_auto_arima_checkbox"
+                                value="find_best_params_auto_arima_checkbox">
+                            <label class="form-check-label" for="find_best_params_auto_arima_checkbox">Find best parameters</label>
+                        </div>
+                    </div>
+                    <div class="start_p col-lg-3 col-12">
+                        <div class="mb-3">
+                            <label for="start_p" class="form-label">p</label>
+                            <input type="number" class="form-control form-control-sm" name="start_p" id="start_p"
+                                aria-describedby="start_p" placeholder="" disabled>
+                            <small id="start_p" class="form-text text-muted">Start p value</small>
+                        </div>
+                    </div>
+                    <div class="start_q col-lg-3 col-12">
+                        <div class="mb-3">
+                            <label for="start_q" class="form-label">q</label>
+                            <input type="number" class="form-control form-control-sm" name="start_q" id="start_q"
+                                aria-describedby="start_q" placeholder="" disabled>
+                            <small id="start_q" class="form-text text-muted">Start p value</small>
+                        </div>
+                    </div>
+
+                    <div class="start_P col-lg-3 col-12">
+                        <div class="mb-3">
+                            <label for="start_P" class="form-label">P</label>
+                            <input type="number" class="form-control form-control-sm" name="start_P" id="start_P"
+                                aria-describedby="start_P" placeholder="" disabled>
+                            <small id="start_P" class="form-text text-muted">Start p value</small>
+                        </div>
+                    </div>
+
+                    <div class="start_Q col-lg-3 col-12">
+                        <div class="mb-3">
+                            <label for="start_Q" class="form-label">Q</label>
+                            <input type="number" class="form-control form-control-sm" name="start_Q" id="start_Q"
+                                aria-describedby="start_Q" placeholder="" disabled>
+                            <small id="start_Q" class="form-text text-muted">Start p value</small>
+                        </div>
+                    </div>
+                    <div class="d col-lg-3 col-12">
+                        <div class="mb-3">
+                            <label for="d" class="form-label">d</label>
+                            <input type="number" class="form-control form-control-sm" name="d" id="d"
+                                aria-describedby="d" placeholder="" disabled>
+                            <small id="d" class="form-text text-muted">Start p value</small>
+                        </div>
+                    </div>
+                    <div class="end_p col-lg-3 col-12">
+                        <div class="mb-3">
+                            <label for="end_p" class="form-label">end p</label>
+                            <input type="number" class="form-control form-control-sm" name="end_p" id="end_p"
+                                aria-describedby="end_p" placeholder="" disabled>
+                            <small id="end_p" class="form-text text-muted">Start p value</small>
+                        </div>
+                    </div>
+                    <div class="end_P col-lg-3 col-12">
+                        <div class="mb-3">
+                            <label for="end_P" class="form-label">end P</label>
+                            <input type="number" class="form-control form-control-sm" name="end_P" id="end_P"
+                                aria-describedby="end_P" placeholder="" disabled>
+                            <small id="end_P" class="form-text text-muted">Start p value</small>
+                        </div>
+                    </div>
+                    <div class="end_q col-lg-3 col-12">
+                        <div class="mb-3">
+                            <label for="end_q" class="form-label">end q</label>
+                            <input type="number" class="form-control form-control-sm" name="end_q" id="end_q"
+                                aria-describedby="end_q" placeholder="" disabled>
+                            <small id="end_q" class="form-text text-muted">Start p value</small>
+                        </div>
+                    </div>
+                    <div class="end_Q col-lg-3 col-12">
+                        <div class="mb-3">
+                            <label for="end_Q" class="form-label">end Q</label>
+                            <input type="number" class="form-control form-control-sm" name="end_Q" id="end_Q"
+                                aria-describedby="end_Q" placeholder="" disabled>
+                            <small id="end_Q" class="form-text text-muted">Start p value</small>
+                        </div>
+                    </div>
+                    <div class="seasonality_period col-lg-3 col-12">
+                        <div class="mb-3">
+                            <label for="m" class="form-label">m</label>
+                            <input type="number" class="form-control form-control-sm" name="m" id="m"
+                                aria-describedby="m" placeholder="" disabled>
+                            <small id="m" class="form-text text-muted">Start p value</small>
+                        </div>
+                    </div>
+                    <div class="D col-lg-3 col-12">
+                        <div class="mb-3">
+                            <label for="D" class="form-label">D</label>
+                            <input type="number" class="form-control form-control-sm" name="D" id="D"
+                                aria-describedby="D" placeholder="" disabled>
+                            <small id="D" class="form-text text-muted">Start p value</small>
+                        </div>
+                    </div>
+                </div>
+
+        </div>
+    </div>
+
+    <div class="knowparams_arima">
+        <div class="form-check form-check-inline mb-3">
+            <input class="form-check-input" type="checkbox" id="know_arima_params_cb" name="know_arima_params_cb"
+                value="auto_arima_param_known">
+            <label class="form-check-label" for="know_arima_params_cb">know parameters?</label>
+        </div>
+        <div class="form-check form-check-inline mb-3">
+            <input class="form-check-input" type="checkbox" id="know_arima_params_cb_seasonal" name="know_arima_params_cb_seasonal"
+                value="auto_arima_param_known" disabled>
+            <label class="form-check-label" for="know_arima_params_cb_seasonal">Seasonal</label>
+        </div>
+    </div>
+    <div class="kp_arima_form">
+        <div class="arima_select_parameters d-flex flex-wrap justify-content-between align-items-baseline">
+            <div class="select_p col-lg-3 col-12">
+                <label for="Enter-arima_p_val" class="form-label">Enter autoregressive terms (p value)</label>
+                <input type="number" class="form-control form-control-sm" min="0" max="10000" name="Enter-arima_p_val"
+                    placeholder="e.g, 2" id="Enter-arima_p_val" required disabled>
+                <small class="text-muted">min 0 max 10000 </small>
+            </div>
+            <div class="select_d col-lg-3 col-12">
+                <label for="Enter-arima_d_val" class="form-label">Enter differencing order (d value)</label>
+                <input type="number" class="form-control form-control-sm" min="0" max="10000" name="Enter-arima_d_val"
+                    placeholder="e.g, 2" id="Enter-arima_d_val" required disabled>
+                <small class="text-muted">min 0 max 10000 </small>
+            </div>
+            <div class="select_q col-lg-3 col-12">
+                <label for="Enter-arima_q_val" class="form-label">Enter moving average (q value)</label>
+                <input type="number" class="form-control form-control-sm" min="0" max="10000" name="Enter-arima_q_val"
+                    placeholder="e.g, 2" id="Enter-arima_q_val" required disabled>
+                <small class="text-muted">min 0 max 10000 </small>
+            </div>
+
+        </div>
+        <div class="arima_select_parameters_seasonal d-flex flex-wrap justify-content-between align-items-baseline">
+            <div class="select_p col-lg-3 col-12">
+                <label for="Enter-arima_p_val_seasonal" class="form-label">Seasonal autoregressive terms (P
+                    value)</label>
+                <input type="number" class="form-control form-control-sm" min="0" max="10000"
+                    name="Enter-arima_p_val_seasonal" placeholder="e.g, 2" id="Enter-arima_p_val_seasonal" required
+                    disabled>
+                <small class="text-muted">min 0 max 10000 </small>
+            </div>
+            <div class="select_d col-lg-3 col-12">
+                <label for="Enter-arima_d_val_seasonal" class="form-label">Seasonal differencing order (D value)</label>
+                <input type="number" class="form-control form-control-sm" min="0" max="10000"
+                    name="Enter-arima_d_val_seasonal" placeholder="e.g, 2" id="Enter-arima_d_val_seasonal" required
+                    disabled>
+                <small class="text-muted">min 0 max 10000 </small>
+            </div>
+            <div class="select_q col-lg-3 col-12">
+                <label for="Enter-arima_q_val_seasonal" class="form-label">Seasonal moving average (Q value)</label>
+                <input type="number" class="form-control form-control-sm" min="0" max="10000"
+                    name="Enter-arima_q_val_seasonal" placeholder="e.g, 2" id="Enter-arima_q_val_seasonal" required
+                    disabled>
+                <small class="text-muted">min 0 max 10000 </small>
+            </div>
+            <div class="select_q col-lg-2 col-12">
+                <label for="Enter-arima_seasonal_period" class="form-label">Seasonal period</label>
+                <input type="number" class="form-control form-control-sm" min="0" max="10000"
+                    name="Enter-arima_seasonal_period" placeholder="e.g, 12 for yearly period"
+                    id="Enter-arima_seasonal_period" required disabled>
+                <small class="text-muted">min 0 max 10000 </small>
+            </div>
+
+        </div>
+        <div class="">
+            <button class="btn btn-sm btn-success" data-bs-toggle="tooltip" data-bs-placement="top"
+                title="Forecast results!" type="submit">Forecast</button>
+            <button class="btn btn-sm btn-outline-secondary" type="button" id="arima_report_btn" data-bs-target="#arima_view_report_modal" data-bs-toggle="modal">View Report</button>
+
+        </div>
+        </form>
+    </div>
+    <!-- arima view report modal -->
+    <div class="modal fade" id="arima_view_report_modal" tabindex="-1" aria-labelledby="arima_view_report_modal_label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-fullscreen">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="arima_view_report_modal_label">ARIMA Forecasting Report</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="arima-results" class="d-flex justify-content-center">
+                    <div id="arima-fig" class="col-12 col-lg-5">
+
+                    </div>
+                </div>
+                   
+                    
+            </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+    
+            </div>
+          </div>
+        </div>
+      </div>
 </div>
+
+    

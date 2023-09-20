@@ -14,7 +14,11 @@ urlpatterns = [
     path('getis_ord_gi_hotspot_analysis/', views.getis_ord_gi_hotspot_analysis, name='getis_ord_gi_hotspot_analysis/'),
     path('model_fb_prophet/', views.model_fb_prophet, name='model_fb_prophet/'),
     path('fetch_unique_districts/', views.fetch_unique_districts, name='fetch_unique_districts'),
-    path('export_fb_forecasted_csv/', views.export_fb_forecasted_csv, name='export_fb_forecasted_csv'),
+    # path('export_fb_forecasted_csv/', views.export_fb_forecasted_csv, name='export_fb_forecasted_csv'),
+    path('export_fb_cv_csv_zip/', views.export_fb_cv_csv_zip, name='export_fb_cv_csv_zip'),
+    path('model_arima_family/', views.model_arima_family, name='model_arima_family'),
+
+    
 ]
     # path('generate_plot/', views.generate_plot, name='generate_plot'),
 

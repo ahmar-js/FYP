@@ -602,6 +602,74 @@ $(document).ready(function () {
     });
 
 
+    $(document).ready(function () {
+        $("#find_best_params_auto_arima_checkbox").change(function () {
+            if ($(this).is(":checked")) {
+                $("#start_p, #end_p, #start_q, #end_q, #d").prop("disabled", false);
+                $("#autoarima_seasonality_checkbox").prop("disabled", false);
+                $("#Enter-arima_p_val, #Enter-arima_d_val, #Enter-arima_q_val, #Enter-arima_p_val_seasonal, #Enter-arima_seasonal_period, #Enter-arima_d_val_seasonal, #Enter-arima_q_val_seasonal").prop("disabled", true);
+                $("#know_arima_params_cb, #know_arima_params_cb_seasonal").prop("disabled", true).prop("checked", false);
+            } else {
+                $("#start_p, #end_p, #start_q, #end_q, #d, #start_P, #start_Q, #end_P, #end_Q, #D, #m").prop("disabled", true);
+                $("#autoarima_seasonality_checkbox").prop("disabled", true).prop("checked", false);
+                $("#know_arima_params_cb").prop("disabled", false);
+            }
+        });
+
+        $("#autoarima_seasonality_checkbox").change(function () {
+            if ($(this).is(":checked")) {
+                $("#start_P, #start_Q, #end_P, #end_Q, #D, #m").prop("disabled", false);
+            } else {
+                $("#start_P, #start_Q, #end_P, #end_Q, #D, #m").prop("disabled", true);
+            }
+        });
+
+        $("#know_arima_params_cb").change(function () {
+            if ($(this).is(":checked")) {
+                $("#know_arima_params_cb_seasonal").prop("disabled", false);
+                $("#Enter-arima_p_val, #Enter-arima_d_val, #Enter-arima_q_val").prop("disabled", false);
+                $("#Enter-arima_p_val_seasonal, #Enter-arima_d_val_seasonal, #Enter-arima_q_val_seasonal, #Enter-arima_seasonal_period").prop("disabled", true);
+            } else {
+                $("#know_arima_params_cb_seasonal").prop("disabled", true).prop("checked", false);
+                $("#Enter-arima_p_val, #Enter-arima_d_val, #Enter-arima_q_val, #Enter-arima_p_val_seasonal, #Enter-arima_seasonal_period, #Enter-arima_d_val_seasonal, #Enter-arima_q_val_seasonal").prop("disabled", true);
+            }
+        });
+
+        $("#know_arima_params_cb_seasonal").change(function () {
+            if ($(this).is(":checked")) {
+                $("#Enter-arima_p_val, #Enter-arima_d_val, #Enter-arima_q_val, #Enter-arima_p_val_seasonal, #Enter-arima_seasonal_period,  #Enter-arima_d_val_seasonal, #Enter-arima_q_val_seasonal").prop("disabled", false);
+            } else {
+                $("#Enter-arima_p_val, #Enter-arima_d_val, #Enter-arima_q_val, #Enter-arima_p_val_seasonal, #Enter-arima_seasonal_period,  #Enter-arima_d_val_seasonal, #Enter-arima_q_val_seasonal").prop("disabled", true);
+            }
+        });
+    });
+    
+    $(document).ready(function() {
+        $('#arima-form').submit(function(event) {
+            event.preventDefault();
+
+            console.log("here")
+            $.ajax({
+                type: 'POST',
+                url: '/model_arima_family/',  // Specify the URL to your Django view
+                data: $('#arima-form').serialize(),  // Serialize the form data
+                success: function(data) {
+                    console.log(data);
+                    
+                    // Update the result placeholders with the received data
+                    $('#arima-fig').html('<img class="img-fluid" src="data:image/png;base64,' + data.arima_results.arima_fig + '" alt="arima plot">');
+                },
+                error: function(error) {
+                    // Handle errors here
+                console.log('Error modeling with arima: ', error);
+
+                }
+            });
+        });
+    });
+    
+
+
     // Function to populate select menus with column names
     function populateSelectMenus(columns) {
         // Clear existing options
@@ -683,6 +751,7 @@ $(document).ready(function () {
     // Event listener for changes in the district column select menu
     $('#select-district-column-fb').change(function () {
         var selectedDistrictColumn = $(this).val();
+        console.log(selectedDistrictColumn);
         $('#select-unique-district').selectpicker();
         const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
         
@@ -723,25 +792,47 @@ $(document).ready(function () {
 });
 
 
+$(document).ready(function () {
+    // Event listener for changes in the district column select menu
+    $('#select-district-column-autoarima').change(function () {
+        var selectedDistrictColumn = $(this).val();
+        console.log(selectedDistrictColumn);
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        // Make an AJAX request to fetch unique district values
+        $.ajax({
+            headers: { 'X-CSRFToken': csrftoken },
+            url: '/fetch_unique_districts/',
+            type: 'POST', 
+            data: {
+                selected_district_column: selectedDistrictColumn
+            },
+            success: function (response) {
+                console.log(response);
+                $('#autoarima-select-unique-district').selectpicker();
 
-    // // Handle "Fill Null Values" form submission
-    // $('#fillnullvalues-form').submit(function (event) {
-    //     event.preventDefault();
-    //     var selectedColumn = $('#fillnullvalues').val();
-    //     var selectedStrategy = $('input[name="strategy"]:checked').val();
-    //     var strategyConstant = $('#strategy_constant').val();
-    //     // Perform AJAX request to handle null value filling
-    //     // Update the DataFrame in the session, and update statistics
-    //     // Refresh data if needed
-    // });
-
-
-    // for fbprophet
-    // Enable or disable "select-unique-district" based on selection
-    // $('#select-district-column-fb').change(function () {
-    //     if ($(this).val() !== "") {
-    //         $('#select-unique-district').prop('disabled', false);
-    //     } else {
-    //         $('#select-unique-district').prop('disabled', true);
-    //     }
-    // });
+                // Clear existing options in the unique district select menu
+                // $('#select-unique-district').empty();
+                $('#autoarima-select-unique-district').selectpicker('deselectAll'); // Deselect all options
+                $('#autoarima-select-unique-district').selectpicker('val', '');
+                $('#autoarima-select-unique-district').selectpicker('refresh'); // Refresh the select picker
+                
+                // Populate the unique district values from the response
+                for (var i = 0; i < response.unique_districts.length; i++) {
+                    var districtValue = response.unique_districts[i];
+                    $('#autoarima-select-unique-district').append($('<option>', {
+                        value: districtValue,
+                        text: districtValue
+                    }));
+                }
+            $('#autoarima-select-unique-district').prop('disabled', false); // Enable the select
+            $('#autoarima-select-unique-district').selectpicker('refresh'); // Refresh the select picker
+            $('#autoarima-select-unique-district').selectpicker('render'); // Render the select picker
+            $('#autoarima-select-unique-district').selectpicker('refresh'); // Refresh the select picker
+            },
+            error: function (error) {
+                console.log('Error fetching unique districts:', error);
+            }
+        });
+    });
+});

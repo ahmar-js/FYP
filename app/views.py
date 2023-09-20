@@ -1,8 +1,12 @@
 import re
 import warnings
+import zipfile
+
+from pmdarima import auto_arima
 # Filter out specific warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", message=".*The 'nopython' keyword.*")
 import json
 import pandas as pd
 import plotly.express as px
@@ -11,8 +15,10 @@ from prophet.diagnostics import cross_validation
 from prophet.diagnostics import performance_metrics
 from prophet.plot import plot_cross_validation_metric
 import matplotlib.pyplot as plt
+from statsmodels.tsa.arima.model import ARIMA
 import geopandas as gpd
 import io
+import statsmodels.api as sm
 import base64
 from prophet.plot import plot_plotly, plot_components_plotly
 from prophet import Prophet
@@ -255,7 +261,6 @@ def upload_file(request):
                                 return HttpResponseRedirect(reverse('preview'))
                         else:
                             try:
-                                print("here ahmer")
                                 df = convert_lat_lon_columns(request, df, latitude_col=selected_lat, longitude_col=selected_long)
                             except ValueError as e:
                                 messages.error(request, f"Error: {e}")
@@ -645,12 +650,15 @@ def model_fb_prophet(request):
                     df_cv, df_p, p_fig = fbprophet_dignostic(m, horizon, initial, period)
                     df_cv_head = df_cv.tail().to_html(classes='table table-bordered table-hover')
                     df_p_tail = df_p.tail().to_html(classes='table table-bordered table-hover')
+                    request.session['fb_cv_df'] = dataframe_to_json(df_cv)
+                    request.session['fb_p_df'] = dataframe_to_json(df_p) 
                 else:
                     return JsonResponse({'error': 'Input should be in terms of (<number> <space> <interval>) e.g., 365 days/minutes/hours/seconds/microsecond/milliseconds/nanoseconds' })
             
             except Exception as e:
                 # Handle diagnostic errors (e.g., invalid input)
                 return JsonResponse({'error': "An error occurred during cross-validation: " + str(e)})
+            
 
             jsonresponse = {
                 'forecasted_range': forecasted_range,
@@ -668,12 +676,274 @@ def model_fb_prophet(request):
     except Exception as e:
         return JsonResponse({'error': 'An unexpected error occurred: ' + str(e)})
     
+def model_arima_family(request):
+    print("here")
+    json_geodata = request.session.get('geodata_frame')
+    json_data = request.session.get('data_frame')
+    if not json_geodata and not json_data:
+        return JsonResponse({'error': 'GeoDataFrame not found to model' })
+    
+    if json_geodata:
+        adf = json_to_geodataframe(json_geodata)
+    else:
+        adf = json_to_dataframe(json_data)
 
-#for forecasting only    
+    if request.method == 'POST':
+
+        selected_date_feature = request.POST.get('select-date-column-autoarima', None)
+        selected_district_feature = request.POST.get('select-district-column-autoarima', None)
+        selected_district_feature_value = request.POST.getlist('autoarima-select-unique-district[]', None)
+        selected_forecast_feature = request.POST.get('autoarima-feature-to-forecast', None)
+        check_seasonality = request.POST.get('autoarima_seasonality_checkbox', False)
+        start_p = request.POST.get('start_p', None)
+        start_P = request.POST.get('start_P', None)
+        end_p = request.POST.get('start_p', None)
+        end_P = request.POST.get('start_p', None)
+        start_q = request.POST.get('start_p', None)
+        start_Q = request.POST.get('start_p', None)
+        end_q = request.POST.get('start_p', None)
+        end_Q = request.POST.get('start_p', None)
+        d_autoar = request.POST.get('d', None)
+        D_autoar = request.POST.get('D', None)
+        m_autoar = request.POST.get('m', None)
+
+        known_params_seasonality = request.POST.get('know_arima_params_cb_seasonal', False)
+        selected_p_value = request.POST.get('Enter-arima_p_val', None)
+        selected_q_value = request.POST.get('Enter-arima_q_val', None)
+        selected_d_value = request.POST.get('Enter-arima_d_val', None)
+        selected_P_value = request.POST.get('Enter-arima_p_val_seasonal', None)
+        selected_Q_value = request.POST.get('Enter-arima_q_val_seasonal', None)
+        selected_D_value = request.POST.get('Enter-arima_d_val_seasonal', None)
+        seasonality_period = request.POST.get('Enter-arima_seasonal_period', None)
+        find_best_params_checkbox = request.POST.get('find_best_params_auto_arima_checkbox', False)
+        know_params = request.POST.get('know_arima_params_cb', False)
+        print("know_arima",know_params)
+
+
+        model, base64_img = ARIMA_model(adf, selected_date_feature, selected_forecast_feature, selected_district_feature, selected_district_feature_value, check_seasonality, know_params,
+                selected_p_value, selected_P_value, selected_d_value, selected_q_value, selected_D_value, selected_Q_value, seasonality_period, start_p, end_p, start_q, end_q, start_P, end_P, start_Q, end_Q, m_autoar, d_autoar, D_autoar, known_params_seasonality, find_best_params_checkbox)  
+
+        arima_response = {
+            'AIC': model.summary().tables[0].data[0][2],
+            'BIC': model.summary().tables[0].data[1][2],
+            'arima_fig': base64_img,
+        }
+
+        return JsonResponse({'message': 'Successs', 'arima_results': arima_response})
+    else:
+        return JsonResponse({'error': 'Invalid request method'})
+        
+
+
+def ARIMA_model(dataframe, date, target_feature, district=None, district_value=None, SARIMA=False, know=False, p=None, P=None, d=None, q=None, D=None, Q=None, m=None, startp = None, endp = None, startq = None, endq = None, startP=None, endP=None, startQ=None, endQ=None, m_autoar=None, d_autoar=None, D_autoar=None, known_params_seasonality=False, find_best_params_checkbox=False):
+    if district is not None and district_value is not None and district != '' and district_value != []:
+        # Apply district filter (replace 'district_column' with the actual column name)
+        # dataframe = dataframe[dataframe[district] == unique_district]
+        dataframe = dataframe[dataframe[district].isin(district_value)]
+        print("here1")
+
+    print("here2")
+
+    features = [date, target_feature]
+    dataframe = dataframe[features]
+
+    # Drop rows with any null values
+    dataframe = dataframe.dropna()
+
+        # Convert the date column to datetime format if it's not already
+    dataframe[date] = pd.to_datetime(dataframe[date])
+    
+    # Sort the DataFrame by the date column
+    dataframe = dataframe.sort_values(by=date)
+    
+    # If you want to reset the index after sorting
+    dataframe = dataframe.reset_index(drop=True)
+    
+    # Set the 'Date' column as the index
+    dataframe.set_index(date, inplace=True)
+    print("knoww", know)
+    if SARIMA == 'auto_arima_seasonality':
+        SARIMA = True
+    else:
+        SARIMA == False
+    if know == 'auto_arima_param_known':
+        know = True
+    else:
+        know = False
+    if known_params_seasonality == 'auto_arima_param_known':
+        known_params_seasonality = True
+    else:
+        known_params_seasonality = False
+
+    if find_best_params_checkbox == 'find_best_params_auto_arima_checkbox':
+        find_best_params_checkbox = True
+    else:
+        find_best_params_checkbox = False
+    print("Sarima", SARIMA)
+
+    if find_best_params_checkbox == True:
+        if SARIMA == False:
+            print("sarima false")
+            if know == False and known_params_seasonality == False:
+                print("here3")
+                model = auto_arima(dataframe[target_feature], start_p=int(startp), start_q=int(startq), max_p=int(endp), max_q=int(endq), d=int(d_autoar), seasonal=False, trace=True, error_action='ignore')
+                model= model.fit(dataframe[target_feature])
+                print(model.summary())
+                # Generate forecasts for the next 15 days
+                forecast, conf_int = model.predict(n_periods=365, return_conf_int=True)
+
+                # Create a date range for the next 15 days starting from the last date in your data
+                last_date = dataframe.index[-1]
+                date_range = pd.date_range(start=last_date + pd.DateOffset(days=1), periods=365)
+
+                # Create a DataFrame to hold the forecasts and date range
+                forecast_df = pd.DataFrame({'Date': date_range, 'Forecast': forecast, 'Lower_CI': conf_int[:, 0], 'Upper_CI': conf_int[:, 1]})
+
+                # Plot the original data and the forecasts
+                plt.figure(figsize=(12, 6))
+                plt.plot(dataframe.index, dataframe[target_feature], label='Original Data')
+                plt.plot(forecast_df['Date'], forecast_df['Forecast'], label='Forecast', linestyle='-', color='red')
+                plt.fill_between(forecast_df['Date'], forecast_df['Lower_CI'], forecast_df['Upper_CI'], color='pink', alpha=0.3, label='95% Confidence Interval')
+                plt.xlabel('Date')
+                plt.ylabel('Cases')
+                plt.title('ARIMA Forecast for the Next 15 Days')
+                plt.legend()
+                # Save the plot as an image
+                img_data = io.BytesIO()
+                plt.savefig(img_data, format='png')
+                img_data.seek(0)
+                # Encode the image data to base64
+                base64_img = base64.b64encode(img_data.read()).decode()
+
+
+        elif SARIMA == True:
+            print("sarima true")
+            if know == False and known_params_seasonality == False:
+                print("here5")
+                model = auto_arima(dataframe[target_feature], start_p=int(startp), start_q=int(startq), max_p=int(endp), max_q=int(endq), d=int(d_autoar), start_P=int(startP), start_Q=int(startQ), max_P=int(endP), max_Q=int(endQ), m=int(m_autoar), D=int(D_autoar), seasonal=True, trace=True, error_action='ignore')
+                model= model.fit(dataframe[target_feature])
+                                # Generate forecasts for the next 15 days
+                forecast, conf_int = model.predict(n_periods=365, return_conf_int=True)
+
+                # Create a date range for the next 15 days starting from the last date in your data
+                last_date = dataframe.index[-1]
+                date_range = pd.date_range(start=last_date + pd.DateOffset(days=1), periods=365)
+
+                # Create a DataFrame to hold the forecasts and date range
+                forecast_df = pd.DataFrame({'Date': date_range, 'Forecast': forecast, 'Lower_CI': conf_int[:, 0], 'Upper_CI': conf_int[:, 1]})
+
+                # Plot the original data and the forecasts
+                plt.figure(figsize=(12, 6))
+                plt.plot(dataframe.index, dataframe[target_feature], label='Original Data')
+                plt.plot(forecast_df['Date'], forecast_df['Forecast'], label='Forecast', linestyle='-', color='red')
+                plt.fill_between(forecast_df['Date'], forecast_df['Lower_CI'], forecast_df['Upper_CI'], color='pink', alpha=0.3, label='95% Confidence Interval')
+                plt.xlabel('Date')
+                plt.ylabel('Cases')
+                plt.title('ARIMA Forecast for the Next 15 Days')
+                plt.legend()
+                # Save the plot as an image
+                img_data = io.BytesIO()
+                plt.savefig(img_data, format='png')
+                img_data.seek(0)
+                # Encode the image data to base64
+                base64_img = base64.b64encode(img_data.read()).decode()
+                print(model.summary())
+
+    elif find_best_params_checkbox == False:
+        if know == True and known_params_seasonality == False and SARIMA == False:
+            print("here4")
+            model = ARIMA(dataframe[target_feature], order=(int(p), int(d), int(q)))
+            model= model.fit()
+            # Generate a single-step forecast
+            forecast = model.forecast(steps=365)  # Forecast for the next single step
+
+            # Calculate the standard error (stderr) and confidence intervals (conf_int) manually
+            stderr = np.std(model.resid)
+            z_score = 1.96  # For a 95% confidence interval
+
+            # Calculate confidence intervals for the single-step forecast
+            conf_int_lower = forecast - z_score * stderr
+            conf_int_upper = forecast + z_score * stderr
+
+            # Create a date range for the next single step
+            last_date = dataframe.index[-1]
+            date_range = pd.date_range(start=last_date, periods=365)
+
+            # Create a DataFrame to store the single-step forecast and confidence intervals
+            forecast_df = pd.DataFrame({
+                'Date': date_range,
+                'Forecast': forecast,
+                'Lower_CI': conf_int_lower,
+                'Upper_CI': conf_int_upper
+            })
+
+            # Plot the original data and the single-step forecast with confidence intervals
+            plt.figure(figsize=(12, 6))
+            plt.plot(dataframe.index, dataframe[target_feature], label='Original Data')
+            plt.plot(forecast_df['Date'], forecast_df['Forecast'], label='Forecast', linestyle='--', color='red')
+            plt.fill_between(forecast_df['Date'], forecast_df['Lower_CI'], forecast_df['Upper_CI'], color='pink', alpha=0.3, label='95% Confidence Interval')
+            plt.xlabel('Date')
+            plt.ylabel('Cases')
+            plt.title('ARIMA Single-Step Forecast')
+            plt.legend()
+
+            # Save the plot as an image
+            img_data = io.BytesIO()
+            plt.savefig(img_data, format='png')
+            img_data.seek(0)
+            # Encode the image data to base64
+            base64_img = base64.b64encode(img_data.read()).decode()
+            print(model.summary())
+
+        elif know == True and known_params_seasonality == True and SARIMA == False:
+            print("here 6")
+            model = sm.tsa.statespace.SARIMAX(dataframe[target_feature], order=(int(p), int(d), int(q)), seasonal_order=(int(P), int(D), int(Q), int(m)))
+            model = model.fit()
+
+            # Generate forecasts for the next 365 days
+            forecast = model.get_forecast(steps=365)
+
+            # Extract forecasted values and confidence intervals
+            forecast_mean = forecast.predicted_mean
+            forecast_conf_int = forecast.conf_int()
+
+            # Create a date range for the next 365 days starting from the last date in your data
+            last_date = dataframe.index[-1]
+            date_range = pd.date_range(start=last_date, periods=365)
+
+            # Create a DataFrame to store the forecasted values and date range
+            forecast_df = pd.DataFrame({
+                'Date': date_range,
+                'Forecast': forecast_mean,
+                'Lower_CI': forecast_conf_int['lower cases'].values,
+                'Upper_CI': forecast_conf_int['upper cases'].values
+            })
+
+            # Plot the original data and the forecasts with confidence intervals
+            plt.figure(figsize=(12, 6))
+            plt.plot(dataframe.index, dataframe[target_feature], label='Original Data')
+            plt.plot(date_range, forecast_mean, label='Forecast', linestyle='--', color='red')
+            plt.fill_between(date_range, forecast_conf_int['lower cases'], forecast_conf_int['upper cases'], color='pink', alpha=0.3, label='95% Confidence Interval')
+            plt.xlabel('Date')
+            plt.ylabel('Cases')
+            plt.title('SARIMAX Forecast for the Next 15 Days')
+            plt.legend()
+           # Save the plot as an image
+            img_data = io.BytesIO()
+            plt.savefig(img_data, format='png')
+            img_data.seek(0)
+            # Encode the image data to base64
+            base64_img = base64.b64encode(img_data.read()).decode()
+
+    return model, base64_img
+
+    
+
+#for fb forecasting only    
 def fetch_unique_districts(request):
     if request.method == 'POST':
         selected_district_column = request.POST.get('selected_district_column', None)
-
+        print(selected_district_column)
         # Check if a district column was selected
         if selected_district_column is not None:
             json_geodata = request.session.get('geodata_frame')
@@ -692,7 +962,6 @@ def fetch_unique_districts(request):
 
     # Handle invalid or missing data
     return JsonResponse({'error': 'Invalid request or missing data'})
-
 
 
         
@@ -970,6 +1239,49 @@ def export_fb_forecasted_csv(request):
         return response
 
     return HttpResponse('Forecast data not available in the session to export.')
+
+# Create a function to generate the zip file
+def generate_zip(files):
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for file in files:
+            # 'file' should be a tuple containing file name and its content
+            file_name, file_content = file
+            zipf.writestr(file_name, file_content)
+
+    return zip_buffer.getvalue()
+
+def export_fb_cv_csv_zip(request):
+    # Retrieve the CSV data from the session
+    csv__fb_cv_data = request.session.get('fb_cv_df')
+    csv__fb_p_data = request.session.get('fb_p_df')
+    csv__fb_forecasted_data = request.session.get('fb_forcasted_df')
+
+    if csv__fb_cv_data and csv__fb_p_data:
+        # Parse the JSON data into a DataFrame
+        fbcv = pd.read_json(csv__fb_cv_data)
+        fbp = pd.read_json(csv__fb_p_data)
+        fbforecast = pd.read_json(csv__fb_forecasted_data)
+
+        # Convert the DataFrame to CSV format
+        csv__fb_cv_data = fbcv.to_csv(index=False)
+        csv__fb_p_data = fbp.to_csv(index=False)
+        csv__fb_forecasted_data = fbforecast.to_csv(index=False)
+    # Prepare a list of files to include in the zip
+    csv_files = [
+        ("cross validation.csv", csv__fb_cv_data),
+        ("performance metrics.csv", csv__fb_p_data),
+        ("fbprophet forecasts.csv", csv__fb_forecasted_data),
+    ]
+
+    # Generate the zip file
+    zip_data = generate_zip(csv_files)
+
+    # Create an HttpResponse with the zip file
+    response = HttpResponse(zip_data, content_type='application/zip')
+    response['Content-Disposition'] = 'attachment; filename="fbprophet_evaluation.zip"'
+
+    return response
 
 
 def handle_fill_null_values(request):
