@@ -11,6 +11,8 @@ import json
 import pandas as pd
 import plotly.express as px
 import numpy as np
+import plotly.graph_objs as go
+from sklearn.metrics import mean_absolute_error, mean_squared_error
 from prophet.diagnostics import cross_validation
 from prophet.diagnostics import performance_metrics
 from prophet.plot import plot_cross_validation_metric
@@ -692,20 +694,29 @@ def model_arima_family(request):
 
         selected_date_feature = request.POST.get('select-date-column-autoarima', None)
         selected_district_feature = request.POST.get('select-district-column-autoarima', None)
-        selected_district_feature_value = request.POST.getlist('autoarima-select-unique-district[]', None)
+        selected_district_feature_value = request.POST.getlist('autoarima-select-unique-district[]', [])
         selected_forecast_feature = request.POST.get('autoarima-feature-to-forecast', None)
         check_seasonality = request.POST.get('autoarima_seasonality_checkbox', False)
+        select_forecasting_interval = int(request.POST.get('forecasting_interval', None))
         start_p = request.POST.get('start_p', None)
         start_P = request.POST.get('start_P', None)
-        end_p = request.POST.get('start_p', None)
-        end_P = request.POST.get('start_p', None)
-        start_q = request.POST.get('start_p', None)
-        start_Q = request.POST.get('start_p', None)
-        end_q = request.POST.get('start_p', None)
-        end_Q = request.POST.get('start_p', None)
+        end_p = request.POST.get('end_p', None)
+        end_P = request.POST.get('end_P', None)
+        start_q = request.POST.get('start_q', None)
+        start_Q = request.POST.get('start_Q', None)
+        end_q = request.POST.get('end_q', None)
+        end_Q = request.POST.get('end_Q', None)
         d_autoar = request.POST.get('d', None)
         D_autoar = request.POST.get('D', None)
         m_autoar = request.POST.get('m', None)
+        print("district column:", selected_district_feature)
+        print("district value:", selected_district_feature_value)
+        print("forecasting_interval:", select_forecasting_interval)
+
+        print("start_p:", start_p)
+        print("end_p:", end_p)
+        print('start_q', start_q)
+        print("end_q", end_q)
 
         known_params_seasonality = request.POST.get('know_arima_params_cb_seasonal', False)
         selected_p_value = request.POST.get('Enter-arima_p_val', None)
@@ -720,13 +731,48 @@ def model_arima_family(request):
         print("know_arima",know_params)
 
 
-        model, base64_img = ARIMA_model(adf, selected_date_feature, selected_forecast_feature, selected_district_feature, selected_district_feature_value, check_seasonality, know_params,
+        model, base64_img, forecast_df, mae, mse, rmse = ARIMA_model(adf, select_forecasting_interval, selected_date_feature, selected_forecast_feature, selected_district_feature, selected_district_feature_value, check_seasonality, know_params,
                 selected_p_value, selected_P_value, selected_d_value, selected_q_value, selected_D_value, selected_Q_value, seasonality_period, start_p, end_p, start_q, end_q, start_P, end_P, start_Q, end_Q, m_autoar, d_autoar, D_autoar, known_params_seasonality, find_best_params_checkbox)  
+        
+        aic_value = None
+        bic_value = None
+        hqic_value = None
+        num_observations = None 
+        
+        if model is not None and know_params is not False:
+            aic_value = round(model.aic, 3)
+            bic_value = round(model.bic, 3)
+            hqic_value = round(model.hqic, 3)
+            num_observations = round(model.nobs, 3)
+            print(aic_value, bic_value, hqic_value, num_observations)
+        else:
+            aic_value = round(model.aic(), 3)
+            bic_value = round(model.bic(), 3)
+            hqic_value = round(model.hqic(), 3)
+            num_observations = len(adf)
+            print(aic_value, bic_value, hqic_value, num_observations)
+
+        fig = model.plot_diagnostics(figsize=(12, 7))
+        img_data = io.BytesIO()
+        fig.savefig(img_data, format='png')
+        img_data.seek(0)
+        # Encode the image data to base64
+        model_dignostic = base64.b64encode(img_data.read()).decode()
+        if forecast_df is not None:
+            forecasted_head = forecast_df.head(7).to_html(classes="table table-hover table-bordered")
+            request.session['arima_forecasts'] = dataframe_to_json(forecast_df)
 
         arima_response = {
-            'AIC': model.summary().tables[0].data[0][2],
-            'BIC': model.summary().tables[0].data[1][2],
+            'AIC': aic_value,
+            'BIC': bic_value,
+            'HQIC': hqic_value,
+            'num_observations': num_observations,
             'arima_fig': base64_img,
+            'model_dignostics_fig' : model_dignostic,
+            'forecasted_head' : forecasted_head,
+            'mae' : round(mae, 3), 
+            'mse' : round(mse, 3),
+            'rmse' : round(rmse, 3),
         }
 
         return JsonResponse({'message': 'Successs', 'arima_results': arima_response})
@@ -735,14 +781,14 @@ def model_arima_family(request):
         
 
 
-def ARIMA_model(dataframe, date, target_feature, district=None, district_value=None, SARIMA=False, know=False, p=None, P=None, d=None, q=None, D=None, Q=None, m=None, startp = None, endp = None, startq = None, endq = None, startP=None, endP=None, startQ=None, endQ=None, m_autoar=None, d_autoar=None, D_autoar=None, known_params_seasonality=False, find_best_params_checkbox=False):
+def ARIMA_model(dataframe, forecasting_interval, date, target_feature, district=None, district_value=None, SARIMA=False, know=False, p=None, P=None, d=None, q=None, D=None, Q=None, m=None, startp = None, endp = None, startq = None, endq = None, startP=None, endP=None, startQ=None, endQ=None, m_autoar=None, d_autoar=None, D_autoar=None, known_params_seasonality=False, find_best_params_checkbox=False):
     if district is not None and district_value is not None and district != '' and district_value != []:
-        # Apply district filter (replace 'district_column' with the actual column name)
-        # dataframe = dataframe[dataframe[district] == unique_district]
         dataframe = dataframe[dataframe[district].isin(district_value)]
         print("here1")
 
     print("here2")
+
+    print(dataframe.shape)
 
     features = [date, target_feature]
     dataframe = dataframe[features]
@@ -789,32 +835,61 @@ def ARIMA_model(dataframe, date, target_feature, district=None, district_value=N
                 model = auto_arima(dataframe[target_feature], start_p=int(startp), start_q=int(startq), max_p=int(endp), max_q=int(endq), d=int(d_autoar), seasonal=False, trace=True, error_action='ignore')
                 model= model.fit(dataframe[target_feature])
                 print(model.summary())
-                # Generate forecasts for the next 15 days
-                forecast, conf_int = model.predict(n_periods=365, return_conf_int=True)
+
+                # Extract p, d, and q values
+                p_value = model.order[0]
+                d_value = model.order[1]
+                q_value = model.order[2]
+                
+            
+                forecast, conf_int = model.predict(n_periods=forecasting_interval, return_conf_int=True)
 
                 # Create a date range for the next 15 days starting from the last date in your data
                 last_date = dataframe.index[-1]
-                date_range = pd.date_range(start=last_date + pd.DateOffset(days=1), periods=365)
+                date_range = pd.date_range(start=last_date + pd.DateOffset(days=1), periods=forecasting_interval)
 
                 # Create a DataFrame to hold the forecasts and date range
                 forecast_df = pd.DataFrame({'Date': date_range, 'Forecast': forecast, 'Lower_CI': conf_int[:, 0], 'Upper_CI': conf_int[:, 1]})
+                
+                # Create the Plotly figure for the interactive plot
+                fig = go.Figure()
 
-                # Plot the original data and the forecasts
-                plt.figure(figsize=(12, 6))
-                plt.plot(dataframe.index, dataframe[target_feature], label='Original Data')
-                plt.plot(forecast_df['Date'], forecast_df['Forecast'], label='Forecast', linestyle='-', color='red')
-                plt.fill_between(forecast_df['Date'], forecast_df['Lower_CI'], forecast_df['Upper_CI'], color='pink', alpha=0.3, label='95% Confidence Interval')
-                plt.xlabel('Date')
-                plt.ylabel('Cases')
-                plt.title('ARIMA Forecast for the Next 15 Days')
-                plt.legend()
-                # Save the plot as an image
-                img_data = io.BytesIO()
-                plt.savefig(img_data, format='png')
-                img_data.seek(0)
-                # Encode the image data to base64
-                base64_img = base64.b64encode(img_data.read()).decode()
+                # Add original data as a scatter plot
+                fig.add_trace(go.Scatter(x=dataframe.index, y=dataframe[target_feature], mode='lines', name='Original Data'))
 
+                # Add forecast as a line plot
+                fig.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['Forecast'], mode='lines', name=f'Forecast', line=dict(color='red')))
+
+                # Add confidence intervals as shaded areas
+                fig.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['Lower_CI'], mode='lines', name='Lower CI', fill=None, line=dict(color='pink')))
+                fig.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['Upper_CI'], mode='lines', name='Upper CI', fill='tonexty', line=dict(color='pink')))
+
+                # Customize the layout including the p, d, q values and confidence intervals in the legend
+                fig.update_layout(
+                    xaxis_title='Date',
+                    yaxis_title=target_feature,
+                    title=f'ARIMA Forecast with Confidence Intervals (p={p_value}, d={d_value}, q={q_value})',
+                    legend=dict(x=0, y=1),
+                )
+
+
+                # Show the interactive plot
+                base64_img = fig.to_json()
+                actual_values = dataframe[target_feature][-forecasting_interval:]
+
+                # Calculate Mean Absolute Error (MAE)
+                mae = mean_absolute_error(actual_values, forecast)
+
+                # Calculate Mean Squared Error (MSE)
+                mse = mean_squared_error(actual_values, forecast)
+
+                # Calculate Root Mean Squared Error (RMSE)
+                rmse = np.sqrt(mse)
+
+                # Print the calculated metrics
+                print("Mean Absolute Error (MAE):", mae)
+                print("Mean Squared Error (MSE):", mse)
+                print("Root Mean Squared Error (RMSE):", rmse)
 
         elif SARIMA == True:
             print("sarima true")
@@ -822,31 +897,58 @@ def ARIMA_model(dataframe, date, target_feature, district=None, district_value=N
                 print("here5")
                 model = auto_arima(dataframe[target_feature], start_p=int(startp), start_q=int(startq), max_p=int(endp), max_q=int(endq), d=int(d_autoar), start_P=int(startP), start_Q=int(startQ), max_P=int(endP), max_Q=int(endQ), m=int(m_autoar), D=int(D_autoar), seasonal=True, trace=True, error_action='ignore')
                 model= model.fit(dataframe[target_feature])
-                                # Generate forecasts for the next 15 days
-                forecast, conf_int = model.predict(n_periods=365, return_conf_int=True)
+                # Extract p, d, q values
+                p_value, d_value, q_value = model.order
+
+                # Extract P, D, Q, m values (seasonal components)
+                P_value, D_value, Q_value, m_value = model.seasonal_order
+                # Generate forecasts for the next days
+                forecast, conf_int = model.predict(n_periods=forecasting_interval, return_conf_int=True)
 
                 # Create a date range for the next 15 days starting from the last date in your data
                 last_date = dataframe.index[-1]
-                date_range = pd.date_range(start=last_date + pd.DateOffset(days=1), periods=365)
+                date_range = pd.date_range(start=last_date + pd.DateOffset(days=1), periods=forecasting_interval)
 
                 # Create a DataFrame to hold the forecasts and date range
                 forecast_df = pd.DataFrame({'Date': date_range, 'Forecast': forecast, 'Lower_CI': conf_int[:, 0], 'Upper_CI': conf_int[:, 1]})
+                # Create the Plotly figure for the interactive plot
+                fig = go.Figure()
 
-                # Plot the original data and the forecasts
-                plt.figure(figsize=(12, 6))
-                plt.plot(dataframe.index, dataframe[target_feature], label='Original Data')
-                plt.plot(forecast_df['Date'], forecast_df['Forecast'], label='Forecast', linestyle='-', color='red')
-                plt.fill_between(forecast_df['Date'], forecast_df['Lower_CI'], forecast_df['Upper_CI'], color='pink', alpha=0.3, label='95% Confidence Interval')
-                plt.xlabel('Date')
-                plt.ylabel('Cases')
-                plt.title('ARIMA Forecast for the Next 15 Days')
-                plt.legend()
-                # Save the plot as an image
-                img_data = io.BytesIO()
-                plt.savefig(img_data, format='png')
-                img_data.seek(0)
-                # Encode the image data to base64
-                base64_img = base64.b64encode(img_data.read()).decode()
+                # Add original data as a scatter plot
+                fig.add_trace(go.Scatter(x=dataframe.index, y=dataframe[target_feature], mode='lines', name='Original Data'))
+
+                # Add forecast as a line plot
+                fig.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['Forecast'], mode='lines', name='Forecast', line=dict(color='red')))
+
+                # Add confidence intervals as shaded areas
+                fig.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['Lower_CI'], mode='lines', name='Lower CI', fill=None, line=dict(color='pink')))
+                fig.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['Upper_CI'], mode='lines', name='Upper CI', fill='tonexty', line=dict(color='pink')))
+
+                # Customize the layout
+                fig.update_layout(
+                    xaxis_title='Date',
+                    yaxis_title=target_feature,
+                    title=f'SARIMA Forecast with order (p={p_value}, d={d_value}, q={q_value})(P={P_value}, D={D_value}, Q={Q_value}, m={m})',
+                    legend=dict(x=0, y=1),
+                )
+
+                # Show the interactive plot
+                base64_img = fig.to_json()
+                actual_values = dataframe[target_feature][-forecasting_interval:]
+                
+                # Calculate Mean Absolute Error (MAE)
+                mae = mean_absolute_error(actual_values, forecast)
+                
+                # Calculate Mean Squared Error (MSE)
+                mse = mean_squared_error(actual_values, forecast)
+                
+                # Calculate Root Mean Squared Error (RMSE)
+                rmse = np.sqrt(mse)
+                
+                # Print the calculated metrics
+                print("Mean Absolute Error (MAE):", mae)
+                print("Mean Squared Error (MSE):", mse)
+                print("Root Mean Squared Error (RMSE):", rmse)
                 print(model.summary())
 
     elif find_best_params_checkbox == False:
@@ -854,8 +956,9 @@ def ARIMA_model(dataframe, date, target_feature, district=None, district_value=N
             print("here4")
             model = ARIMA(dataframe[target_feature], order=(int(p), int(d), int(q)))
             model= model.fit()
+            
             # Generate a single-step forecast
-            forecast = model.forecast(steps=365)  # Forecast for the next single step
+            forecast = model.forecast(steps=forecasting_interval)  # Forecast for the next single step
 
             # Calculate the standard error (stderr) and confidence intervals (conf_int) manually
             stderr = np.std(model.resid)
@@ -867,7 +970,7 @@ def ARIMA_model(dataframe, date, target_feature, district=None, district_value=N
 
             # Create a date range for the next single step
             last_date = dataframe.index[-1]
-            date_range = pd.date_range(start=last_date, periods=365)
+            date_range = pd.date_range(start=last_date, periods=forecasting_interval)
 
             # Create a DataFrame to store the single-step forecast and confidence intervals
             forecast_df = pd.DataFrame({
@@ -877,22 +980,37 @@ def ARIMA_model(dataframe, date, target_feature, district=None, district_value=N
                 'Upper_CI': conf_int_upper
             })
 
-            # Plot the original data and the single-step forecast with confidence intervals
-            plt.figure(figsize=(12, 6))
-            plt.plot(dataframe.index, dataframe[target_feature], label='Original Data')
-            plt.plot(forecast_df['Date'], forecast_df['Forecast'], label='Forecast', linestyle='--', color='red')
-            plt.fill_between(forecast_df['Date'], forecast_df['Lower_CI'], forecast_df['Upper_CI'], color='pink', alpha=0.3, label='95% Confidence Interval')
-            plt.xlabel('Date')
-            plt.ylabel('Cases')
-            plt.title('ARIMA Single-Step Forecast')
-            plt.legend()
+            # Create the Plotly figure for the interactive plot
+            fig = px.line(dataframe, x=dataframe.index, y=target_feature, labels={'index': 'Date', target_feature: 'Cases'}, title='ARIMA Single-Step Forecast')
+            fig.add_scatter(x=forecast_df['Date'], y=forecast_df['Forecast'], mode='lines', name='Forecast', line=dict(color='red'))
+            fig.add_scatter(x=forecast_df['Date'], y=forecast_df['Lower_CI'], mode='lines', name='Lower CI', line=dict(color='pink'))
+            fig.add_scatter(x=forecast_df['Date'], y=forecast_df['Upper_CI'], mode='lines', name='Upper CI', fill='tonexty', line=dict(color='pink'))
 
-            # Save the plot as an image
-            img_data = io.BytesIO()
-            plt.savefig(img_data, format='png')
-            img_data.seek(0)
-            # Encode the image data to base64
-            base64_img = base64.b64encode(img_data.read()).decode()
+            # Customize the layout
+            fig.update_layout(
+                xaxis_title='Date',
+                yaxis_title=target_feature,
+                title=f'ARIMA Forecast with order (p={p}, d={d}, q={q})',
+                legend=dict(x=0, y=1),
+            )
+
+            # Show the interactive plot
+            base64_img = fig.to_json()
+            actual_values = dataframe[target_feature][-forecasting_interval:]
+                
+            # Calculate Mean Absolute Error (MAE)
+            mae = mean_absolute_error(actual_values, forecast)
+            
+            # Calculate Mean Squared Error (MSE)
+            mse = mean_squared_error(actual_values, forecast)
+            
+            # Calculate Root Mean Squared Error (RMSE)
+            rmse = np.sqrt(mse)
+            
+            # Print the calculated metrics
+            print("Mean Absolute Error (MAE):", mae)
+            print("Mean Squared Error (MSE):", mse)
+            print("Root Mean Squared Error (RMSE):", rmse)
             print(model.summary())
 
         elif know == True and known_params_seasonality == True and SARIMA == False:
@@ -900,42 +1018,67 @@ def ARIMA_model(dataframe, date, target_feature, district=None, district_value=N
             model = sm.tsa.statespace.SARIMAX(dataframe[target_feature], order=(int(p), int(d), int(q)), seasonal_order=(int(P), int(D), int(Q), int(m)))
             model = model.fit()
 
-            # Generate forecasts for the next 365 days
-            forecast = model.get_forecast(steps=365)
+            # Generate forecasts for the next forecasting_interval days
+            forecast = model.get_forecast(steps=forecasting_interval)
 
-            # Extract forecasted values and confidence intervals
+           # Extract forecasted values and confidence intervals
             forecast_mean = forecast.predicted_mean
             forecast_conf_int = forecast.conf_int()
 
-            # Create a date range for the next 365 days starting from the last date in your data
+            # Create a date range for the next forecasting_interval days starting from the last date in your data
             last_date = dataframe.index[-1]
-            date_range = pd.date_range(start=last_date, periods=365)
+            date_range = pd.date_range(start=last_date, periods=forecasting_interval)
 
             # Create a DataFrame to store the forecasted values and date range
             forecast_df = pd.DataFrame({
                 'Date': date_range,
                 'Forecast': forecast_mean,
-                'Lower_CI': forecast_conf_int['lower cases'].values,
-                'Upper_CI': forecast_conf_int['upper cases'].values
+                'Lower_CI': forecast_conf_int.iloc[:, 0].values,  # Lower CI column
+                'Upper_CI': forecast_conf_int.iloc[:, 1].values   # Upper CI column
             })
 
-            # Plot the original data and the forecasts with confidence intervals
-            plt.figure(figsize=(12, 6))
-            plt.plot(dataframe.index, dataframe[target_feature], label='Original Data')
-            plt.plot(date_range, forecast_mean, label='Forecast', linestyle='--', color='red')
-            plt.fill_between(date_range, forecast_conf_int['lower cases'], forecast_conf_int['upper cases'], color='pink', alpha=0.3, label='95% Confidence Interval')
-            plt.xlabel('Date')
-            plt.ylabel('Cases')
-            plt.title('SARIMAX Forecast for the Next 15 Days')
-            plt.legend()
-           # Save the plot as an image
-            img_data = io.BytesIO()
-            plt.savefig(img_data, format='png')
-            img_data.seek(0)
-            # Encode the image data to base64
-            base64_img = base64.b64encode(img_data.read()).decode()
+            # Create a Plotly figure for the interactive plot
+            fig = go.Figure()
+            
+            # Add original data as a scatter plot
+            fig.add_trace(go.Scatter(x=dataframe.index, y=dataframe[target_feature], mode='lines', name='Original Data'))
+            
+            # Add forecast mean as a line plot
+            fig.add_trace(go.Scatter(x=date_range, y=forecast_mean, mode='lines', name='Forecast', line=dict(color='red')))
+            
+            # Add confidence intervals as shaded areas
+            fig.add_trace(go.Scatter(x=date_range, y=forecast_conf_int.iloc[:, 0].values, mode='lines', name='Lower CI', fill=None, line=dict(color='pink')))
+            fig.add_trace(go.Scatter(x=date_range, y=forecast_conf_int.iloc[:, 1].values, mode='lines', name='Upper CI', fill='tonexty', line=dict(color='pink')))
+            
+            # Customize the layout
+            fig.update_layout(
+                xaxis_title='Date',
+                yaxis_title=target_feature,
+                title=f'SARIMA Forecast with order (p={p}, d={d}, q={q})(P={P}, D={D}, Q={Q}, m={m})',
+                legend=dict(x=0, y=1),
+            )
 
-    return model, base64_img
+            # Show the interactive plot
+            base64_img = fig.to_json()
+
+            actual_values = dataframe[target_feature][-forecasting_interval:]
+                
+            # Calculate Mean Absolute Error (MAE)
+            mae = mean_absolute_error(actual_values, forecast)
+            
+            # Calculate Mean Squared Error (MSE)
+            mse = mean_squared_error(actual_values, forecast)
+            
+            # Calculate Root Mean Squared Error (RMSE)
+            rmse = np.sqrt(mse)
+            
+            # Print the calculated metrics
+            print("Mean Absolute Error (MAE):", mae)
+            print("Mean Squared Error (MSE):", mse)
+            print("Root Mean Squared Error (RMSE):", rmse)
+
+
+    return model, base64_img, forecast_df, mae, mse, rmse
 
     
 
@@ -1238,7 +1381,7 @@ def export_fb_forecasted_csv(request):
         response['Content-Disposition'] = 'attachment; filename="fbprophet_forecasted_results.csv"'
         return response
 
-    return HttpResponse('Forecast data not available in the session to export.')
+    return HttpResponse('Forecast data not available in the session to export, clear the cache and try again.')
 
 # Create a function to generate the zip file
 def generate_zip(files):
@@ -1282,6 +1425,23 @@ def export_fb_cv_csv_zip(request):
     response['Content-Disposition'] = 'attachment; filename="fbprophet_evaluation.zip"'
 
     return response
+
+def export_arima_results(request):
+
+    arima_forecasts = request.session['arima_forecasts']
+
+    if arima_forecasts is not None:
+        af = pd.read_json(arima_forecasts)
+
+        arima_forecasts = af.to_csv(index=False)
+
+        response = HttpResponse(arima_forecasts, content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="forecasted_results.csv"'
+        return response
+
+    return HttpResponse('Forecast data not available in the session to export, clear the cache and try again.')
+
+
 
 
 def handle_fill_null_values(request):

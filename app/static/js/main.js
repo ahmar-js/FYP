@@ -655,9 +655,24 @@ $(document).ready(function () {
                 data: $('#arima-form').serialize(),  // Serialize the form data
                 success: function(data) {
                     console.log(data);
+
+                    arima_figure = JSON.parse(data.arima_results.arima_fig)
+                    Plotly.newPlot('arima-fig', arima_figure);
+                    
                     
                     // Update the result placeholders with the received data
-                    $('#arima-fig').html('<img class="img-fluid" src="data:image/png;base64,' + data.arima_results.arima_fig + '" alt="arima plot">');
+                    $('#arima_model_dignostic_fig').html('<img class="img-fluid" src="data:image/png;base64,' + data.arima_results.model_dignostics_fig + '" alt="Model Diagnostics">');
+
+                    $('#forecasted_arima_table').html(data.arima_results.forecasted_head)
+                    $('#aic-arima').html(data.arima_results.AIC)
+                    $('#bic-arima').html(data.arima_results.BIC)
+                    $('#hqic-arima').html(data.arima_results.HQIC)
+                    $('#nobs-arima').html(data.arima_results.num_observations)
+                    $('#MAE-arima').html(data.arima_results.mae)
+                    $('#MSE-arima').html(data.arima_results.mse)
+                    $('#RMSE-arima').html(data.arima_results.rmse)
+
+                    $('#arima_report_btn').prop('disabled', false);
                 },
                 error: function(error) {
                     // Handle errors here

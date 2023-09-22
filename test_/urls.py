@@ -17,6 +17,8 @@ urlpatterns = [
     # path('export_fb_forecasted_csv/', views.export_fb_forecasted_csv, name='export_fb_forecasted_csv'),
     path('export_fb_cv_csv_zip/', views.export_fb_cv_csv_zip, name='export_fb_cv_csv_zip'),
     path('model_arima_family/', views.model_arima_family, name='model_arima_family'),
+    path('export_arima_results/', views.export_arima_results, name='export_arima_results'),
+
 
     
 ]

@@ -50,7 +50,7 @@
                                     column</label>
                                 <select class="form-select form-select-sm" name="select-district-column-autoarima"
                                     id="select-district-column-autoarima">
-                                    <option disabled selected>Select feature</option>
+                                    <option disabled selected value="">Select feature</option>
                                     {% for column in non_numeric_frame %}
                                     <option value="{{ column }}">{{ column }}</option>
                                     {% endfor %}
@@ -64,12 +64,21 @@
                             <label for="autoarima-select-unique-district" class="form-label">Select district or
                                 reigon</label><br>
                             <select class="selectpicker w-100" multiple aria-label="size 2 select example"
-                                name="autoarima-select-unique-district" id="autoarima-select-unique-district" disabled>
-                                <option disabled selected>Select columns</option>
+                                name="autoarima-select-unique-district[]" id="autoarima-select-unique-district" disabled>
+                                <option disabled value="" selected>Select columns</option>
                             </select>
                         </div>
                     </div>
+                    <div class="forecasting_interval_autoarima col-12 col-lg-5">
+                        <div class="forecasting_interval">
+                            <label for="forecasting_interval" class="form-label">forecasting_interval</label>
+                            <input type="number" class="form-control form-control-sm" name="forecasting_interval" id="forecasting_interval"
+                                aria-describedby="forecasting_interval" placeholder="" required>
+                            <small id="forecasting_interval" class="form-text text-muted">Forecasting value</small>
+                        </div>
+                    </div>
                 </div>
+
                 <div class="selectautoarma_params d-flex flex-wrap justify-content-around">
                     <div class="find_best_params_auto_arima_checkbox_container">
                         <div class="form-check form-check-inline mb-3">
@@ -242,35 +251,66 @@
         <div class="">
             <button class="btn btn-sm btn-success" data-bs-toggle="tooltip" data-bs-placement="top"
                 title="Forecast results!" type="submit">Forecast</button>
-            <button class="btn btn-sm btn-outline-secondary" type="button" id="arima_report_btn" data-bs-target="#arima_view_report_modal" data-bs-toggle="modal">View Report</button>
+            <button class="btn btn-sm btn-outline-secondary" type="button" id="arima_report_btn" data-bs-target="#arima_view_report_modal" data-bs-toggle="modal" disabled>View Report</button>
 
         </div>
         </form>
     </div>
     <!-- arima view report modal -->
-    <div class="modal fade" id="arima_view_report_modal" tabindex="-1" aria-labelledby="arima_view_report_modal_label" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-fullscreen">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h1 class="modal-title fs-5" id="arima_view_report_modal_label">ARIMA Forecasting Report</h1>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal fade" id="arima_view_report_modal" aria-labelledby="fb_prop_view_report_modal_label" aria-hidden="true" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered modal-fullscreen">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title fs-5" id="fb_prop_view_report_modal_label">Modal title</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="arima-report-body d-flex flex-wrap justify-content-center">
+            <div id="arima-fig" class="col-12 col-lg-5"></div>
+            <div id="arima_model_dignostic_fig" class="col-12 col-lg-5"></div>
+            <div class="table-responsive forecasted_arima_table col-12 col-lg-5" id="forecasted_arima_table"></div>
+            <div class="performance_measure_arima col-12 col-lg-5 ps-5" id="arima_perform_msure">
+                <ul class="list-group">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Arimasoc reports Akaike's information criterion (AIC)
+                      <span id="aic-arima" class=" bg-primary py-1 px-2 rounded-1 text-white">14</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Schwarz's Bayesian information criterion (BIC)
+                      <span id="bic-arima" class=" bg-primary py-1 px-2 rounded-1 text-white">2</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Hannan and Quinn information criterion (HQIC)
+                      <span id="hqic-arima" class=" bg-primary py-1 px-2 rounded-1 text-white">1</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        No. of observations
+                      <span id="nobs-arima" class=" bg-primary py-1 px-2 rounded-1 text-white">1</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Mean Absolute Error (MAE)
+                      <span id="MAE-arima" class=" bg-primary py-1 px-2 rounded-1 text-white">1</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Mean Squared Error (MSE)
+                      <span id="MSE-arima" class=" bg-primary py-1 px-2 rounded-1 text-white">1</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Root Mean Squared Error (RMSE)
+                      <span id="RMSE-arima" class=" bg-primary py-1 px-2 rounded-1 text-white">1</span>
+                    </li>
+                  </ul>
             </div>
-            <div class="modal-body">
-                <div id="arima-results" class="d-flex justify-content-center">
-                    <div id="arima-fig" class="col-12 col-lg-5">
-
-                    </div>
-                </div>
-                   
-                    
-            </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
-    
-            </div>
+        </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+            <!-- <button type="button" class="btn btn-primary">Save changes</button> -->
+            <a href="{% url 'export_arima_results' %}" class="btn btn-success btn-sm btn-export-csv">Export Forecasting Results</a>
           </div>
         </div>
+      </div>
+    </div>
       </div>
 </div>
 
