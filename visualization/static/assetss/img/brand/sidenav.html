@@ -1,0 +1,175 @@
+
+  <nav class="navbar navbar-vertical fixed-left navbar-expand-md navbar-dark bg-dark" id="sidenav-main">
+    <div class="container-fluid">
+      <!-- Toggler -->
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-collapse-main" aria-controls="sidenav-main" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <!-- Brand -->
+      <a class="navbar-brand pt-0" href="/">
+        <!-- <img src="/static/assets/img/brand/favicon.ico" class="navbar-brand-img" alt="..."> -->
+        
+      </a>
+      <!-- User -->
+      <ul class="nav align-items-center d-md-none">
+        <li class="nav-item">
+          <a class="nav-link nav-link-icon" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i class="fas fa-info-circle text-light"></i>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <a class="dropdown-item" href="#">Docs</a>
+            <a class="dropdown-item" href="#">Help</a>
+            <div class="dropdown-divider"></div>
+            <div class="d-flex">
+            <a class="dropdown-item" href="#">User</a>
+            <a class="dropdown-item" href="#">Logout</a>
+            </div>
+
+          </ul>
+        </li>
+
+      </ul>
+      <!-- Collapse -->
+      <div class="collapse navbar-collapse" id="sidebar-collapse-main">
+        <!-- Collapse header -->
+        <div class="navbar-collapse-header d-md-none">
+          <div class="row">
+            <div class="col-6 collapse-brand">
+              <a href="./">
+                <img src="/static/assets/img/brand/favicon.ico">
+              </a>
+            </div>
+            <div class="col-6 collapse-close">
+              <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#sidebar-collapse-main" aria-expanded="false" aria-controls="sidebar-collapse-main">
+                <span></span>
+                <span></span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation -->
+        <ul class="navbar-nav">
+          <li class="nav-item home-item">
+          <a class=" nav-link active text-light fade-in-left " href="/"><i class="fas fa-home text-secondary "></i>Home
+            </a>
+          </li>
+
+          <li class="nav-item maps-item">
+            <a class="nav-link text-light fade-in-left " href="/maps.html">
+              <i class="fas fa-map-marked-alt text-secondary"></i>Maps
+            </a>
+          </li>
+        </ul>
+        <!-- Divider -->
+        <hr class="my-3">
+        <!-- Heading -->
+        <!-- Navigation -->
+        <ul class="navbar-nav mb-md-3 ">
+          <!-- Dataset selection dropdown -->
+          <li class="nav-item">
+            <div class="Dataset-select-container mx-3 fade-in-left">
+            <label for="selectDataset" class="selectDatasetLabel text-lighter text-sm"><i class="fas fa-file mr-2 text-secondary"></i>Dataset</label>
+            <select class="form-select" id="selectDataset" class="dataset-select" style="font-size: 12px">
+              <option selected>Cholera.csv</option>
+              <option value="1">One</option>
+              <option value="2">Two</option>
+              <option value="3">Three</option>
+            </select>
+          </div>
+          </li>
+          <!-- Model Selection dropdown -->
+          <li class="nav-item mt-2">
+            <div class="Model-select-container fade-in-left mx-3">
+              <label for="selectModel" class="selectModelLabel text-lighter text-sm "><i class="fas fa-robot text-secondary mr-2"></i>Model</label>
+            <select class="form-select " id="selectModel" class="Model-select" style="font-size: 12px">
+              <option selected>ARIMA</option>
+              <option value="1">One</option>
+              <option value="2">Two</option>
+              <option value="3">Three</option>
+            </select>
+          </div>
+          </li>
+          <!-- Reigon dropdown -->
+          <li class="nav-item mt-2">
+            <div class="Reigon-select-container fade-in-left mx-3">
+              <label for="selectReigon" class="selectReigonLabel text-lighter text-sm"><i class="fas fa-mountain text-secondary mr-2"></i>Reigon</label>
+            <select class="form-select" id="selectReigon" class="Reigon-select" style="font-size: 12px">
+              <option selected>Sindh</option>
+              <option value="1">One</option>
+              <option value="2">Two</option>
+              <option value="3">Three</option>
+            </select>
+          </div>
+          </li>
+          <!-- District dropdown -->
+          <li class="nav-item mt-2">
+            <div class="District-select-container fade-in-left mx-3">
+              <label for="selectDistrict" class="selectDistrictLabel  text-lighter text-sm"><i class="fas fa-landmark text-secondary mr-2"></i>District</label>
+            <select class="form-select " id="selectDistrict" class="District-select" style="font-size: 12px">
+              <option selected>Hyderabad</option>
+              <option value="1">One</option>
+              <option value="2">Two</option>
+              <option value="3">Three</option>
+            </select>
+          </div>
+          </li>
+          <!-- Range Slider -->
+          <li class="nav-item mt-2">
+            <div class="slider-container fade-in-left mx-3">
+            <label for="Datarange1 Datarange2" class="DatarangeLabel text-lighter text-sm"><i class="fas fa-calendar text-secondary mr-2"></i>Data Range</label>
+
+              <input type="range" class="custom-range" id="Datarange1" min="01-01-2020" max="31-12-2022" step="1">
+              <input type="range" class="custom-range" id="Datarange2" min="01-01-2020" max="31-12-2022" step="1">
+              <span class="text-sm d-flex justify-content-between text-light">
+                <small>01-01-2020</small>
+                <small>31-12-2022</small>
+              </span>
+            </div>
+          </li>
+
+          <!-- Divider -->
+          <hr class="my-3">
+
+           <!-- Visualization switches -->
+           <li class="nav-item">
+            <div class="visual-switches-container mx-3 text-light text-sm fade-in-left">
+            <label for="flexSwitchCheck1 flexSwitchCheck2" class="flexSwitchCheckLabel text-lighter"><i class="fas fa-chart-pie text-warning mr-2"></i>Map Visuals</label>
+            <div class="form-check form-switch d-flex justify-content-between p-0">
+              <div class="hotspot-label">
+              <label class="form-check-label" for="flexSwitchCheck1">Hotspots</label>
+              </div>
+              <div class="hotspot-switch">
+              <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheck1">
+            </div>
+            </div>
+            <div class="form-check form-switch d-flex justify-content-between p-0">
+              <div class="Heatmap-label">
+              <label class="form-check-label" for="flexSwitchCheck2">Heatmap</label>
+              </div>
+              <div class="Heatmap-switch">
+              <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheck2">
+            </div>
+            </div>
+            <div class="form-check form-switch d-flex justify-content-between p-0">
+              <div class="Chloropeths-label">
+              <label class="form-check-label" for="flexSwitchCheck3">Chloropeths</label>
+              </div>
+              <div class="Chloropeths-switch">
+              <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheck3">
+            </div>
+            </div>
+            </div>
+          </li>
+          
+
+        </ul>
+        
+        <div class="sign_out mt-auto">
+        <hr class="my-3">
+          <span class="pe-1"><i class="fa fa-power-off" aria-hidden="true"></i></span>
+          <span><a href="{% url 'Logout' %}" class="link-secondary">Sign out, <span>{{ request.session.user_name }}</span></a></span>
+        </div>
+      </div>
+    </div>
+  </nav>

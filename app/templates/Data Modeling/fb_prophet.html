@@ -12,7 +12,7 @@
                     <select class="form-select form-select-sm" name="select-date-column-fb" id="select-date-column-fb"
                         required>
                         <option disabled value="" selected>Select feature</option>
-                        {% for column in gdf.columns %}
+                        {% for column in pred_df_columns %}
                             <option value="{{ column }}">{{ column }}</option>
                         {% endfor %}
                     </select>

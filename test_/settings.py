@@ -38,8 +38,10 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'django.contrib.humanize',
     'django.contrib.staticfiles',
     'app',
+    'visualization',
 ]
 
 MIDDLEWARE = [
@@ -80,13 +82,6 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
-PDFKIT_CONFIG = {
-    'WKHTMLTOPDF_BIN': 'C:/Program Files/wkhtmltopdf',  # Replace with the actual path to wkhtmltopdf executable
-    'OPTIONS': {
-        'quiet': '',
     }
 }
 

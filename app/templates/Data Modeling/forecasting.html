@@ -15,8 +15,8 @@
                             <select class="form-select form-select-sm" name="autoarima-feature-to-forecast"
                                 id="autoarima-feature-to-forecast">
                                 <option disabled selected>Select feature</option>
-                                {% for column in gdf.columns %}
-                                <option value="{{ column }}">{{ column }}</option>
+                                {% for column in gdf_numeric %}
+                                    <option value="{{ column }}">{{ column }}</option>
                                 {% endfor %}
                             </select>
                             <div class="selectautoarimaparams">
@@ -36,7 +36,7 @@
                                 <select class="form-select form-select-sm" name="select-date-column-autoarima"
                                     id="select-date-column-autoarima" required>
                                     <option disabled value="" selected>Select option</option>
-                                    {% for column in gdf.columns %}
+                                    {% for column in pred_df_columns %}
                                     <option value="{{ column }}">{{ column }}</option>
                                     {% endfor %}
                                 </select>
@@ -64,7 +64,7 @@
                             <label for="autoarima-select-unique-district" class="form-label">Select district or
                                 reigon</label><br>
                             <select class="selectpicker w-100" multiple aria-label="size 2 select example"
-                                name="autoarima-select-unique-district[]" id="autoarima-select-unique-district" disabled>
+                                name="autoarima-select-unique-district[]" id="autoarima-select-unique-district" disabled required>
                                 <option disabled value="" selected>Select columns</option>
                             </select>
                         </div>

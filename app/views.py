@@ -7,6 +7,11 @@ from pmdarima import auto_arima
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", message=".*The 'nopython' keyword.*")
+from django.contrib.auth.models import User
+from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth.decorators import login_required
+
+import re
 import json
 import pandas as pd
 import plotly.express as px
@@ -165,6 +170,7 @@ def upload_file(request):
     # ...
 
     json_geodata = request.session.get('geodata_frame')
+    json_pred_data = request.session.get('prediction_dataframe')
     if not json_geodata:
         gdf = None
         preview_geodataframe = preview_dataframe(df, limit=5)
@@ -179,9 +185,13 @@ def upload_file(request):
         numeric_columns = [col for col in columns if pd.api.types.is_numeric_dtype(gdf[col])]
         non_numeric_columns = [col for col in columns if not pd.api.types.is_numeric_dtype(gdf[col])]
 
-
-
-
+    pred_df = pd.DataFrame()
+    error_message = ""
+    if json_pred_data:
+        pred_df = json_to_dataframe(json_pred_data)
+        columns = pred_df.columns.tolist()
+        numeric_columns = [col for col in columns if pd.api.types.is_numeric_dtype(pred_df[col])]
+        non_numeric_columns = [col for col in columns if not pd.api.types.is_numeric_dtype(pred_df[col])]
 
 
     # # Check if the "reset" parameter is in POST data
@@ -318,7 +328,53 @@ def upload_file(request):
                 gdf = Getis_ord_hotspot_Analysis(gdf, selected_k_val, selected_gi_feature, star_parameter, request)
                 request.session['geodata_frame'] = geodataframe_to_json(gdf)
 
+            if 'select_date_var_gd' in request.POST and 'select_desired_feature_gd' in request.POST:
+                selected_date_feature = request.POST.get('select_date_var_gd', None)
+                selected_desired_feature = request.POST.get('select_desired_feature_gd', None)
 
+                # Check if both selected features are not None and not empty strings
+                if selected_date_feature and selected_desired_feature:
+                    features = [selected_date_feature, selected_desired_feature]
+
+                    # Ensure 'pred_df' exists and is a DataFrame before performing operations
+                    if isinstance(pred_df, pd.DataFrame):
+                        # Check if the selected features exist in 'pred_df' columns
+                        if all(feature in df.columns for feature in features):
+                            pred_df = df[features]
+
+                            # Check if 'df' is a DataFrame before attempting a groupby operation
+                            if isinstance(df, pd.DataFrame):
+                                pred_df = df.groupby([selected_date_feature, selected_desired_feature]).size().reset_index(name='cases')
+                                pred_df.drop_duplicates(subset=[selected_date_feature, selected_desired_feature], inplace=True)
+
+                                # Store the resulting DataFrame in the session variable
+                                request.session['prediction_dataframe'] = dataframe_to_json(pred_df)
+                            else:
+                                # Handle the case where 'df' is not a DataFrame
+                                error_message = "The 'df' variable is not a DataFrame."
+                                # You can choose to raise an error, log the error, or provide a user-friendly message.
+                        else:
+                            # Handle the case where one or both selected features don't exist in 'pred_df'
+                            error_message = "One or both selected features do not exist in the data."
+                            # You can choose to raise an error, log the error, or provide a user-friendly message.
+                    else:
+                        # Handle the case where 'pred_df' is not a DataFrame
+                        error_message = "The 'pred_df' variable is not a DataFrame."
+                        # You can choose to raise an error, log the error, or provide a user-friendly message.
+                else:
+                    # Handle the case where one or both selected features are empty or None
+                    error_message = "Please select valid date and desired features."
+                    # You can choose to raise an error, log the error, or provide a user-friendly message.
+            else:
+                # Handle the case where 'select_date_var_gd' and/or 'select_desired_feature_gd' are not in request.POST
+                error_message = "Both date and desired features must be selected."
+                # You can choose to raise an error, log the error, or provide a user-friendly message.
+
+            # If there is an error, you can raise an exception, log it, or show a user-friendly message.
+            if error_message:
+                raise ValueError(error_message)
+
+                
 
 
     # Handle the case when 'K_val' and 'select_gi_feature' are not in request.POST
@@ -334,6 +390,10 @@ def upload_file(request):
                 non_numeric_columns = [col for col in columns if not pd.api.types.is_numeric_dtype(gdf[col])]
 
                 preview_geodataframe = preview_dataframe(gdf, limit=5)
+
+
+
+
 
             # Update the DataFrame in the session
             request.session['data_frame'] = dataframe_to_json(df)
@@ -363,14 +423,24 @@ def upload_file(request):
         except Exception as e:
             return render(request, 'error.html', {'error_message': 'An error occurred: ' + str(e)})
         
-    columns = df.columns.tolist()    
-    non_numeric_columns = [col for col in columns if not pd.api.types.is_numeric_dtype(df[col])]
+    if not pred_df.empty:
+        print("pred_df is not empty")
+        columns = pred_df.columns.tolist()
+        non_numeric_columns = [col for col in columns if not pd.api.types.is_numeric_dtype(pred_df[col])]
+        numeric_columns = [col for col in columns if pd.api.types.is_numeric_dtype(pred_df[col])]
+
+    else:
+        columns = df.columns.tolist()    
+        non_numeric_columns = [col for col in columns if not pd.api.types.is_numeric_dtype(df[col])]
+        numeric_columns = [col for col in columns if pd.api.types.is_numeric_dtype(df[col])]
+
     # Calculate unique value counts for each column
     unique_value_counts = df.nunique()
     unique_counts_html = unique_value_counts.to_frame(name='Unique Values').to_html(classes='table table-striped')
 
     
     context = {
+        'pred_df_columns': columns,
         'gdf': preview_geodataframe,
         'gdf_numeric': numeric_columns,
         'non_numeric_frame': non_numeric_columns,
@@ -606,11 +676,14 @@ def model_fb_prophet(request):
     try:
         json_geodata = request.session.get('geodata_frame')
         json_data = request.session.get('data_frame')
+        prediction_data = request.session.get('prediction_dataframe')
         
-        if not json_geodata and not json_data:
-            return JsonResponse({'error': 'GeoDataFrame not found to model' })
+        if not json_geodata and not json_data and not prediction_data:
+            return JsonResponse({'error': 'DataFrame not found to model. Upload the Data First' })
         
-        if json_geodata:
+        if prediction_data:
+            mdf = json_to_dataframe(prediction_data)
+        elif json_geodata:
             mdf = json_to_geodataframe(json_geodata)
         else:
             mdf = json_to_dataframe(json_data)
@@ -682,10 +755,14 @@ def model_arima_family(request):
     print("here")
     json_geodata = request.session.get('geodata_frame')
     json_data = request.session.get('data_frame')
-    if not json_geodata and not json_data:
-        return JsonResponse({'error': 'GeoDataFrame not found to model' })
+    prediction_data = request.session.get('prediction_dataframe')
+
+    if not json_geodata and not json_data and not prediction_data:
+        return JsonResponse({'error': 'DataFrame not found to model. Upload data first' })
     
-    if json_geodata:
+    if prediction_data:
+        adf = json_to_dataframe(prediction_data)
+    elif json_geodata:
         adf = json_to_geodataframe(json_geodata)
     else:
         adf = json_to_dataframe(json_data)
@@ -743,7 +820,7 @@ def model_arima_family(request):
             aic_value = round(model.aic, 3)
             bic_value = round(model.bic, 3)
             hqic_value = round(model.hqic, 3)
-            num_observations = round(model.nobs, 3)
+            num_observations = model.nobs
             print(aic_value, bic_value, hqic_value, num_observations)
         else:
             aic_value = round(model.aic(), 3)
@@ -784,11 +861,12 @@ def model_arima_family(request):
 def ARIMA_model(dataframe, forecasting_interval, date, target_feature, district=None, district_value=None, SARIMA=False, know=False, p=None, P=None, d=None, q=None, D=None, Q=None, m=None, startp = None, endp = None, startq = None, endq = None, startP=None, endP=None, startQ=None, endQ=None, m_autoar=None, d_autoar=None, D_autoar=None, known_params_seasonality=False, find_best_params_checkbox=False):
     if district is not None and district_value is not None and district != '' and district_value != []:
         dataframe = dataframe[dataframe[district].isin(district_value)]
+        print(dataframe)
+        print(dataframe.shape)
         print("here1")
 
     print("here2")
 
-    print(dataframe.shape)
 
     features = [date, target_feature]
     dataframe = dataframe[features]
@@ -928,7 +1006,7 @@ def ARIMA_model(dataframe, forecasting_interval, date, target_feature, district=
                 fig.update_layout(
                     xaxis_title='Date',
                     yaxis_title=target_feature,
-                    title=f'SARIMA Forecast with order (p={p_value}, d={d_value}, q={q_value})(P={P_value}, D={D_value}, Q={Q_value}, m={m})',
+                    title=f'SARIMA Forecast with order (p={p_value}, d={d_value}, q={q_value})(P={P_value}, D={D_value}, Q={Q_value}, m={m_value})',
                     legend=dict(x=0, y=1),
                 )
 
@@ -1098,10 +1176,12 @@ def fetch_unique_districts(request):
                 mdf = json_to_geodataframe(json_geodata)
             else:
                 mdf = json_to_dataframe(json_data)
-                # Get the unique district values
-                unique_districts = mdf[selected_district_column].unique()
-                # Return the unique district values as JSON
-                return JsonResponse({'unique_districts': list(unique_districts)})
+            print(mdf)
+            # Get the unique district values
+            unique_districts = mdf[selected_district_column].unique()
+            print("unique: ", unique_districts)
+            # Return the unique district values as JSON
+            return JsonResponse({'unique_districts': list(unique_districts)})
 
     # Handle invalid or missing data
     return JsonResponse({'error': 'Invalid request or missing data'})
@@ -1501,3 +1581,88 @@ def handle_drop_rows(request):
 #                 selected_columns = request.POST.getlist('select-multi-drop-row', None)
 #                 selected_strategy = request.POST.get('row_drop_strategy', None)
 #                 drop_rows(df, how=selected_strategy, subset=selected_columns)
+
+
+def Logout(request):
+    logout(request)
+    return redirect('Login')
+
+def Login(request):
+    return render(request, "login.html")
+
+def login_user(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        print(email, password)
+
+        # Perform basic input validation
+        if not email or not password:
+            return JsonResponse({'error': 'Both email and password are required.'})
+
+        # Authenticate the user
+        user = authenticate(username=email, password=password)
+        print(user)
+
+        if user is not None:
+            # Login the user
+            login(request, user)
+            name = email.split('@')[0]
+            request.session['user_name'] = name
+            return JsonResponse({'success': 'Login successful!'})
+        else:
+            return JsonResponse({'error': 'Invalid email or password.'})
+
+
+
+def is_valid_password(password):
+    # Check if the password meets the specified conditions
+    if (8 <= len(password) <= 32) and re.search(r'[A-Z]', password) and re.search(r'[a-z]', password) and re.search(r'[0-9]', password) and re.search(r'[!@#$%_^&*]', password):
+        return True
+    return False
+
+def is_valid_email(email):
+    # Check if the email is valid
+    if (
+        re.match(r'^[a-zA-Z][a-zA-Z0-9._%+-]{4,}@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email) and
+        not email.isdigit() and
+        len(email) >= 5 and
+        not re.match(r'^[!@#$%^&*]+$', email) and
+        re.match(r'^[a-zA-Z0-9._%+-]+$', email.split('@')[0]) and
+        re.match(r'^[a-zA-Z0-9.-]+$', email.split('@')[1])
+    ):
+        return True
+    return False
+
+def register_login(request):
+    if request.method == 'POST':
+        print("here")
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        cpassword = request.POST.get('cpassword')
+
+        # Validate email, password, and check if passwords match
+        if not is_valid_email(email):
+            return JsonResponse({'error': 'Invalid Email!'})
+        
+        if not is_valid_password(password):
+            return JsonResponse({'error': 'Password must be 8-32 characters long and contain at least one capital letter, one symbol (!@#$%_^&*), and one digit.'})
+        
+        if password != cpassword:
+            return JsonResponse({'error': 'Passwords do not match!'})
+
+        try:
+            # Check if the email is already registered
+            user = User.objects.get(username=email)
+            return JsonResponse({'error': 'Email already exists!'})
+        except User.DoesNotExist:
+            # Create a new user
+            user = User.objects.create_user(username=email, email=email, password=password)
+            user.save()
+            return JsonResponse({'success': 'Registration successful!'})
+        
+    return JsonResponse({'error': 'Invalid request method'})
+
+    
+def register(request):
+    return render(request, 'regiseter.html')

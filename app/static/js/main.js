@@ -1,3 +1,92 @@
+$(document).ready(function() {
+    $('#register_form').submit(function(event) {
+        event.preventDefault();
+
+        // Retrieve form data
+        var email = $('#email').val();
+        var password = $('#password').val();
+        var cpassword = $('#cpassword').val();
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        console.log("here")
+
+        // Send the data using AJAX
+        $.ajax({
+            headers: { 'X-CSRFToken': csrftoken },
+            type: 'POST',
+            url: '/register_login/',
+            data: {
+                'email': email,
+                'password': password,
+                'cpassword': cpassword,
+
+            },
+            success: function(data) {
+                console.log(data);
+                $('#invalid-feedback').empty();
+                $('#valid-feedback').empty();
+                if (data.error){
+                    showAlert('danger', data.error, '#invalid-feedback');
+                }
+                else{
+                    showAlert('success', data.success, '#valid-feedback');
+                    setTimeout(function() {
+                        window.location.href = '/login'; 
+                    }, 3000);
+                }
+                
+            },
+            error: function(error) {
+                console.log('Error Registration: ', error);
+                // Handle error here
+            }
+        });
+    });
+
+    $('#login-form').on('submit', function (event) {
+        event.preventDefault();  // Prevent the default form submission
+
+        // Retrieve form data
+        var email = $('#email').val();
+        var password = $('#password').val();
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        console.log(email, password)
+        // Send an AJAX POST request
+        $.ajax({
+            headers: { 'X-CSRFToken': csrftoken },
+            url: '/login_user/',  
+            type: 'POST',
+            data: {
+                'email': email,
+                'password': password,
+
+            },
+            success: function (data) {
+                console.log(data)
+                if (data.error){
+                    showAlert('danger', data.error, '#invalid-feedback');
+                }
+                else{
+                    showAlert('success', data.success, '#valid-feedback');
+                    window.location.href = '/home/';
+                }
+            }
+        });
+    });
+
+    // Function to display alert messages
+    function showAlert(type, message, id) {
+        // console.log(message);
+        var alertHtml = `
+            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        $(id).html(alertHtml);
+    }
+});
+
+
 // ============= Form validation 
 
 // Example starter JavaScript for disabling form submissions if there are invalid fields
@@ -121,94 +210,15 @@ function updateStarParameterOptions() {
 }
 
 // Attach the onchange event handler to the checkbox
-document.getElementById('select_star_parameter').onchange = updateStarParameterOptions;
+var selectStarParameter = document.getElementById('select_star_parameter');
+if (selectStarParameter !== null) {
+    selectStarParameter.onchange = updateStarParameterOptions;
+}
 
 //============= function to handle star parameter option end
 
-//============= function to handle view report button
-
-// document.addEventListener('DOMContentLoaded', function() {
-//     // Check if the form has been submitted recently (you can use a hidden input field to track this)
-//     var formSubmitted = localStorage.getItem('formSubmitted');
-    
-//     // Get the "View report" button element
-//     var viewReportButton = document.getElementById('view_hotspot_report');
-    
-//     // Check if the form has been submitted and enable the button if necessary
-//     if (formSubmitted === 'true') {
-//         viewReportButton.removeAttribute('disabled');
-//     }
-    
-//     // Add an event listener to the form submission
-//     document.querySelector('form-hotspot').addEventListener('submit', function() {
-//         // Set a flag in local storage to indicate that the form has been submitted
-//         localStorage.setItem('formSubmitted', 'true');
-//     });
-// });
-
-//============= function to handle view report button end
 
 
-// ============ ajax for data limiter
-
-// document.addEventListener("DOMContentLoaded", function () {
-//     const form = document.querySelector("#previewdata-limit");
-//     const tableBody = document.querySelector(".preview-table tbody");
-//     const recordInfo = document.querySelector(".preview-record-info"); // Reference to the record info element
-
-//     form.addEventListener("submit", function (event) {
-//         event.preventDefault();
-//         const dataLimit = form.querySelector("#datalimit").value;
-//         const ajaxUrl = form.getAttribute("data-ajax-url");
-//         const url = `${ajaxUrl}?datalimit=${dataLimit}`;
-
-//         fetch(url)
-//             .then(response => response.json())
-//             .then(data => {
-//                 console.log(data)
-//                 tableBody.innerHTML = "";  // Clear existing table rows
-//                 data.data.forEach(row => {
-//                     const newRow = document.createElement("tr");
-//                     row.forEach(value => {
-//                         const newCell = document.createElement("td");
-//                         // Handle null values by replacing them with a placeholder
-//                         const displayValue = value === null ? "N/A" : value;
-//                         newCell.textContent = displayValue;
-//                         newRow.appendChild(newCell);
-//                     });
-//                     tableBody.appendChild(newRow);
-//                 });
-            
-
-//                 // Update the record info element with the number of records being shown
-//                 const numRecordsShown = data.data.length;
-//                 const recordsText = numRecordsShown === 1 ? "record" : "records";
-//                 recordInfo.textContent = `Showing ${numRecordsShown} ${recordsText}`;
-//             })
-//             .catch(error => console.error("Error fetching data:", error));
-//     });
-// });
-
-
-// $(document).ready(function () {
-//     $('#previewdata-limit').submit(function (event) {
-//         event.preventDefault(); // Prevent default form submission
-//         var selectedLimit = $('#datalimit').val();
-
-//         $.ajax({
-//             url: '/preview_data/', // Update with your actual URL
-//             type: 'GET',
-//             data: { limit: 10 }, // Pass the selected limit as a parameter
-//             success: function (data) {
-//                 console.log('AJAX request succeeded:', data);
-//                 $('#preview-data-container').html(data.html); // Update the container with fetched data
-//             },
-//             error: function (error) {
-//                 console.log('Error fetching data: ' + error);
-//             }
-//         });
-//     });
-// });
 
 $(document).ready(function () {
     function loadData(limit) {
@@ -217,6 +227,7 @@ $(document).ready(function () {
             type: 'GET',
             data: { limit: limit },
             success: function (data) {
+                if (data.error != 'Data not available') {
                 // console.log('AJAX request succeeded:');
                 // console.log('AJAX request succeeded:', data);
                 // Parse the JSON data received from the server
@@ -257,6 +268,7 @@ $(document).ready(function () {
                 // Update the container with the table
                 // console.log(tableHtml);
                 $('#preview-data-container').html(tableHtml);
+            }
             },
             error: function (error) {
                 console.log('Error fetching data:', error);
@@ -265,7 +277,7 @@ $(document).ready(function () {
     }
 
     // Load default data on page load
-    loadData(10); // Load default 10 rows
+    loadData(5); // Load default 10 rows
     updateStatistics()
 
     // Handle form submission
@@ -721,6 +733,7 @@ $(document).ready(function () {
             url: '/update_statistics/',  
             type: 'GET',
             success: function (data) {
+                if (data.error != 'Invalid request method'){
                 // Parse the JSON data received from the server
                 var stats = data.stats;
                 var describe_data = data.describe_data;
@@ -739,6 +752,7 @@ $(document).ready(function () {
                 $('#nullwise').html(null_colwise);
                 $('#nonullwise').html(nonull_colwise);
                 $('#datatypes-table').html(datatypes)
+                }
 
                 // Update other statistics elements similarly...
             },
@@ -760,6 +774,54 @@ $(document).ready(function () {
     }
 
 
+});
+
+
+
+
+$(document).ready(function () {
+    // Event listener for changes in the district column select menu
+    $('#select-district-column-autoarima').change(function () {
+        var selectedDistrictColumn = $(this).val();
+        console.log(selectedDistrictColumn);
+        $('#autoarima-select-unique-district').selectpicker();
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        // Make an AJAX request to fetch unique district values
+        $.ajax({
+            headers: { 'X-CSRFToken': csrftoken },
+            url: '/fetch_unique_districts/',
+            type: 'POST', 
+            data: {
+                selected_district_column: selectedDistrictColumn
+            },
+            success: function (response) {
+                console.log(response);
+
+                // Clear existing options in the unique district select menu
+                // $('#select-unique-district').empty();
+                $('#autoarima-select-unique-district').selectpicker('deselectAll'); // Deselect all options
+                $('#autoarima-select-unique-district').selectpicker('val', '');
+                $('#autoarima-select-unique-district').selectpicker('refresh'); // Refresh the select picker
+                
+                // Populate the unique district values from the response
+                for (var i = 0; i < response.unique_districts.length; i++) {
+                    var districtValue = response.unique_districts[i];
+                    $('#autoarima-select-unique-district').append($('<option>', {
+                        value: districtValue,
+                        text: districtValue
+                    }));
+                }
+            $('#autoarima-select-unique-district').prop('disabled', false); // Enable the select
+            $('#autoarima-select-unique-district').selectpicker('refresh'); // Refresh the select picker
+            $('#autoarima-select-unique-district').selectpicker('render'); // Render the select picker
+            $('#autoarima-select-unique-district').selectpicker('refresh'); // Refresh the select picker
+            },
+            error: function (error) {
+                console.log('Error fetching unique districts:', error);
+            }
+        });
+    });
 });
 
 $(document).ready(function () {
@@ -807,47 +869,4 @@ $(document).ready(function () {
 });
 
 
-$(document).ready(function () {
-    // Event listener for changes in the district column select menu
-    $('#select-district-column-autoarima').change(function () {
-        var selectedDistrictColumn = $(this).val();
-        console.log(selectedDistrictColumn);
-        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-        
-        // Make an AJAX request to fetch unique district values
-        $.ajax({
-            headers: { 'X-CSRFToken': csrftoken },
-            url: '/fetch_unique_districts/',
-            type: 'POST', 
-            data: {
-                selected_district_column: selectedDistrictColumn
-            },
-            success: function (response) {
-                console.log(response);
-                $('#autoarima-select-unique-district').selectpicker();
 
-                // Clear existing options in the unique district select menu
-                // $('#select-unique-district').empty();
-                $('#autoarima-select-unique-district').selectpicker('deselectAll'); // Deselect all options
-                $('#autoarima-select-unique-district').selectpicker('val', '');
-                $('#autoarima-select-unique-district').selectpicker('refresh'); // Refresh the select picker
-                
-                // Populate the unique district values from the response
-                for (var i = 0; i < response.unique_districts.length; i++) {
-                    var districtValue = response.unique_districts[i];
-                    $('#autoarima-select-unique-district').append($('<option>', {
-                        value: districtValue,
-                        text: districtValue
-                    }));
-                }
-            $('#autoarima-select-unique-district').prop('disabled', false); // Enable the select
-            $('#autoarima-select-unique-district').selectpicker('refresh'); // Refresh the select picker
-            $('#autoarima-select-unique-district').selectpicker('render'); // Render the select picker
-            $('#autoarima-select-unique-district').selectpicker('refresh'); // Refresh the select picker
-            },
-            error: function (error) {
-                console.log('Error fetching unique districts:', error);
-            }
-        });
-    });
-});

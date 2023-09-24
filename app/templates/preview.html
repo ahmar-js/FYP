@@ -28,7 +28,7 @@
         {% endif %}
     {% endfor %}
 {% endif %}
-    </div>
+</div>
 
     <ul class="nav nav-tabs">
         <li class="nav-item">
@@ -38,12 +38,13 @@
           <a class="nav-link" data-bs-toggle="tab" href="#hotspot">Hotspot Analysis</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link active"  data-bs-toggle="tab" href="#modeling">Data Modeling</a>
+          <a class="nav-link"  data-bs-toggle="tab" tabindex="-1" href="#modeling">Data Modeling</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" data-bs-toggle="tab"  href="#" tabindex="-1" >Dashboard</a>
-        </li>
+        <a class="nav-link"  href="{% url 'home' %}" >Dashboard</a>
+    </li>
       </ul>
+
 
     <div class="tab-content" id="myTabContent">
 
