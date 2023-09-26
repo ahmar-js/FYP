@@ -1,7 +1,9 @@
+from django.conf import settings
 from django.urls import path
 from app import views as app_views
 from django.contrib import admin
 from visualization import views as viz_views
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -35,10 +37,13 @@ urlpatterns = [
     path('Logout/', app_views.Logout, name='Logout'),
 
 
-    
+    path('save_dataframe_to_database/', viz_views.save_dataframe_to_database, name='save_dataframe_to_database'),
 ]
     # path('generate_plot/', app_views.generate_plot, name='generate_plot'),
 
     # path('describe_data/', app_views.describe_data, name='describe_data'),
     # path('preview_dataframe_ajax/', app_views.preview_dataframe_ajax, name='preview_dataframe_ajax'),
 
+# Serve media files during development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

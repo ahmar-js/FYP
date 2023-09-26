@@ -41,7 +41,7 @@ from .geographical_coordinate_system import convert_dms_to_decimal
 from .Geooding import convert_lat_lng_to_addresses, concatenate_and_geocode
 from .json_serializable import dataframe_to_json, json_to_dataframe, geodataframe_to_json, json_to_geodataframe
 from django.http import JsonResponse
-
+from visualization.views import save_dataframe_to_database
 
 
 #================ For custom preview data limiter ================
@@ -123,12 +123,14 @@ def update_statss(df):
     
     return preview_data, preview_datatypes_html, stats, describe_data, unique_counts_html, null_colwise_html, nonnull_colwise_html
 
-
 def upload_view(request):
     request.session.clear()  # Clear the entire session
+    uploaded_file_name = None
     if request.method == 'POST' and request.FILES.get('csv_file'):
         try:
             csv_file = request.FILES['csv_file']
+            uploaded_file_name = csv_file.name  # Store the file name
+            request.session['uploaded_file_name'] = uploaded_file_name
             df = read_csv_file(csv_file)
             # prev_df = df
 
@@ -150,6 +152,7 @@ def upload_view(request):
 
     return render(request, 'upload.html')
 
+# @login_required(login_url='/Login/')
 def upload_file(request):
     
     # Check if the "reset" parameter is in POST data
@@ -365,14 +368,20 @@ def upload_file(request):
                     # Handle the case where one or both selected features are empty or None
                     error_message = "Please select valid date and desired features."
                     # You can choose to raise an error, log the error, or provide a user-friendly message.
-            else:
-                # Handle the case where 'select_date_var_gd' and/or 'select_desired_feature_gd' are not in request.POST
-                error_message = "Both date and desired features must be selected."
-                # You can choose to raise an error, log the error, or provide a user-friendly message.
 
-            # If there is an error, you can raise an exception, log it, or show a user-friendly message.
+                # If there is an error, you can raise an exception, log it, or show a user-friendly message.
             if error_message:
                 raise ValueError(error_message)
+                
+            if 'save_db' in request.POST:
+                print("ahh")
+                json_dat = request.session.get('data_frame')
+                if json_dat is not None:
+                    df = json_to_dataframe(json_dat)
+                    uploaded_file_name = request.session.get('uploaded_file_name')
+                    save_dataframe_to_database(request, df, uploaded_file_name)
+            
+
 
                 
 
@@ -397,6 +406,9 @@ def upload_file(request):
 
             # Update the DataFrame in the session
             request.session['data_frame'] = dataframe_to_json(df)
+            # df = json_to_dataframe(df)
+
+
 
 
             # request.session['geodata_frame'] = geodataframe_to_json(gdf)
@@ -437,6 +449,8 @@ def upload_file(request):
     # Calculate unique value counts for each column
     unique_value_counts = df.nunique()
     unique_counts_html = unique_value_counts.to_frame(name='Unique Values').to_html(classes='table table-striped')
+    
+
 
     
     context = {
@@ -702,7 +716,9 @@ def model_fb_prophet(request):
                 dataframe, forecast, forecasted_range, pred_result_fig, forcast_component_fig, m = facebook_prophet(mdf, selected_date_feature, selected_forecast_feature, selected_forecast_freq, selected_forecast_period, selected_seasonality_mode, selected_district_feature, selected_district_feature_value)
 
             if forecast is not None:
-                request.session['fb_forcasted_df'] = dataframe_to_json(forecast) 
+                request.session['fb_forcasted_df'] = dataframe_to_json(forecast)
+                forecast_cols = forecast.columns
+                forecast_cols = list(forecast_cols) 
 
             if selected_district_feature_value is None or selected_district_feature_value == '':
                 selected_district_feature_value = 'Complete Data'

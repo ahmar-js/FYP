@@ -1,3 +1,8 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import MyFileModel
+
+class MyFileModelAdmin(admin.ModelAdmin):
+    list_display = ['user', 'file', 'uploaded_at']
+
+admin.site.register(MyFileModel, MyFileModelAdmin)

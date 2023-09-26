@@ -682,6 +682,12 @@
             
                 <a href="{% url 'download_csv' %}" class="btn btn-primary my-2">Download CSV</a>
 
+                <form action="" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="save_db" value="true">
+                    <input type="submit" value="Save_DB" class="btn btn-sm">
+                </form>
+
             
                 </div>
 
