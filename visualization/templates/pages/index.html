@@ -91,64 +91,20 @@
             <!-- cases table -->
             <table id="cases_table" class="table align-items-center table-flush">
               <thead class="thead-light">
-                <tr>
-                  <th scope="col">Reigon</th>
-                  <th scope="col">Confirmed</th>
-                  <th scope="col">Predicted</th>
-                  <th scope="col">Deaths</th>
-                  <th scope="col">Mortality %</th>
-                </tr>
+                  <tr>
+                    {% for cols in dataframe.columns %}
+                      <th scope="col">{{cols}}</th>
+                    {% endfor %}
+                  </tr>
               </thead>
               <tbody id="cases_table_body">
-                <tr>
-                  <td>Pakistan</td>
-                  <td>150,000</td>
-                  <td>120,000</td>
-                  <td>2,500</td>
-                  <td>1.67</td>
-                </tr>
-                <tr>
-                  <td>Pakistan</td>
-                  <td>180,000</td>
-                  <td>150,000</td>
-                  <td>3,200</td>
-                  <td>1.78</td>
-                </tr>
-                <tr>
-                  <td>Pakistan</td>
-                  <td>220,000</td>
-                  <td>190,000</td>
-                  <td>4,000</td>
-                  <td>1.82</td>
-                </tr>
-                <tr>
-                  <td>Pakistan</td>
-                  <td>250,000</td>
-                  <td>210,000</td>
-                  <td>4,800</td>
-                  <td>1.92</td>
-                </tr>
-                <tr>
-                  <td>Pakistan</td>
-                  <td>280,000</td>
-                  <td>230,000</td>
-                  <td>5,600</td>
-                  <td>2.00</td>
-                </tr>
-                <tr>
-                  <td>Pakistan</td>
-                  <td>310,000</td>
-                  <td>260,000</td>
-                  <td>6,200</td>
-                  <td>2.10</td>
-                </tr>
-                <tr>
-                  <td>Pakistan</td>
-                  <td>350,000</td>
-                  <td>290,000</td>
-                  <td>7,000</td>
-                  <td>2.00</td>
-                </tr>
+                {% for row in dataframe.iterrows %}
+                  <tr>
+                      {% for value in row.1 %}
+                        <td>{{ value }}</td>
+                      {% endfor %}
+                  </tr>
+                {% endfor %}
               </tbody>
             </table>
           </div>

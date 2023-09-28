@@ -65,28 +65,30 @@
         <hr class="my-3">
         <!-- Heading -->
         <!-- Navigation -->
+        <form method="post">
+          {% csrf_token %}
         <ul class="navbar-nav mb-md-3 ">
           <!-- Dataset selection dropdown -->
           <li class="nav-item">
+
             <div class="Dataset-select-container mx-3 fade-in-left">
             <label for="selectDataset" class="selectDatasetLabel text-lighter text-sm"><i class="fas fa-file mr-2 text-secondary"></i>Dataset</label>
-            <select class="form-select" id="selectDataset" class="dataset-select" style="font-size: 12px">
-              <option selected>Cholera.csv</option>
-              <option value="1">One</option>
-              <option value="2">Two</option>
-              <option value="3">Three</option>
+            <select class="form-select" id="selectDataset" name="selectDataset" class="dataset-select" style="font-size: 12px">
+              <option selected disabled>select one</option>
+              {% for file in user_files %}
+                <option value="{{ file.file.url }}">{{ file.file.name }}</option>
+              {% endfor %}
             </select>
           </div>
+
           </li>
           <!-- Model Selection dropdown -->
           <li class="nav-item mt-2">
             <div class="Model-select-container fade-in-left mx-3">
               <label for="selectModel" class="selectModelLabel text-lighter text-sm "><i class="fas fa-robot text-secondary mr-2"></i>Model</label>
-            <select class="form-select " id="selectModel" class="Model-select" style="font-size: 12px">
-              <option selected>ARIMA</option>
-              <option value="1">One</option>
-              <option value="2">Two</option>
-              <option value="3">Three</option>
+            <select class="form-select " id="selectModel" name="selectModel" class="Model-select" style="font-size: 12px">
+              <option value="fbprophet" selected>Facebook Prophet</option>
+              <option value="arima">ARMA/ARIMA/SARIMA</option>
             </select>
           </div>
           </li>
@@ -102,15 +104,15 @@
             </select>
           </div>
           </li>
-          <!-- District dropdown -->
+          <!-- Filter dropdown -->
           <li class="nav-item mt-2">
-            <div class="District-select-container fade-in-left mx-3">
-              <label for="selectDistrict" class="selectDistrictLabel  text-lighter text-sm"><i class="fas fa-landmark text-secondary mr-2"></i>District</label>
-            <select class="form-select " id="selectDistrict" class="District-select" style="font-size: 12px">
-              <option selected>Hyderabad</option>
-              <option value="1">One</option>
-              <option value="2">Two</option>
-              <option value="3">Three</option>
+            <div class="Filter-select-container fade-in-left mx-3">
+              <label for="selectFilter" class="selectDistrictLabel  text-lighter text-sm"><i class="fas fa-landmark text-secondary mr-2"></i>District</label>
+            <select class="form-select " id="selectFilter" name="selectFilter" class="Filter-select" style="font-size: 12px">
+              <option selected>select one</option>
+              {% for value in filtered_fb_vals %}
+                <option value="{{ value }}">{{ value }}</option>
+              {% endfor %}
             </select>
           </div>
           </li>
@@ -164,6 +166,9 @@
           
 
         </ul>
+
+        <button type="submit">submit</button>
+      </form>
         
         <div class="sign_out mt-auto">
         <hr class="my-3">

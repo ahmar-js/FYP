@@ -41,7 +41,7 @@ from .geographical_coordinate_system import convert_dms_to_decimal
 from .Geooding import convert_lat_lng_to_addresses, concatenate_and_geocode
 from .json_serializable import dataframe_to_json, json_to_dataframe, geodataframe_to_json, json_to_geodataframe
 from django.http import JsonResponse
-from visualization.views import save_dataframe_to_database
+from visualization.views import save_dataframe_to_database, save_forecasts_dataframe_to_db
 
 
 #================ For custom preview data limiter ================
@@ -380,7 +380,66 @@ def upload_file(request):
                     df = json_to_dataframe(json_dat)
                     uploaded_file_name = request.session.get('uploaded_file_name')
                     save_dataframe_to_database(request, df, uploaded_file_name)
+
+            if 'save_db_hotspot' in request.POST:
+                json_geodata = request.session.get('geodata_frame')
+                if json_geodata is None:
+                    messages.error(request, 'Cannot save empty geodata file')
+                else:
+                    gdf = json_to_geodataframe(json_geodata)
+                    file_name = 'Hotspot_Analysis_File.csv'
+                    save_dataframe_to_database(request, gdf, file_name)
+                    messages.success(request, 'Saved Successfully')
+
             
+            if 'save_db_prophet' in request.POST:
+                json_fb_forecasted = request.session.get('fb_forcasted_df')
+                fb_period = request.session.get('forecasted_period_fb', None)
+                fb_freq = request.session.get('forecasted_freq_fb', None)
+                if json_fb_forecasted is not None:
+                    fbforecasteddf = json_to_dataframe(json_fb_forecasted)
+                    file_name = 'FB_Forecasts_File'
+                    selected_filteration = request.session.get('selected_filteration', [])
+                    # Define a dictionary to map fb_freq values to mode values
+                    freq_to_mode = {
+                        'A': 'years',
+                        'Q': 'Quarters',
+                        'M': 'Months',
+                        'W': 'Weeks',
+                        'D': 'Days',
+                        'H': 'Hours',
+                        'T': 'Minutes',
+                        'S': 'Seconds',
+                        'L': 'Milliseconds',
+                        'U': 'Microseconds',
+                        'N': 'Nanoseconds',
+                    }
+
+                    if fb_period is not None and fb_freq is not None and fb_freq in freq_to_mode:
+                        mode = freq_to_mode[fb_freq]
+                        f_per = int(fb_period)
+                    else:
+                        mode = None  
+                        f_per = 0
+
+                    save_forecasts_dataframe_to_db(request, fbforecasteddf, file_name, selected_filteration, mode, f_per)
+                    messages.success(request, 'Saved Successfully')
+                else:
+                    messages.error(request, 'No forecasts to save data')
+
+            if 'save_db_arima' in request.POST:
+                json_arima_forecasted = request.session.get('arima_forecasts')
+                if json_arima_forecasted is not None:
+                    arimaforecasteddf = json_to_dataframe(json_arima_forecasted)
+                    file_name = 'AR_MA_Forecasts_File'
+                    selected_filteration = request.session.get('selected_fileration_arima', [])
+                    save_forecasts_dataframe_to_db(request, arimaforecasteddf, file_name, selected_filteration)
+                    messages.success(request, 'Saved Successfully')
+                else:
+                    messages.error(request, 'No forecasts to save data')
+
+
+
 
 
                 
@@ -720,8 +779,9 @@ def model_fb_prophet(request):
                 forecast_cols = forecast.columns
                 forecast_cols = list(forecast_cols) 
 
-            if selected_district_feature_value is None or selected_district_feature_value == '':
-                selected_district_feature_value = 'Complete Data'
+            # if selected_district_feature_value == [] or selected_district_feature_value == '':
+            #     # selected_district_feature_value = ['Complete Data']
+            #     pass
 
             pred_result_fig.update_layout(
                 title_text=f"Forcasted next {selected_forecast_period}{selected_forecast_freq} {selected_forecast_feature} of {selected_district_feature_value}"  
@@ -730,6 +790,9 @@ def model_fb_prophet(request):
             forcast_component_fig.update_layout(
                 title_text=f"Seasonal decomposition with {selected_seasonality_mode} regressor"
             )
+
+            request.session['forecasted_period_fb'] = selected_forecast_period
+            request.session['forecasted_freq_fb'] = selected_forecast_freq
 
             try:
                 # Cross-validation
@@ -750,7 +813,8 @@ def model_fb_prophet(request):
                 # Handle diagnostic errors (e.g., invalid input)
                 return JsonResponse({'error': "An error occurred during cross-validation: " + str(e)})
             
-
+            print(selected_district_feature_value)
+            request.session['selected_filteration_fb'] = selected_district_feature_value
             jsonresponse = {
                 'forecasted_range': forecasted_range,
                 'pred_result_fig': pred_result_fig.to_json(),
@@ -827,6 +891,9 @@ def model_arima_family(request):
         model, base64_img, forecast_df, mae, mse, rmse = ARIMA_model(adf, select_forecasting_interval, selected_date_feature, selected_forecast_feature, selected_district_feature, selected_district_feature_value, check_seasonality, know_params,
                 selected_p_value, selected_P_value, selected_d_value, selected_q_value, selected_D_value, selected_Q_value, seasonality_period, start_p, end_p, start_q, end_q, start_P, end_P, start_Q, end_Q, m_autoar, d_autoar, D_autoar, known_params_seasonality, find_best_params_checkbox)  
         
+        request.session['selected_fileration_arima'] = selected_district_feature_value
+
+
         aic_value = None
         bic_value = None
         hqic_value = None

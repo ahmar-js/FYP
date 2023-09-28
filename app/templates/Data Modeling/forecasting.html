@@ -255,6 +255,11 @@
 
         </div>
         </form>
+        <form action="" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="save_db_arima" value="true">
+            <input type="submit" value="Save_DB" class="btn btn-sm">
+        </form>
     </div>
     <!-- arima view report modal -->
     <div class="modal fade" id="arima_view_report_modal" aria-labelledby="fb_prop_view_report_modal_label" aria-hidden="true" tabindex="-1">

@@ -55,7 +55,8 @@
                 <div class="mt-1">
                     <div id="gistar-alert-container"></div>
                     <button class="btn btn-success" type="submit">Submit</button>
-                    <button class="btn btn-secondary" type="button" id="view_hotspot_report" data-bs-toggle="modal" data-bs-target="#view_report_modal" disabled>View report</button>            
+                    <button class="btn btn-secondary" type="button" id="view_hotspot_report" data-bs-toggle="modal" data-bs-target="#view_report_modal" disabled>View report</button>        
+
                     
                 
                 </div>
@@ -125,7 +126,11 @@
                   </div> -->
                 </form>
             </div>
-            
+            <form action="" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="save_db_hotspot" value="true">
+                <input type="submit" value="Save_DB" class="btn btn-sm">
+            </form>
             <div class="df-to-gdf col-12 col-lg-3 mb-lg-0 mb-3">
                 <div class="title">
                     <h2>Convert to geodataframe</h2>

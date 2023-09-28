@@ -131,6 +131,11 @@
             <button class="btn btn-sm btn-outline-secondary" type="button" id="fbprop_report_btn" data-bs-target="#fbprop_view_report_modal" data-bs-toggle="modal" disabled>View Report</button>
         </div>
     </form>
+    <form action="" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="save_db_prophet" value="true">
+        <input type="submit" value="Save_DB" class="btn btn-sm">
+    </form>
 </div>
     <!-- fbprophet view report modal -->
     <div class="modal fade" id="fbprop_view_report_modal" tabindex="-1" aria-labelledby="fb_prop_view_report_modal_label" aria-hidden="true">
