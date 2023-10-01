@@ -399,7 +399,8 @@ def upload_file(request):
                 if json_fb_forecasted is not None:
                     fbforecasteddf = json_to_dataframe(json_fb_forecasted)
                     file_name = 'FB_Forecasts_File'
-                    selected_filteration = request.session.get('selected_filteration', [])
+                    selected_filteration = request.session.get('selected_filteration_fb', [])
+                    print("fb", selected_filteration)
                     # Define a dictionary to map fb_freq values to mode values
                     freq_to_mode = {
                         'A': 'years',
@@ -422,7 +423,7 @@ def upload_file(request):
                         mode = None  
                         f_per = 0
 
-                    save_forecasts_dataframe_to_db(request, fbforecasteddf, file_name, selected_filteration, mode, f_per)
+                    save_forecasts_dataframe_to_db(request, fbforecasteddf, file_name, selected_filteration, f_per, mode)
                     messages.success(request, 'Saved Successfully')
                 else:
                     messages.error(request, 'No forecasts to save data')
@@ -433,7 +434,8 @@ def upload_file(request):
                     arimaforecasteddf = json_to_dataframe(json_arima_forecasted)
                     file_name = 'AR_MA_Forecasts_File'
                     selected_filteration = request.session.get('selected_fileration_arima', [])
-                    save_forecasts_dataframe_to_db(request, arimaforecasteddf, file_name, selected_filteration)
+                    forecasting_period = request.session.get('arima_forecasting_period')
+                    save_forecasts_dataframe_to_db(request, arimaforecasteddf, file_name, selected_filteration, forecasting_period)
                     messages.success(request, 'Saved Successfully')
                 else:
                     messages.error(request, 'No forecasts to save data')
@@ -921,6 +923,8 @@ def model_arima_family(request):
         if forecast_df is not None:
             forecasted_head = forecast_df.head(7).to_html(classes="table table-hover table-bordered")
             request.session['arima_forecasts'] = dataframe_to_json(forecast_df)
+        
+        request.session['arima_forecasting_period']  = select_forecasting_interval
 
         arima_response = {
             'AIC': aic_value,

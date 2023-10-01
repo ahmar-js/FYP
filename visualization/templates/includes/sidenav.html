@@ -76,7 +76,7 @@
             <select class="form-select" id="selectDataset" name="selectDataset" class="dataset-select" style="font-size: 12px">
               <option selected disabled>select one</option>
               {% for file in user_files %}
-                <option value="{{ file.file.url }}">{{ file.file.name }}</option>
+                <option value="{{ file.id }}">{{ file.file.name }}</option>
               {% endfor %}
             </select>
           </div>
@@ -86,21 +86,20 @@
           <li class="nav-item mt-2">
             <div class="Model-select-container fade-in-left mx-3">
               <label for="selectModel" class="selectModelLabel text-lighter text-sm "><i class="fas fa-robot text-secondary mr-2"></i>Model</label>
-            <select class="form-select " id="selectModel" name="selectModel" class="Model-select" style="font-size: 12px">
-              <option value="fbprophet" selected>Facebook Prophet</option>
+            <select class="form-select " id="selectModel" name="selectModel" class="Model-select" style="font-size: 12px" disabled>
+              <option value="" disabled>Select Model</option>
+              <option value="fbprophet">Facebook Prophet</option>
               <option value="arima">ARMA/ARIMA/SARIMA</option>
             </select>
           </div>
           </li>
-          <!-- Reigon dropdown -->
+          <!-- Forecasts dropdown -->
           <li class="nav-item mt-2">
-            <div class="Reigon-select-container fade-in-left mx-3">
-              <label for="selectReigon" class="selectReigonLabel text-lighter text-sm"><i class="fas fa-mountain text-secondary mr-2"></i>Reigon</label>
-            <select class="form-select" id="selectReigon" class="Reigon-select" style="font-size: 12px">
-              <option selected>Sindh</option>
-              <option value="1">One</option>
-              <option value="2">Two</option>
-              <option value="3">Three</option>
+            <div class="Forecasts-select-container fade-in-left mx-3">
+              <label for="selectForecasts" class="selectForecastsLabel text-lighter text-sm"><i class="fas fa-mountain text-secondary mr-2"></i>Forecasts</label>
+            <select class="form-select" id="selectForecasts" class="Forecasts-select" style="font-size: 12px" disabled>
+              <option value="" selected disabled>Select</option>
+
             </select>
           </div>
           </li>
@@ -116,6 +115,7 @@
             </select>
           </div>
           </li>
+        </form>
           <!-- Range Slider -->
           <li class="nav-item mt-2">
             <div class="slider-container fade-in-left mx-3">
@@ -166,9 +166,6 @@
           
 
         </ul>
-
-        <button type="submit">submit</button>
-      </form>
         
         <div class="sign_out mt-auto">
         <hr class="my-3">

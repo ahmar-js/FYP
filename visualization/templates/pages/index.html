@@ -12,20 +12,54 @@
   <button type="submit" class="btn btn-sm btn-secondary">Refresh</button>
 </div> -->
 {% include "includes/header.html" %}
-<div class="container-fluid mt--7 bg-secondary">
+
+
+
+<div class="container-fluid bg-secondary">
+
     <div class="row">
+
       <div class="col-xl-8 mb-5 mb-xl-0">  <!-- Global interactive Plotly Mabpox -->
-        <div class="card shadow fade-in-bottom">
-          <div class="card-body plotly worldmap">
-            <!-- <div id="world_map" class="chart" style="height: 100%; width: 100%;"><img src="/static/assetss/img/preview.pndg" alt="Unable to load" width="1400"></div> -->
+        <div class="mapselection-items d-flex justify-content-between" style="margin-bottom: 1.5rem;">
+        <div class="select-map-container col-3">
+          <select class="form-select" id="select_map" name="select_map" class="select_map" style="font-size: 12px">
+            <option selected disabled>select type</option>
+            <option>select one</option>
+            <option>select one</option>
+          </select>
+        </div>
+        <div class="select-cordinates-container col-6 justify-content-end d-flex">
+          <div class="select-map-container col-5">
+            <select class="form-select" id="select_map" name="select_map" class="select_map" style="font-size: 12px">
+              <option selected disabled>select latitude</option>
+              <option>select one</option>
+              <option>select one</option>
+            </select>
           </div>
-          <div style="position: absolute; padding:1.25rem 1.5rem;">
-              <h6 class="text-uppercase text-muted ls-1 mb-1">Pakistan | Cumulative</h6>
-              <h2 class="text-dark mb-0">Mapbox</h2>
+          <div class="select-map-container col-5">
+            <select class="form-select" id="select_map" name="select_map" class="select_map" style="font-size: 12px">
+              <option selected disabled>select longitude</option>
+              <option>select one</option>
+              <option>select one</option>
+            </select>
           </div>
         </div>
       </div>
-      <div class="col-xl-4">  <!-- Growth interactive scatterplot -->
+        <div class="card shadow fade-in-bottom">
+          <div class="card-body plotly worldmap">
+            <!-- <div id="world_map" class="chart" style="height: 100%; width: 100%;"><img src="/static/assetss/img/preview.pndg" alt="Unable to load" width="1400"></div> -->
+            <div class="mapbox w-100 h-100">
+              {{ map|safe }}
+            </div>
+          </div>
+          <!-- <div style="position: absolute; padding:1.25rem 1.5rem;">
+              <h6 class="text-uppercase text-muted ls-1 mb-1">Pakistan | Cumulative</h6>
+              <h2 class="text-dark mb-0">Mapbox</h2>
+
+          </div> -->
+        </div>
+      </div>
+      <div class="col-xl-4" style="margin-top: 3.5rem;">  <!-- Growth interactive scatterplot -->
         <div class="card bg-dark shadow fade-in-bottom">
           <div class="card-header bg-transparent">
             <div class="row align-items-center">
@@ -78,7 +112,9 @@
             <div class="row align-items-center">
               <div class="col">
                 <h6 class="text-uppercase text-muted ls-1 mb-1">Pakistan | Sortable</h6>
-                <h2 class="mb-0">Cases</h2>
+                <div class="custom-continer d-flex align-items-center">
+                  <h2 class="mb-0">Cases</h2>
+                </div> 
               </div>
               <div class="col text-right">
                 <a href="#!" class="btn btn-sm btn-white">
@@ -87,26 +123,14 @@
               </div>
             </div>
           </div>
-          <div class="table-responsive">
+          <style>
+            #cases_table_container thead{
+              background-color: #f6f9fc;
+              color: #8898aa;
+            }
+          </style>
+          <div class="table-responsive" id="cases_table_container">
             <!-- cases table -->
-            <table id="cases_table" class="table align-items-center table-flush">
-              <thead class="thead-light">
-                  <tr>
-                    {% for cols in dataframe.columns %}
-                      <th scope="col">{{cols}}</th>
-                    {% endfor %}
-                  </tr>
-              </thead>
-              <tbody id="cases_table_body">
-                {% for row in dataframe.iterrows %}
-                  <tr>
-                      {% for value in row.1 %}
-                        <td>{{ value }}</td>
-                      {% endfor %}
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
           </div>
         </div>
       </div>

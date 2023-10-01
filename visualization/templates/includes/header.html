@@ -1,7 +1,13 @@
 {% load humanize %}
 
 <!-- Header -->
-<div class="header pb-8 pt-5 pt-md-4 bg-secondary">
+<div class="dashboard-setup-container d-flex mt-4 me-5">
+    <div class="dashboard-setup ms-auto">
+        <a style="cursor: pointer;" class="link-dark" data-bs-toggle="modal" data-bs-target="#d_setup_modal"><i class="fa fa-cog mr-2" aria-hidden="true"></i>Setup Dashboard</a>
+    </div>
+</div>
+<div class="header pb-4 pt-5 pt-md-4 bg-secondary">
+
     <div class="container-fluid">
         <div class="header-body">
         <!-- Card stats -->
@@ -12,7 +18,7 @@
                 <div class="row">
                     <div class="col">
                     <h5 class="card-title text-uppercase text-muted mb-0">Total</h5>
-                    <span id="confirmed_label" class="h2 font-weight-bold mb-0">{{df_rows}}</span>
+                    <span id="confirmed_label" class="h2 font-weight-bold mb-0">0</span>
                     </div>
                     <div class="col-auto">
                     <div class="icon icon-shape bg-primary text-white rounded-circle shadow">
@@ -96,3 +102,128 @@
         </div>
     </div>
 </div>
+
+
+
+<!-- Dashboard setup modal -->
+<form action="" method="POST" id="dashboard-setup-form" class="form needs-validation" novalidate>
+{% csrf_token %}
+  <div class="modal fade" id="d_setup_modal" tabindex="-1" aria-labelledby="d_setup_modal_label" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="d_setup_modal_label">Dashboard Configuration</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" style="font-size: 14px!important;">
+          <div class="configuration-container d-flex flex-wrap justify-content-between">
+            <div class="select_coordinates_container d-flex flex-wrap col-lg-6 col-12">
+                <div class="select_x_coords col-12 col-lg-6">
+                    <div style="margin-bottom: 1.5rem;">
+                        <label for="conf_select_x" class="form-label">Select X</label>
+                        <select class="form-select form-select-sm" name="conf_select_x" id="conf_select_x" required>
+                            <option selected>Select one</option>
+                            {% for column in numeric_columns %}
+                                <option value="{{column}}">{{column}}</option>
+                            {% endfor %}
+                        </select>
+                        {{numeric_columns}}
+                    </div>
+                </div>
+                <div class="select_y_coords col-12 col-lg-6">
+                    <div style="margin-bottom: 1.5rem;">
+                        <label for="conf_select_y" class="form-label">Select Y</label>
+                        <select class="form-select form-select-sm" name="conf_select_y" id="conf_select_y" required>
+                            <option selected>Select one</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="select_filtered_col col-lg-5 col-12">
+                <div class="select_filtered_col_container">
+                    <div style="margin-bottom: 1.5rem;">
+                        <label for="select_filtered_col" class="form-label">Select filtered column</label>
+                        <select class="form-select form-select-sm" name="select_filtered_col" id="select_filtered_col" required>
+                            <option selected>Select one</option>
+                        </select>
+                        <small id="select_filtered_col" class="text-muted">Any categorical column, eg: district column</small>
+                    </div>
+                </div>
+            </div>
+            <div class="select_color_and_location_container col-12 col-lg-6 d-flex flex-wrap">
+                <div class="select_color col-lg-6 col-12 ">
+                    <div class="select_color_col_container">
+                        <div style="margin-bottom: 1.5rem;">
+                            <label for="select_color_col" class="form-label">Select color column</label>
+                            <select class="form-select form-select-sm" name="select_color_col" id="select_color_col" disabled required>
+                                <option selected>Select one</option>
+                            </select>
+                            <small>Performed Hotspot Analysis? 
+                                <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="done_hotspot" name="done_hotspot" value="option1" checked>
+                              </div>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="select_location col-lg-6 col-12">
+                    <div class="select_location_col_container">
+                        <div style="margin-bottom: 1.5rem;">
+                            <label for="select_location_col" class="form-label">Select location</label>
+                            <select class="form-select form-select-sm" name="select_location_col" id="select_location_col" required>
+                                <option selected>Select one</option>
+                            </select>
+                            <small id="select_location_col" class="text-muted">District col recomended</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="select_hover_data_col col-lg-5 col-12">
+                <div class="select_hover_data_col_container">
+                    <div style="margin-bottom: 1.5rem;">
+                        <label for="select_hover_data_col" class="form-label">Hover Data</label>
+                        <select class="form-select form-select-sm" name="select_hover_data_col" id="select_hover_data_col" required>
+                            <option selected>Select one</option>
+                        </select>
+                        <small id="select_hover_data_col" class="text-muted">Eg: cases in each district</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="select_dates_container col-12 col-lg-6 d-flex flex-wrap">
+                <div class="select_date col-12">
+                    <div class="select_date_container">
+                        <div style="margin-bottom: 1.5rem;">
+                            <label for="select_date" class="form-label">Date column</label>
+                            <select class="form-select form-select-sm" name="select_date" id="select_date" required>
+                                <option selected>Select one</option>
+                            </select>
+                            <small id="select_date" class="text-muted">DateTime or object</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="select_size_container col-12 col-lg-5 d-flex flex-wrap">
+                <div class="select_size col-12">
+                    <div class="select_size_container">
+                        <div style="margin-bottom: 1.5rem;">
+                            <label for="select_size" class="form-label">Size</label>
+                            <select class="form-select form-select-sm" name="select_size" id="select_size" required>
+                                <option selected>Select one</option>
+                            </select>
+                            <small id="select_size" class="text-muted">Any numeric, to show intensity</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>

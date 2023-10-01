@@ -6,12 +6,12 @@ class Uploaded_DataFrameAdmin(admin.ModelAdmin):
     list_display = ['user', 'file', 'uploaded_at', 'updated_at']
 
 class geoDataFrameAdmin(admin.ModelAdmin):
-    list_display = ['user', 'file', 'uploaded_at', 'updated_at']
+    list_display = ['U_df', 'file', 'uploaded_at', 'updated_at']
 
 class fbProphet_forecastsAdmin(admin.ModelAdmin):
-    list_display = ['user', 'filtered_by', 'period', 'frequency', 'file', 'uploaded_at', 'updated_at']
+    list_display = ['U_df', 'filtered_by', 'period', 'frequency', 'file', 'uploaded_at', 'updated_at']
 class ARIMA_forecastsAdmin(admin.ModelAdmin):
-    list_display = ['user', 'filtered_by', 'period', 'file', 'uploaded_at', 'updated_at']
+    list_display = ['U_df', 'filtered_by', 'period', 'file', 'uploaded_at', 'updated_at']
 
 
 admin.site.register(Uploaded_DataFrame, Uploaded_DataFrameAdmin)

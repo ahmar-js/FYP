@@ -28,6 +28,10 @@ urlpatterns = [
 
     #visualization
     path('home/', viz_views.home, name='home'),
+    path('get_model_results/', viz_views.get_model_results, name='get_model_results'),
+    
+    # path('get_geo_data/', viz_views.get_geo_data, name='get_geo_data'),
+    # path('get_selected_gdf_data/', viz_views.get_selected_gdf_data, name='get_selected_gdf_data'),
 
     #Authentication
     path('Login/', app_views.Login, name='Login'),
