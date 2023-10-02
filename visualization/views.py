@@ -1,5 +1,6 @@
 from datetime import datetime
 import json
+from django.contrib import messages
 import os
 from django.core.files import File
 from django.conf import settings
@@ -92,32 +93,12 @@ def preview_dataframe(df, limit=10):
 @login_required(login_url='/Login/')
 def home(request):
     uploaded_frame = Uploaded_DataFrame.objects.filter(user=request.user)
-    df = pd.DataFrame()
-    df_rows=0
+    
+
     m = folium.Map(location=[30.3753,  69.3451], zoom_start=5)
-    selected_fb_result = []
-    selected_arima_result = []
-    selected_model = None
 
-    if request.method == 'POST':
-        selected_X = request.POST.get('conf_select_x', None)
-        selected_Y = request.POST.get('conf_select_y', None)
-        filtered = request.POST.get('select_filtered_col', None)
-        color = request.POST.get('select_color_col', None)
-        location = request.POST.get('select_location_col', None)
-        hover_data = request.POST.get('select_hover_data_col', None)
-        date = request.POST.get('select_date', None)
-        size = request.POST.get('select_size', None)
-        done_hotspot = request.POST.get('done_hotspot', False)
-        selected_df_id = request.session.get('selected_dataset_id')
-        selected_df = Uploaded_DataFrame.objects.get(id=selected_df_id)
 
-        if done_hotspot:
-            color = 'hotspot_analysis'
-        save_columns_to_database(selected_df, selected_X, selected_Y, filtered, location, hover_data, date, size, color)
-        # Clear the 'selected_dataset_id' session variable
-        if 'selected_dataset_id' in request.session:
-            del request.session['selected_dataset_id']
+
         
         
 
@@ -160,26 +141,24 @@ def home(request):
     
     context = {
         'user_files': uploaded_frame,
-        'dataframe': preview_dataframe(df, limit=50),
-        # 'numeric_columns': numeric_columns,
         "map": m._repr_html_(),
-        'df_rows': df_rows,
-        'selected_fb_result': selected_fb_result,
-        'selected_arima_result': selected_arima_result,
-        'selected_model': selected_model,
+
         
     }
     return render(request, 'pages/index.html', context)
 
-
+# fetch model results in sidenav
 def get_model_results(request):
+    geodata_check = False
     numeric_columns = []
     if request.method == 'POST':
         selected_dataset_id = request.POST.get('selectedDatasetId', None)
         request.session['selected_dataset_id'] = selected_dataset_id
 
+
         # Retrieve the selected dataset
         selected_dataset = Uploaded_DataFrame.objects.get(id=selected_dataset_id)
+        # selected_geodataset = geoDataFrame.objects.get()
         selected_df_url = selected_dataset.file.url
         if selected_df_url:
             data = pd.read_csv('../FYP'+selected_df_url)
@@ -187,7 +166,10 @@ def get_model_results(request):
             df_rows = int(df.shape[0])
             columns = df.columns.tolist()
             numeric_columns = [col for col in columns if pd.api.types.is_numeric_dtype(df[col])]
+
         
+        # Retrieve associated geodataframe columns 
+        uploaded_gdf = geoDataFrame.objects.filter(U_df_id=selected_dataset_id)
 
 
         # Retrieve model results based on the selected dataset
@@ -196,6 +178,15 @@ def get_model_results(request):
 
         # Create a list to hold the model results
         model_results = []
+        gdf_result = [] 
+
+        # Add gdf records to the list
+        for gdf_results in uploaded_gdf:
+            gdf_result.append({
+                'id': gdf_results.id,
+                'file': gdf_results.file.name,
+                'updated_at': gdf_results.updated_at.strftime('%Y-%m-%d %H:%M:%S'),
+            })
 
         # Add fbProphet results to the list
         for fb_result in selected_fb_results:
@@ -217,6 +208,7 @@ def get_model_results(request):
         # print(model_results)
         json_response = {
             'modelResults': model_results,
+            'gdf_results': gdf_result,
             'numeric_columns': numeric_columns,
             'df_columns': columns,
             'dataframe': preview_dataframe(df, limit=50).to_html(classes='table fade-out align-items-center table-flush') ,
@@ -228,6 +220,104 @@ def get_model_results(request):
 
     # Handle other HTTP methods or invalid requests
     return JsonResponse({'error': 'Invalid request'})
+
+
+def Geodatafileselection(request):
+    geodata_check = True
+    if request.method == 'POST':
+        selected_geo_id = request.POST.get('Select_geodataframe', None)
+
+
+        request.session['selected_geodataset_id'] = selected_geo_id
+
+        # Retrieve the selected dataset
+        selected_dataset = geoDataFrame.objects.get(id=selected_geo_id)
+        # selected_geodataset = geoDataFrame.objects.get()
+        selected_df_url = selected_dataset.file.url
+        if selected_df_url:
+            data = pd.read_csv('../FYP'+selected_df_url)
+            df = pd.DataFrame(data)
+            df_rows = int(df.shape[0])
+            columns = df.columns.tolist()
+            numeric_columns = [col for col in columns if pd.api.types.is_numeric_dtype(df[col])]
+        retrieve_column_names(request, selected_geo_id, geodata_check)
+
+        json_response = {
+            'numeric_columns': numeric_columns,
+            'gdf_columns': columns,
+            'gdataframe': preview_dataframe(df, limit=50).to_html(classes='table fade-out align-items-center table-flush'),
+            'gdf_rows': df_rows,
+        }
+
+        return JsonResponse({'message': 'Successs', 'json_response': json_response})
+    
+
+    # Handle other HTTP methods or invalid requests
+    return JsonResponse({'error': 'Invalid request'})
+        
+
+
+
+
+
+def retrieve_column_names(request, selected_dataset_id, geodata_check):
+    if selected_dataset_id is not None:
+        try:
+            if geodata_check:
+                column_record = ConfigDashboard.objects.get(U_gdf=selected_dataset_id)
+            else:
+                column_record = ConfigDashboard.objects.get(U_df=selected_dataset_id)
+        except ConfigDashboard.DoesNotExist:
+            column_record = None
+            # messages.error(request, 'No records found for the specified dataset_id')
+        if column_record is not None:
+            long = column_record.longitude
+            lat = column_record.latitude
+            filtered = column_record.filtered
+            color = column_record.color
+            location = column_record.location
+            hover_data = column_record.hover_data
+            date = column_record.date
+            size = column_record.size
+            print(long, lat, filtered, color, location, hover_data, date, size)
+            if color == 'hotspot_analysis':
+                pass
+
+
+
+# get column names and store them in database
+def get_column_names(request):
+    if request.method == 'POST':
+        selected_X = request.POST.get('conf_select_x', None)
+        selected_Y = request.POST.get('conf_select_y', None)
+        filtered = request.POST.get('select_filtered_col', None)
+        color = request.POST.get('select_color_col', None)
+        location = request.POST.get('select_location_col', None)
+        hover_data = request.POST.get('select_hover_data_col', None)
+        date = request.POST.get('select_date', None)
+        size = request.POST.get('select_size', None)
+        done_hotspot = request.POST.get('done_hotspot', False)
+        selected_df_id = request.session.get('selected_dataset_id', None)
+        selected_gdf_id = request.session.get('selected_geodataset_id', None)
+        if selected_gdf_id:
+            selected_df = geoDataFrame.objects.get(U_df_id=selected_gdf_id)
+            # Clear the 'selected_dataset_id' session variable
+            if 'selected_dataset_id' in request.session or 'selected_geodataset_id' in request.session:
+                del request.session['selected_dataset_id']
+                del request.session['selected_geodataset_id']
+            print("here")
+        else:
+            selected_df = Uploaded_DataFrame.objects.get(id=selected_df_id)
+            if 'selected_dataset_id' in request.session or 'selected_geodataset_id' in request.session:
+                del request.session['selected_dataset_id']
+                del request.session['selected_geodataset_id']
+        if done_hotspot:
+            color = 'hotspot_analysis'
+        save_columns_to_database(selected_df, selected_X, selected_Y, filtered, location, hover_data, date, size, color)
+
+
+    return render(request, 'pages/index.html')
+    
 
     
 def save_columns_to_database(selected_df_instance, selected_X, selected_Y, filtered, location, hover_data, date, size, color):

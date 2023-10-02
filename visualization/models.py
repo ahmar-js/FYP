@@ -44,6 +44,7 @@ class ARIMA_forecasts(models.Model):
     
 class ConfigDashboard(models.Model):
     U_df = models.ForeignKey(Uploaded_DataFrame, on_delete=models.CASCADE, blank=True, null=True)
+    U_gdf = models.ForeignKey(geoDataFrame, on_delete=models.CASCADE, blank=True, null=True)
     latitude = models.CharField(max_length=255, null=False, blank=False)
     longitude = models.CharField(max_length=255, null=False, blank=False)
     filtered = models.CharField(max_length=255, null=False, blank=False)

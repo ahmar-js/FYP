@@ -106,11 +106,11 @@
           <!-- Filter dropdown -->
           <li class="nav-item mt-2">
             <div class="Filter-select-container fade-in-left mx-3">
-              <label for="selectFilter" class="selectDistrictLabel  text-lighter text-sm"><i class="fas fa-landmark text-secondary mr-2"></i>District</label>
-            <select class="form-select " id="selectFilter" name="selectFilter" class="Filter-select" style="font-size: 12px">
-              <option selected>select one</option>
-              {% for value in filtered_fb_vals %}
-                <option value="{{ value }}">{{ value }}</option>
+              <label for="Select_geodataframe" class="selectDistrictLabel  text-lighter text-sm"><i class="fas fa-landmark text-secondary mr-2"></i>GeoDataFrame</label>
+            <select class="form-select" id="Select_geodataframe" name="Select_geodataframe" class="Filter-select" style="font-size: 12px">
+              <option selected disabled value="">select one</option>
+              {% for gdf_file in user_files_gdf %}
+                <option value="{{ gdf_file.id }}">{{ gdf_file.file.name }}</option>
               {% endfor %}
             </select>
           </div>

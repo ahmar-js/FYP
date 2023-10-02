@@ -26,7 +26,6 @@
 
 
 
-
 $(document).ready(function () {
     // Event listener for changes in the dataset selection dropdown
     $('#selectDataset').change(function () {
@@ -40,12 +39,13 @@ $(document).ready(function () {
             type: 'POST',
             data: {
                 selectedDatasetId: selectedDatasetId
+
             },
             success: function (response) {
                 console.log(response);
                 populatenumericSelectMenus(response.json_response.numeric_columns);
                 populatenonnumericSelectMenus(response.json_response.df_columns);
-
+                
                 //header stats
                 $('#confirmed_label').html(response.json_response.df_rows);
 
@@ -55,9 +55,11 @@ $(document).ready(function () {
                 // Enable the "selectModel" dropdown
                 $('#selectModel').prop('disabled', false);
 
-                // Clear and enable the "selectForecasts" dropdown
+                // Clear and enable the "selectForecasts" and select_geodataframe dropdown
                 var selectForecasts = $('#selectForecasts');
-                selectForecasts.empty().prop('disabled', false);                
+                selectForecasts.empty().prop('disabled', false);
+                var select_geodataframe = $('#Select_geodataframe');     
+                select_geodataframe.empty().prop('disabled', false)           
 
                 // Populate the "selectForecasts" dropdown based on the selected model
                 $('#selectForecasts').empty();
@@ -78,7 +80,21 @@ $(document).ready(function () {
                             }));
                         }
                     }
+                    
+
+                    
                 });
+
+                select_geodataframe.append('<option selected disabled value="">Select File</option>');
+
+                for (var i = 0; i < response.json_response.gdf_results.length; i++) {
+                    var geo_result = response.json_response.gdf_results[i];
+                    select_geodataframe.append($('<option>', {
+                            value: geo_result.id,
+                            text: geo_result.file + ' --- ' + geo_result.updated_at
+                        }));
+                }
+ 
 
                 // Call the change event once to initialize the forecasts dropdown
                 $('#selectModel').change();
@@ -86,6 +102,8 @@ $(document).ready(function () {
             error: function (error) {
                 console.log('Error fetching model results:', error);
             }
+
+
         });
     });
 
@@ -97,6 +115,16 @@ $(document).ready(function () {
             $("#select_color_col").prop('disabled', false);  // Disable the element
         }
     });
+
+
+    function populateGeoDataFrame(columns){
+        $('#Select_geodataframe').empty();
+        $('#Select_geodataframe').append('<option selected disabled value="">Select File</option>');
+        columns.forEach(function (column) {
+            $('#Select_geodataframe').append('<option value="' + column + '">' + column + '</option>');
+        });
+
+    }
     
     // Function to populate select menus with column names
     function populatenumericSelectMenus(columns) {
@@ -135,5 +163,32 @@ $(document).ready(function () {
             $('#select_date').append('<option value="' + column + '">' + column + '</option>');
         });
     }
+
+    $('#Select_geodataframe').change(function () {
+        var Select_geodataframe = $('#Select_geodataframe').val();
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        // Make an AJAX request to fetch the selected dataset's model results
+        $.ajax({
+            headers: { 'X-CSRFToken': csrftoken },
+            url: '/Geodatafileselection/',
+            type: 'POST',
+            data: {
+                Select_geodataframe: Select_geodataframe
+
+            },
+            success: function (response) {
+                console.log(response);
+            },
+            error: function (error) {
+                console.log('Error fetching model results:', error);
+            }
+
+
+        });
+
+    });
+
+
 });
 

@@ -29,6 +29,10 @@ urlpatterns = [
     #visualization
     path('home/', viz_views.home, name='home'),
     path('get_model_results/', viz_views.get_model_results, name='get_model_results'),
+    path('get_column_names/', viz_views.get_column_names, name='get_column_names'),
+    path('Geodatafileselection/', viz_views.Geodatafileselection, name='Geodatafileselection'),
+    
+    
     
     # path('get_geo_data/', viz_views.get_geo_data, name='get_geo_data'),
     # path('get_selected_gdf_data/', viz_views.get_selected_gdf_data, name='get_selected_gdf_data'),
