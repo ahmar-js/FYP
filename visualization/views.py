@@ -4,6 +4,7 @@ from django.contrib import messages
 import os
 from django.core.files import File
 from django.conf import settings
+from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.db import models
@@ -96,9 +97,46 @@ def home(request):
     
 
     m = folium.Map(location=[30.3753,  69.3451], zoom_start=5)
+    selected_gdf = None
+    selected_df= None
+    if request.method == 'POST':
+        print("check3")
+        selected_X = request.POST.get('conf_select_x', None)
+        selected_Y = request.POST.get('conf_select_y', None)
+        filtered = request.POST.get('select_filtered_col', None)
+        color = request.POST.get('select_color_col', None)
+        location = request.POST.get('select_location_col', None)
+        hover_data = request.POST.get('select_hover_data_col', None)
+        date = request.POST.get('select_date', None)
+        size = request.POST.get('select_size', None)
+        # done_hotspot = request.POST.get('done_hotspot', False)
+        selected_df_id = request.session.get('selected_dataset_id', None)
+        selected_gdf_id = request.session.get('selected_geodataset_id', None)
+        # print('selected_df_id: ', selected_df_id)
+        # print('selected_gdf_id: ', selected_gdf_id)
+        if selected_gdf_id is None:
+            selected_df = Uploaded_DataFrame.objects.get(id=selected_df_id)
+        else:
+            selected_gdf = geoDataFrame.objects.get(id=selected_gdf_id)
+            selected_df = Uploaded_DataFrame.objects.get(id=selected_df_id)
+
+            # print('check1')
+            # Clear the 'selected_dataset_id' session variable
+        if 'selected_dataset_id' in request.session and 'selected_geodataset_id' in request.session:
+            del request.session['selected_dataset_id']
+            del request.session['selected_geodataset_id']
+        else:
+            del request.session['selected_dataset_id']
 
 
-
+        # else:
+            # print('check2')
+            # if 'selected_dataset_id' in request.session or 'selected_geodataset_id' in request.session:
+            #     del request.session['selected_dataset_id']
+            #     del request.session['selected_geodataset_id']
+        # if done_hotspot:
+        #     color = 'hotspot_analysis'
+        save_columns_to_database(selected_gdf, selected_df, selected_X, selected_Y, filtered, location, hover_data, date, size, color)
         
         
 
@@ -153,7 +191,10 @@ def get_model_results(request):
     numeric_columns = []
     if request.method == 'POST':
         selected_dataset_id = request.POST.get('selectedDatasetId', None)
-        request.session['selected_dataset_id'] = selected_dataset_id
+        #because of the FK in dashboard config
+        selected_geo_id = request.POST.get('Select_geodataframe', None) #it will be None here
+        request.session['selected_dataset_id'] = selected_dataset_id #for saving record to database (home view)
+        request.session['selected_dataset_id_preview'] = selected_dataset_id #for retrieve columns (retrieve column names view)
 
 
         # Retrieve the selected dataset
@@ -167,6 +208,8 @@ def get_model_results(request):
             columns = df.columns.tolist()
             numeric_columns = [col for col in columns if pd.api.types.is_numeric_dtype(df[col])]
 
+        
+        retrieve_column_names(selected_dataset_id, selected_geo_id, geodata_check) #selected_geo_id will be None
         
         # Retrieve associated geodataframe columns 
         uploaded_gdf = geoDataFrame.objects.filter(U_df_id=selected_dataset_id)
@@ -226,9 +269,10 @@ def Geodatafileselection(request):
     geodata_check = True
     if request.method == 'POST':
         selected_geo_id = request.POST.get('Select_geodataframe', None)
+        selected_dataset_id = request.session.get('selected_dataset_id_preview', None)
 
 
-        request.session['selected_geodataset_id'] = selected_geo_id
+        request.session['selected_geodataset_id'] = selected_geo_id # save record to database (Home View)
 
         # Retrieve the selected dataset
         selected_dataset = geoDataFrame.objects.get(id=selected_geo_id)
@@ -240,7 +284,7 @@ def Geodatafileselection(request):
             df_rows = int(df.shape[0])
             columns = df.columns.tolist()
             numeric_columns = [col for col in columns if pd.api.types.is_numeric_dtype(df[col])]
-        retrieve_column_names(request, selected_geo_id, geodata_check)
+        retrieve_column_names(selected_dataset_id, selected_geo_id, geodata_check)
 
         json_response = {
             'numeric_columns': numeric_columns,
@@ -260,70 +304,105 @@ def Geodatafileselection(request):
 
 
 
-def retrieve_column_names(request, selected_dataset_id, geodata_check):
-    if selected_dataset_id is not None:
-        try:
-            if geodata_check:
-                column_record = ConfigDashboard.objects.get(U_gdf=selected_dataset_id)
-            else:
-                column_record = ConfigDashboard.objects.get(U_df=selected_dataset_id)
-        except ConfigDashboard.DoesNotExist:
-            column_record = None
-            # messages.error(request, 'No records found for the specified dataset_id')
-        if column_record is not None:
-            long = column_record.longitude
-            lat = column_record.latitude
-            filtered = column_record.filtered
-            color = column_record.color
-            location = column_record.location
-            hover_data = column_record.hover_data
-            date = column_record.date
-            size = column_record.size
-            print(long, lat, filtered, color, location, hover_data, date, size)
-            if color == 'hotspot_analysis':
-                pass
-
-
-
-# get column names and store them in database
-def get_column_names(request):
-    if request.method == 'POST':
-        selected_X = request.POST.get('conf_select_x', None)
-        selected_Y = request.POST.get('conf_select_y', None)
-        filtered = request.POST.get('select_filtered_col', None)
-        color = request.POST.get('select_color_col', None)
-        location = request.POST.get('select_location_col', None)
-        hover_data = request.POST.get('select_hover_data_col', None)
-        date = request.POST.get('select_date', None)
-        size = request.POST.get('select_size', None)
-        done_hotspot = request.POST.get('done_hotspot', False)
-        selected_df_id = request.session.get('selected_dataset_id', None)
-        selected_gdf_id = request.session.get('selected_geodataset_id', None)
-        if selected_gdf_id:
-            selected_df = geoDataFrame.objects.get(U_df_id=selected_gdf_id)
-            # Clear the 'selected_dataset_id' session variable
-            if 'selected_dataset_id' in request.session or 'selected_geodataset_id' in request.session:
-                del request.session['selected_dataset_id']
-                del request.session['selected_geodataset_id']
-            print("here")
+def retrieve_column_names(selected_dataset_id, selected_geo_id, geodata_check):
+    #to differentiate between dataframe of geodataframe: user may have not geodataframe and we have 2 fk
+    try:
+        if geodata_check is False: #means hotspot (geodata) is not selected
+            column_record = ConfigDashboard.objects.get(Q(U_df=selected_dataset_id) & Q(U_gdf__isnull=True))
         else:
-            selected_df = Uploaded_DataFrame.objects.get(id=selected_df_id)
-            if 'selected_dataset_id' in request.session or 'selected_geodataset_id' in request.session:
-                del request.session['selected_dataset_id']
-                del request.session['selected_geodataset_id']
-        if done_hotspot:
-            color = 'hotspot_analysis'
-        save_columns_to_database(selected_df, selected_X, selected_Y, filtered, location, hover_data, date, size, color)
+            column_record = ConfigDashboard.objects.get(U_df=selected_dataset_id, U_gdf=selected_geo_id)
+            selected_geodataset = geoDataFrame.objects.get(id=selected_geo_id) #hotspot dataframe
+        selected_dataset = Uploaded_DataFrame.objects.get(id=selected_dataset_id) #hotspot dataframe
+        
+
+    except ConfigDashboard.DoesNotExist:
+        # Handle the case when the record does not exist
+        column_record = None  # Or any other action you want to take
 
 
-    return render(request, 'pages/index.html')
+    if column_record is not None:
+        long = column_record.longitude
+        lat = column_record.latitude
+        filtered = column_record.filtered
+        color = column_record.color
+        location = column_record.location
+        hover_data = column_record.hover_data
+        date = column_record.date
+        size = column_record.size
+        print(long, lat, filtered, color, location, hover_data, date, size)
+
+    selected_df_url = selected_dataset.file.url
+    if selected_df_url:
+        data = pd.read_csv('../FYP'+selected_df_url)
+        df = pd.DataFrame(data)
+
+        m = folium.Map(location=[30.3753,  69.3451], zoom_start=5)
+        for index, row in df.iterrows():
+            lat = row[lat]
+            long = row[long]
+            district = row[filtered]
+            # Create a CircleMarker for each patient
+            folium.CircleMarker(
+                location=[lat, long],
+                popup=district,
+                radius=5,  # Adjust the radius as needed
+                color='blue',  # Customize the marker color
+                fill=True,
+                fill_color='blue',  # Customize the fill color
+            ).add_to(m)
+            
+    json_response = {
+        "map": m._repr_html_(),
+
+    }
+
+    return json_response({'message': 'success', 'json_response': json_response})
+
+
+
+# # get column names and store them in database
+# def get_column_names(request):
+#     if request.method == 'POST':
+#         print("check3")
+#         selected_X = request.POST.get('conf_select_x', None)
+#         selected_Y = request.POST.get('conf_select_y', None)
+#         filtered = request.POST.get('select_filtered_col', None)
+#         color = request.POST.get('select_color_col', None)
+#         location = request.POST.get('select_location_col', None)
+#         hover_data = request.POST.get('select_hover_data_col', None)
+#         date = request.POST.get('select_date', None)
+#         size = request.POST.get('select_size', None)
+#         # done_hotspot = request.POST.get('done_hotspot', False)
+#         selected_df_id = request.session.get('selected_dataset_id', None)
+#         selected_gdf_id = request.session.get('selected_geodataset_id', None)
+#         print('selected_df_id: ', selected_df_id)
+#         print('selected_gdf_id: ', selected_gdf_id)
+#         if selected_gdf_id:
+#             selected_df = geoDataFrame.objects.get(U_df_id=selected_gdf_id)
+#             print('check1')
+#             # Clear the 'selected_dataset_id' session variable
+#             # if 'selected_dataset_id' in request.session or 'selected_geodataset_id' in request.session:
+#             #     del request.session['selected_dataset_id']
+#             #     del request.session['selected_geodataset_id']
+#         else:
+#             selected_df = Uploaded_DataFrame.objects.get(id=selected_df_id)
+#             print('check2')
+#             # if 'selected_dataset_id' in request.session or 'selected_geodataset_id' in request.session:
+#             #     del request.session['selected_dataset_id']
+#             #     del request.session['selected_geodataset_id']
+#         # if done_hotspot:
+#         #     color = 'hotspot_analysis'
+#         save_columns_to_database(selected_df, selected_X, selected_Y, filtered, location, hover_data, date, size, color)
+
+
+#     return render(request, 'pages/index.html')
     
 
     
-def save_columns_to_database(selected_df_instance, selected_X, selected_Y, filtered, location, hover_data, date, size, color):
-# Query the database to check if a record with the same selected_df_instance exists
-    existing_record = ConfigDashboard.objects.filter(U_df=selected_df_instance).first()
-
+def save_columns_to_database(selected_gdf_instance, selected_df_instance, selected_X, selected_Y, filtered, location, hover_data, date, size, color):
+    # Query the database to check if a record with the same instances exists
+    existing_record = ConfigDashboard.objects.filter(Q(U_df=selected_df_instance) & Q(U_gdf=selected_gdf_instance)).first()
+    # print("existing record: ", existing_record)
     if existing_record:
         # If a record exists, update its fields
         existing_record.latitude = selected_Y
@@ -339,6 +418,7 @@ def save_columns_to_database(selected_df_instance, selected_X, selected_Y, filte
         # If no record exists, create a new record
         config_dashboard_instance = ConfigDashboard(
             U_df=selected_df_instance,
+            U_gdf=selected_gdf_instance,
             latitude=selected_Y,
             longitude=selected_X,
             filtered=filtered,

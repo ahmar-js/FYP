@@ -19,7 +19,14 @@
     })()
 
 
+// plot folium datapoints
 
+$(document).ready(function () {
+    $('#selectDataset').change(function () {
+        var selectedDatasetId = $(this).val();
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    });
+});
 
 
 
@@ -107,24 +114,8 @@ $(document).ready(function () {
         });
     });
 
-    $('#done_hotspot').change(function () {
-        var donehotspot = $('#done_hotspot');
-        if (donehotspot.is(":checked")) {
-            $("#select_color_col").prop('disabled', true); // Enable the element
-        } else {
-            $("#select_color_col").prop('disabled', false);  // Disable the element
-        }
-    });
 
 
-    function populateGeoDataFrame(columns){
-        $('#Select_geodataframe').empty();
-        $('#Select_geodataframe').append('<option selected disabled value="">Select File</option>');
-        columns.forEach(function (column) {
-            $('#Select_geodataframe').append('<option value="' + column + '">' + column + '</option>');
-        });
-
-    }
     
     // Function to populate select menus with column names
     function populatenumericSelectMenus(columns) {
@@ -179,6 +170,12 @@ $(document).ready(function () {
             },
             success: function (response) {
                 console.log(response);
+                populatenumericSelectMenus(response.json_response.numeric_columns);
+                populatenonnumericSelectMenus(response.json_response.gdf_columns);
+
+                $('#confirmed_label').html(response.json_response.gdf_rows);
+                $('#cases_table_container').html(response.json_response.gdataframe);
+
             },
             error: function (error) {
                 console.log('Error fetching model results:', error);
