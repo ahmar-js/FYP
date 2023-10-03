@@ -29,6 +29,9 @@
   <link rel="stylesheet" href="/static/assetss/css/style.css?v=1.1.0" media="print" onload="this.media='all'"/>
   <noscript><link rel="stylesheet" href="/static/assetss/css/style.css?v=1.1.0"/></noscript>
 
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+
   <!-- Specific CSS goes HERE -->
   {% block stylesheets %}
 
@@ -49,7 +52,9 @@
   {% include "includes/scripts.html" %}
 
   <!-- Specific JS goes HERE --> 
-  {% block javascripts %}{% endblock javascripts %}
+  {% block javascripts %}
+  
+  {% endblock javascripts %}
 
 </body>
 

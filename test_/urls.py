@@ -31,6 +31,9 @@ urlpatterns = [
     path('get_model_results/', viz_views.get_model_results, name='get_model_results'),
     # path('get_column_names/', viz_views.get_column_names, name='get_column_names'),
     path('Geodatafileselection/', viz_views.Geodatafileselection, name='Geodatafileselection'),
+    path('retrieve_column_names/', viz_views.retrieve_column_names, name='retrieve_column_names'),
+    path('retrieve_column_names_df/', viz_views.retrieve_column_names_df, name='retrieve_column_names_df'),
+    
     
     
     

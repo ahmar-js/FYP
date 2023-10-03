@@ -1,10 +1,29 @@
+import colorsys
 from datetime import datetime
+import plotly
+import plotly.graph_objs as go
+import plotly.offline as offline
+from plotly.graph_objs import *
+from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
 import json
+import plotly.express as px
+import json
+import random
 from django.contrib import messages
 import os
 from django.core.files import File
 from django.conf import settings
 from django.db.models import Q
+import geopandas as gpd
+from shapely.geometry import shape, Point
+import matplotlib.pyplot as plt
+import random
+import matplotlib.patches as mpatches
+import branca
+import colorsys
+import json
+import folium
+from cartopy import crs as ccrs
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.db import models
@@ -209,7 +228,7 @@ def get_model_results(request):
             numeric_columns = [col for col in columns if pd.api.types.is_numeric_dtype(df[col])]
 
         
-        retrieve_column_names(selected_dataset_id, selected_geo_id, geodata_check) #selected_geo_id will be None
+        # retrieve_column_names(selected_dataset_id, selected_geo_id, geodata_check) #selected_geo_id will be None
         
         # Retrieve associated geodataframe columns 
         uploaded_gdf = geoDataFrame.objects.filter(U_df_id=selected_dataset_id)
@@ -284,7 +303,7 @@ def Geodatafileselection(request):
             df_rows = int(df.shape[0])
             columns = df.columns.tolist()
             numeric_columns = [col for col in columns if pd.api.types.is_numeric_dtype(df[col])]
-        retrieve_column_names(selected_dataset_id, selected_geo_id, geodata_check)
+        # retrieve_column_names(selected_dataset_id, selected_geo_id, geodata_check)
 
         json_response = {
             'numeric_columns': numeric_columns,
@@ -304,60 +323,401 @@ def Geodatafileselection(request):
 
 
 
-def retrieve_column_names(selected_dataset_id, selected_geo_id, geodata_check):
-    #to differentiate between dataframe of geodataframe: user may have not geodataframe and we have 2 fk
+# def retrieve_column_names(selected_dataset_id, selected_geo_id, geodata_check):
+#     selected_dataset = None
+#     print(selected_geo_id, selected_dataset_id)
+#     #to differentiate between dataframe of geodataframe: user may have not geodataframe and we have 2 fk
+#     try:
+#         if geodata_check is False: #means hotspot (geodata) is not selected
+#             print("here")
+#             column_record = ConfigDashboard.objects.get(Q(U_df=selected_dataset_id) & Q(U_gdf__isnull=True))
+#         else:
+#             print("here2")
+#             column_record = ConfigDashboard.objects.get(U_df=selected_dataset_id, U_gdf=selected_geo_id)
+#             selected_geodataset = geoDataFrame.objects.get(id=selected_geo_id) #hotspot dataframe
+#         selected_dataset = Uploaded_DataFrame.objects.get(id=selected_dataset_id) #uploaded dataframe
+        
+        
+
+#     except ConfigDashboard.DoesNotExist:
+#         # Handle the case when the record does not exist
+#         column_record = None  # Or any other action you want to take
+
+
+
+#     if column_record is not None:
+#         long = column_record.longitude
+#         lat = column_record.latitude
+#         filtered = column_record.filtered
+#         color = column_record.color
+#         location = column_record.location
+#         hover_data = column_record.hover_data
+#         date = column_record.date
+#         size = column_record.size
+#         print(long, lat, filtered, color, location, hover_data, date, size)
+#     else:
+#         print("collumn record is None")
+
+#     selected_df_url = selected_dataset.file.url
+#     if selected_df_url:
+#         data = pd.read_csv('../FYP'+selected_df_url)
+#         df = pd.DataFrame(data)
+#         m = folium.Map(location=[30.3753,  69.3451], zoom_start=5)
+#         for index, row in df.iterrows():
+#             lat = row[lat]
+#             long = row[long]
+#             district = row[filtered]
+#             # Create a CircleMarker for each patient
+#             folium.CircleMarker(
+#                 location=[lat, long],
+#                 popup=district,
+#                 radius=5,  # Adjust the radius as needed
+#                 color='blue',  # Customize the marker color
+#                 fill=True,
+#                 fill_color='blue',  # Customize the fill color
+#             ).add_to(m)
+            
+#         json_response = {
+#             "map": m._repr_html_(),
+
+#         }
+#         return json_response({'message': 'success', 'json_response': json_response})
+
+#     return JsonResponse({'error': 'Invalid request'})
+# Function to handle date data and create bins
+def bin_date_data(data, date_column, bin_by='year'):
+    """
+    Convert date data to appropriate data type and create bins based on month or year.
+
+    Parameters:
+        data (pd.DataFrame): Input DataFrame.
+        date_column (str): Name of the column containing date data.
+        bin_by (str): Binning option. Options: 'month' or 'year'. Default is 'year'.
+
+    Returns:
+        pd.DataFrame: DataFrame with date data converted to appropriate data type and bins created.
+    """
+    data[date_column] = pd.to_datetime(data[date_column])
+
+    if bin_by == 'month':
+        data['month_bin'] = data[date_column].dt.to_period('M')
+    elif bin_by == 'year':
+        data['year_bin'] = data[date_column].dt.to_period('Y')
+
+    return data
+
+def generate_dark_random_colors(num_colors):
+    colors = []
+    while len(colors) < num_colors:
+        # Generate random HSL color with fixed saturation and lightness (to get darker colors)
+        h = random.randint(0, 360)
+        s = 80  # Fixed saturation
+        l = random.randint(30, 50)  # Restricted lightness for darker colors
+
+        # Convert HSL to RGB
+        r, g, b = colorsys.hls_to_rgb(h / 360, l / 100, s / 100)
+
+        # Convert RGB to hex color code
+        color = "#{:02x}{:02x}{:02x}".format(int(r * 255), int(g * 255), int(b * 255))
+
+        if color not in colors:
+            colors.append(color)
+
+    # Randomly shuffle the colors to get unique and random colors
+    random.shuffle(colors)
+    return colors
+
+def format_popup_content(lat, lon, district, hover_data, size, dt_bin):
+    popup_content = f"""
+    <div style="font-family: Arial, sans-serif;">
+        <h2 style="margin-bottom: 5px; text-align: center;">{hover_data}</h2>
+        <table style="width: 100%;">
+            <tr>
+                <td style="font-weight: bold;">filtered:</td>
+                <td>{district}</td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold;">size:</td>
+                <td>{size}</td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold;">Bin: </td>
+                <td>{dt_bin}</td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold;">latitude: </td>
+                <td>{lat}</td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold;">longitude: </td>
+                <td>{lon}</td>
+            </tr>
+        </table>
+    </div>
+    """
+    return folium.Popup(folium.Html(popup_content, script=True), max_width=300)
+def generate_folium_map(df, lat_col, date_column, long_col, filtered_col, hover_data, size):
+    df = bin_date_data(df, date_column, bin_by='year')
+    # m = folium.Map(location=[30.3753, 69.3451], zoom_start=5)
+
+    # for index, row in df.iterrows():
+    #     lat = row[lat_col]
+    #     long = row[long_col]
+    #     district = row[filtered_col]
+
+    #     folium.CircleMarker(
+    #         location=[lat, long],
+    #         popup=district,
+    #         radius=5,
+    #         color='blue',
+    #         fill=True,
+    #         fill_color='blue'
+    #     ).add_to(m)
+
+    # return m._repr_html_()
+    # Convert the latitude and longitude columns to Point geometries
+    geometry = [Point(xy) for xy in zip(df[long_col], df[lat_col])]
+
+    # Create a GeoDataFrame from the data
+    gdf = gpd.GeoDataFrame(df, crs="EPSG:4326", geometry=geometry)
+
+    # Load the world map data
+    world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
+    # Extract the geometry of Pakistan
+    pakistan = world[(world.name == "Pakistan")]['geometry'].iloc[0]
+
+
+    # Filter out points that lie outside the boundary of Pakistan
+    gdf = gdf[gdf['geometry'].within(pakistan)]
+
+    # Create the Folium map centered around Pakistan
+    m = folium.Map(location=[gdf['geometry'].centroid.y.mean(), gdf['geometry'].centroid.x.mean()], zoom_start=5, prefer_canvas=False, scrollWheelZoom=False)
+
+    bordersStyle = {"color": 'green', 'weight': 2, 'fillOpacity': 0}
+
+    bordersLayer = folium.GeoJson(
+    data="visualization/data/pak_borders/PAK_adm1.json",
+    name="Borders",
+    style_function=lambda x: bordersStyle)
+    bordersLayer.add_to(m)
+
+    # Create unique layers for each patient district and date_bin
+    unique_districts = gdf[filtered_col].unique()
+    district_layers = {district: folium.FeatureGroup(name=district, show=False) for district in unique_districts}
+
+    unique_date_bins = gdf['year_bin'].unique()
+    d_bin = 'year_bin' #For Iteration
+
+    date_bin_layer = {date_bin: folium.FeatureGroup(name=str(date_bin), show=False) for date_bin in unique_date_bins}
+
+
+
+    # Generate random dark colors for each unique patient district and date_bin
+    district_colors = generate_dark_random_colors(len(unique_districts))
+    date_bin_colors = generate_dark_random_colors(len(unique_date_bins))
+    color_mapping_district = {district: color for district, color in zip(unique_districts, district_colors)}
+    color_mapping_date_bin = {date_bin: color for date_bin, color in zip(unique_date_bins, date_bin_colors)}
+
+
+
+
+    # Add the data points of each patient district and date_bin to the corresponding layer with the respective color
+    for index, row in gdf.iterrows():
+        lat, lon, district, hover_dat, siz, dt_bin = row[lat_col], row[long_col], row[filtered_col], row[hover_data], row[size], row[d_bin]
+        district_color = color_mapping_district[district]
+        date_bin_color = color_mapping_date_bin[dt_bin]
+        # popup = format_popup_content(lat, lon, district, hover_dat, siz, dt_bin)
+        
+        # popUpStr = 'Area - {0}<br>District - {1}<br>Province '.format(district, province)
+        # iframe = folium.branca.element.IFrame(html=html, width=500, height=300)
+        # popup = folium.Popup(iframe, max_width=2650, parse_html=True)
+        # test = folium.Html('<b>nm<br>desc</b>', script=True) # i'm assuming this bit runs fine
+        # iframe = branca.element.IFrame(html=test, width=350, height=150)
+        # popup = folium.Popup(iframe, parse_html=True)
+
+        # popupt = f"District: {district}<br>Province: {province}<br>Longitude: {lon}"
+
+        folium.Circle([lat, lon], radius=2, color=district_color, opacity=0.8, fill_color=district_color).add_to(district_layers[district])
+
+        folium.CircleMarker([lat, lon], radius=4, color=date_bin_color, opacity=0.7, fill=False).add_to(date_bin_layer[dt_bin])
+
+
+    # Add each patient district's layer to the map
+    for district, layer in district_layers.items():
+        layer.add_to(m)
+
+    # Add each bin layer to the map
+    for d_bin, layer in date_bin_layer.items():
+        layer.add_to(m)
+
+    # Add a LayerControl to the map to toggle the patient district and year_bin layers on/off
+    folium.LayerControl(collapsed=False).add_to(m)
+
+    # Add legends with small color dots overlaying the map
+    for district, color in color_mapping_district.items():
+        legend_html = f'<div style="display:inline-block; margin-right:10px; background-color:{color}; height:10px; width:10px;"></div>{district}'
+        m.get_root().html.add_child(folium.Element(legend_html))
+
+    # Add legends with small color dots overlaying the map
+    for d_bin, color in color_mapping_date_bin.items():
+        legend_html = f'<div style="display:inline-block; margin-right:10px; background-color:{color}; height:10px; width:10px;"></div>{d_bin}'
+        m.get_root().html.add_child(folium.Element(legend_html))
+
+    return gdf, m._repr_html_()
+
+
+def generate_plotly_3d_scatter(long, lat, filtered, hover_data, gdf, size, date, color):
+    gdf['date_ym'] = pd.to_datetime(gdf[date]).dt.strftime('%Y-%m')
+    gdf = gdf.sort_values(by='date_ym')
+    # Reset the index while keeping the original index as a new column
+    gdf.reset_index(inplace=True, drop=True)
+    fig_3d = px.scatter_3d(gdf,
+                        x=long,
+                        y=lat,
+                        z='date_ym',
+                        color=color,
+                        hover_name=hover_data,
+                        hover_data=['patient_count'],
+                    # range_color=(-3, 3),
+                    # color_discrete_map=colors,
+                    # animation_frame="weeks",
+                    size_max = 1,
+                    height=650,
+                    width=900,
+                    title="")
+    fig_3d.update_layout(font=dict(color="gray"))
+    # Set the legend position to the top-left corner
+    # Set the legend position to the top-left corner as absolute
+    # fig_3d.update_layout(legend=dict(x=0, y=1))
+    fig_3d.update_layout(margin={"r":2,"t":2,"l":1,"b":5})
+    return fig_3d
+
+def generate_plotly_chloropeth(long, lat, filtered, hover_data, gdf, size, date, color):
+    pk_states=json.load(open(r"visualization/data/pak_districts/pakistan_districts.geojson",'r'))
+    pk_states['features'][5]['properties']
+    district_id_map={}
+    for feature in pk_states['features']:
+        feature['id'] = feature['properties']['cartodb_id']
+        district_id_map[feature['properties']['districts']] = feature['id']
+    gdf['District']=gdf[filtered].apply(lambda x:x.title())
+    gdf['id_']=gdf['District'].apply(lambda x: district_id_map[x])
+    fig_check = px.choropleth_mapbox(gdf,
+                    locations='id_',
+                    geojson=pk_states,
+                    color=color,
+                    hover_name="District",
+                    hover_data=[hover_data],
+                    mapbox_style="carto-positron",
+                    center={'lat':31,'lon':72},
+                    zoom=4,
+                    # range_color=(-4, 4),
+                    # color_discrete_map=colors,
+                    color_continuous_scale=["blue","#9c9c9c","red" ],
+                    animation_frame="date_ym",
+                    # title="Analysis on 5 Neighbors",
+                    opacity=1)
+    return fig_check
+
+#for df only
+def retrieve_column_names_df(request):
+    selected_dataset_id = request.GET.get('selected_dataset_id')
+    geodata_check = request.GET.get('geodata_check', False)
+    geodata_check = geodata_check.lower() == 'true'
+    if not geodata_check:
+        column_record = ConfigDashboard.objects.get(Q(U_df=selected_dataset_id) & Q(U_gdf__isnull=True))
+    selected_dataset = Uploaded_DataFrame.objects.get(id=selected_dataset_id)
+    if column_record is not None:
+        long = column_record.longitude
+        lat = column_record.latitude
+        filtered = column_record.filtered
+        date = column_record.date
+        hover_data = column_record.hover_data
+        size = column_record.size
+
+        # dataframe must be selected
+        selected_df_url = selected_dataset.file.url
+        if selected_df_url:
+            data = pd.read_csv('../FYP' + selected_df_url)
+            df = pd.DataFrame(data)
+
+            df, map_html = generate_folium_map(df, lat, date, long, filtered, hover_data, size)
+            print(lat, long)
+
+            json_response = {
+                "map": map_html,
+            }
+            return JsonResponse({'message': 'success', 'json_response': json_response})
+    else:
+            return JsonResponse({'message': 'error', 'error': 'Selected DataFrame URL not found'})
+
+#for df and gdf
+def retrieve_column_names(request):
+    selected_dataset_id = request.GET.get('selected_dataset_idd')
+    selected_geo_id = request.GET.get('selected_geo_idd')
+    geodata_check = request.GET.get('geodata_checkk', False)
+    geodata_check = geodata_check.lower() == 'true'
+    # date_column = request.GET.get('date_column')
+    selected_geodataset = None
     try:
-        if geodata_check is False: #means hotspot (geodata) is not selected
+        if not geodata_check:
             column_record = ConfigDashboard.objects.get(Q(U_df=selected_dataset_id) & Q(U_gdf__isnull=True))
         else:
             column_record = ConfigDashboard.objects.get(U_df=selected_dataset_id, U_gdf=selected_geo_id)
-            selected_geodataset = geoDataFrame.objects.get(id=selected_geo_id) #hotspot dataframe
-        selected_dataset = Uploaded_DataFrame.objects.get(id=selected_dataset_id) #hotspot dataframe
-        
+            selected_geodataset = geoDataFrame.objects.get(id=selected_geo_id)
 
+        selected_dataset = Uploaded_DataFrame.objects.get(id=selected_dataset_id)
     except ConfigDashboard.DoesNotExist:
-        # Handle the case when the record does not exist
-        column_record = None  # Or any other action you want to take
-
+        column_record = None
 
     if column_record is not None:
         long = column_record.longitude
         lat = column_record.latitude
         filtered = column_record.filtered
-        color = column_record.color
-        location = column_record.location
-        hover_data = column_record.hover_data
         date = column_record.date
+        hover_data = column_record.hover_data
         size = column_record.size
-        print(long, lat, filtered, color, location, hover_data, date, size)
+        color = column_record.color
 
-    selected_df_url = selected_dataset.file.url
-    if selected_df_url:
-        data = pd.read_csv('../FYP'+selected_df_url)
-        df = pd.DataFrame(data)
+    #     # dataframe must be selected
+    #     selected_df_url = selected_dataset.file.url
+    #     if selected_df_url:
+    #         data = pd.read_csv('../FYP' + selected_df_url)
+    #         df = pd.DataFrame(data)
 
-        m = folium.Map(location=[30.3753,  69.3451], zoom_start=5)
-        for index, row in df.iterrows():
-            lat = row[lat]
-            long = row[long]
-            district = row[filtered]
-            # Create a CircleMarker for each patient
-            folium.CircleMarker(
-                location=[lat, long],
-                popup=district,
-                radius=5,  # Adjust the radius as needed
-                color='blue',  # Customize the marker color
-                fill=True,
-                fill_color='blue',  # Customize the fill color
-            ).add_to(m)
-            
-    json_response = {
-        "map": m._repr_html_(),
+    #         df, map_html = generate_folium_map(df, lat, date, long, filtered, hover_data, size)
+    #         print(lat, long)
 
-    }
+    #         json_response = {
+    #             "map": map_html,
+    #         }
+            #when hotspot dataframe is selected
+        if selected_geodataset is not None:
+            print("ahmer aamir")
+            selected_gdf_url = selected_geodataset.file.url
+            if selected_gdf_url:
+                data = pd.read_csv('../FYP' + selected_gdf_url)
+                gdf = pd.DataFrame(data)
+                fig = generate_plotly_3d_scatter(long, lat, filtered, hover_data, gdf, size, date, color)
+                plotly_chloro_fig = generate_plotly_chloropeth(long, lat, filtered, hover_data, gdf, size, date, color)
+                json_response = {
+                    'fig':fig.to_json(),
+                    'plotly_chloro_fig':plotly_chloro_fig.to_json(),
+                }
+            else:
+                return JsonResponse({'message': 'error', 'error': 'Selected GeoDataFrame URL not found'})
 
-    return json_response({'message': 'success', 'json_response': json_response})
 
+                
+
+            return JsonResponse({'message': 'success', 'json_response': json_response})
+        
+
+
+    else:
+        return JsonResponse({'message': 'error', 'error': 'ConfigDashboard record not found.'})
+
+
+    
 
 
 # # get column names and store them in database

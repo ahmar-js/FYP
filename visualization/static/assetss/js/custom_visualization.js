@@ -19,17 +19,81 @@
     })()
 
 
-// plot folium datapoints
+// // plot folium datapoints
 
 $(document).ready(function () {
-    $('#selectDataset').change(function () {
-        var selectedDatasetId = $(this).val();
-        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    $("#selectDataset").change(function () {
+        // Get the selected_dataset_id, selected_geo_id, and geodata_check from your form or wherever they are available.
+        var selected_dataset_id = $(this).val();
+        // var selected_geo_id = $('#Select_geodataframe').val();
+        var geodata_check = false;
+
+        $.ajax({
+            type: "GET",
+            url: "/retrieve_column_names_df/", 
+            data: {
+                selected_dataset_id: selected_dataset_id,
+                // selected_geo_id: selected_geo_id,
+                geodata_check: geodata_check,
+            },
+            dataType: "json",
+            success: function (data) {
+                if (data.message === "success") {
+                    console.log(data);
+                    // Inject the map HTML into the map-container div.
+                    $("#mapbox-container").html(data.json_response.map);
+                } else {
+                    alert("Error: " + data.error);
+                }
+            },
+            error: function () {
+                alert("An error occurred while fetching the map.");
+            },
+        });
     });
 });
 
+// plotting plotly 3d scatter plot and chloropeths
+$(document).ready(function () {
+    $("#Select_geodataframe").change(function () {
+        console.log("here")
+        // Get the selected_dataset_id, selected_geo_id, and geodata_check from your form or wherever they are available.
+        var selected_geo_idd = $(this).val();
+        var selected_dataset_idd = $('#selectDataset').val()
+        // var selected_geo_id = $('#Select_geodataframe').val();
+        var geodata_checkk = true;
 
+        $.ajax({
+            type: "GET",
+            url: "/retrieve_column_names/", 
+            data: {
+                selected_dataset_idd: selected_dataset_idd,
+                selected_geo_idd: selected_geo_idd,
+                // selected_geo_id: selected_geo_id,
+                geodata_checkk: geodata_checkk,
+            },
+            dataType: "json",
+            success: function (data) {
+                if (data.message === "success") {
+                    console.log(data);
+                    var hot3d = JSON.parse(data.json_response.fig);
+                    var chloro = JSON.parse(data.json_response.plotly_chloro_fig);
 
+                    Plotly.newPlot('realtime_growth_chart', hot3d);
+                    Plotly.newPlot('plotly_chloropeth', chloro);
+                    
+                    // Inject the map HTML into the map-container div.
+                    // $("#mapbox-container").html(data.json_response.map);
+                } else {
+                    alert("Error: " + data.error);
+                }
+            },
+            error: function () {
+                alert("An error occurred while fetching the map.");
+            },
+        });
+    });
+});
 
 
 
