@@ -30,7 +30,7 @@ $(document).ready(function() {
                 else{
                     showAlert('success', data.success, '#valid-feedback');
                     setTimeout(function() {
-                        window.location.href = '/login'; 
+                        window.location.href = '/Login'; 
                     }, 3000);
                 }
                 
@@ -67,7 +67,7 @@ $(document).ready(function() {
                 }
                 else{
                     showAlert('success', data.success, '#valid-feedback');
-                    window.location.href = '/home/';
+                    window.location.href = '/preview/';
                 }
             }
         });

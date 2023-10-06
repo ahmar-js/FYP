@@ -33,6 +33,8 @@ urlpatterns = [
     path('Geodatafileselection/', viz_views.Geodatafileselection, name='Geodatafileselection'),
     path('retrieve_column_names/', viz_views.retrieve_column_names, name='retrieve_column_names'),
     path('retrieve_column_names_df/', viz_views.retrieve_column_names_df, name='retrieve_column_names_df'),
+    path('get_prophet_results/', viz_views.get_prophet_results, name='get_prophet_results'),
+    path('get_arima_results/', viz_views.get_arima_results, name='get_arima_results'),
     
     
     

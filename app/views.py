@@ -1,6 +1,8 @@
+import pickle
 import re
 import warnings
 import zipfile
+import joblib
 
 from pmdarima import auto_arima
 # Filter out specific warnings
@@ -152,7 +154,7 @@ def upload_view(request):
 
     return render(request, 'upload.html')
 
-# @login_required(login_url='/Login/')
+@login_required(login_url='/Login/')
 def upload_file(request):
     
     # Check if the "reset" parameter is in POST data
@@ -396,7 +398,9 @@ def upload_file(request):
                 json_fb_forecasted = request.session.get('fb_forcasted_df')
                 fb_period = request.session.get('forecasted_period_fb', None)
                 fb_freq = request.session.get('forecasted_freq_fb', None)
-                if json_fb_forecasted is not None:
+                fb_model = request.session.get('prophet_model', None)
+
+                if json_fb_forecasted is not None and fb_model is not None:
                     fbforecasteddf = json_to_dataframe(json_fb_forecasted)
                     file_name = 'FB_Forecasts_File'
                     selected_filteration = request.session.get('selected_filteration_fb', [])
@@ -423,19 +427,21 @@ def upload_file(request):
                         mode = None  
                         f_per = 0
 
-                    save_forecasts_dataframe_to_db(request, fbforecasteddf, file_name, selected_filteration, f_per, mode)
+                    save_forecasts_dataframe_to_db(request, fbforecasteddf, file_name, selected_filteration, f_per, mode, fb_model=fb_model)
                     messages.success(request, 'Saved Successfully')
                 else:
                     messages.error(request, 'No forecasts to save data')
 
             if 'save_db_arima' in request.POST:
-                json_arima_forecasted = request.session.get('arima_forecasts')
+                json_arima_forecasted = request.session.get('arima_forecasts', None)
                 if json_arima_forecasted is not None:
                     arimaforecasteddf = json_to_dataframe(json_arima_forecasted)
                     file_name = 'AR_MA_Forecasts_File'
                     selected_filteration = request.session.get('selected_fileration_arima', [])
                     forecasting_period = request.session.get('arima_forecasting_period')
-                    save_forecasts_dataframe_to_db(request, arimaforecasteddf, file_name, selected_filteration, forecasting_period)
+                    arima_results = request.session.get('arima_result', None)
+                    print(arima_results)
+                    save_forecasts_dataframe_to_db(request, arimaforecasteddf, file_name, selected_filteration, forecasting_period, arima_model=arima_results)
                     messages.success(request, 'Saved Successfully')
                 else:
                     messages.error(request, 'No forecasts to save data')
@@ -715,6 +721,7 @@ def facebook_prophet(dataframe, date_col, feature_y, freq, intervals, seasonalit
     # Plotting components
     forcast_component_fig = plot_components_plotly(m, forecast)
 
+
     return dataframe, forecast, forecasted_range, pred_result_fig, forcast_component_fig, m
 
 
@@ -775,6 +782,17 @@ def model_fb_prophet(request):
                 dataframe, forecast, forecasted_range, pred_result_fig, forcast_component_fig, m  = facebook_prophet(mdf, selected_date_feature, selected_forecast_feature, selected_forecast_freq, selected_forecast_period, selected_seasonality_mode, selected_district_feature, selected_district_feature_value)
             else:
                 dataframe, forecast, forecasted_range, pred_result_fig, forcast_component_fig, m = facebook_prophet(mdf, selected_date_feature, selected_forecast_feature, selected_forecast_freq, selected_forecast_period, selected_seasonality_mode, selected_district_feature, selected_district_feature_value)
+
+
+            # serialized_model = pickle.dumps(m)
+            # Serialize the Prophelt model
+            serialized_model = pickle.dumps(m)
+
+            # Encode the serialized model in Base64
+            encoded_model = base64.b64encode(serialized_model).decode('utf-8')
+            request.session['prophet_model'] = encoded_model
+
+
 
             if forecast is not None:
                 request.session['fb_forcasted_df'] = dataframe_to_json(forecast)
@@ -894,6 +912,9 @@ def model_arima_family(request):
                 selected_p_value, selected_P_value, selected_d_value, selected_q_value, selected_D_value, selected_Q_value, seasonality_period, start_p, end_p, start_q, end_q, start_P, end_P, start_Q, end_Q, m_autoar, d_autoar, D_autoar, known_params_seasonality, find_best_params_checkbox)  
         
         request.session['selected_fileration_arima'] = selected_district_feature_value
+        #to store in db
+        #this is not a base64 image instead it is a plotly image and have to change its variable name
+        request.session['arima_result'] = base64_img
 
 
         aic_value = None
