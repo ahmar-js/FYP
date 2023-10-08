@@ -6316,8 +6316,8 @@ Scientist Area CSS
 .map-shape1 img {
   -webkit-animation-name: rotatemetwo;
           animation-name: rotatemetwo;
-  -webkit-animation-duration: 300s;
-          animation-duration: 300s;
+  -webkit-animation-duration: 50s;
+          animation-duration: 50s;
   -webkit-animation-iteration-count: infinite;
           animation-iteration-count: infinite;
   -webkit-animation-timing-function: linear;
