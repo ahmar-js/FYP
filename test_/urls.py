@@ -3,13 +3,14 @@ from django.urls import path
 from app import views as app_views
 from django.contrib import admin
 from visualization import views as viz_views
+from django.contrib.auth import views as auth_views
 from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
 
 
-    path('upload/', app_views.upload_view, name='upload'),
+    path('', app_views.upload_view, name='upload'),
     path('preview/', app_views.upload_file, name='preview'),
     path('preview_data/', app_views.preview_data, name='preview_data'),
     path('handle_drop_columns/', app_views.handle_drop_columns, name='handle_drop_columns'),
@@ -49,6 +50,10 @@ urlpatterns = [
     path('register_login/', app_views.register_login, name='register_login'),
     path('Logout/', app_views.Logout, name='Logout'),
 
+    path('password_reset/', auth_views.PasswordResetView.as_view(template_name='password_reset.html'), name='password_reset'),
+    path('password_reset_done/', auth_views.PasswordResetDoneView.as_view(template_name='password_reset_done.html'), name='password_reset_done'),
+    path('password_reset_confirm/<uidb64>/<token>/',auth_views.PasswordResetConfirmView.as_view(template_name='password_reset_confirm.html'), name='password_reset_confirm'),
+    path('password_reset_complete/', auth_views.PasswordResetCompleteView.as_view(template_name='password_reset_complete.html'), name='password_reset_complete'),
 
     path('save_dataframe_to_database/', viz_views.save_dataframe_to_database, name='save_dataframe_to_database'),
 ]

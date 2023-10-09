@@ -126,7 +126,7 @@ def update_statss(df):
     return preview_data, preview_datatypes_html, stats, describe_data, unique_counts_html, null_colwise_html, nonnull_colwise_html
 
 def upload_view(request):
-    request.session.clear()  # Clear the entire session
+    # request.session.clear()  # Clear the entire session
     uploaded_file_name = None
     if request.method == 'POST' and request.FILES.get('csv_file'):
         try:
@@ -1693,7 +1693,7 @@ def handle_drop_rows(request):
 
 def Logout(request):
     logout(request)
-    return redirect('Login')
+    return redirect('upload')
 
 def Login(request):
     return render(request, "login.html")

@@ -868,5 +868,8 @@ $(document).ready(function () {
     });
 });
 
-
-
+//reset password
+$(document).ready(function () {
+    var $emailInput = $('#id_email'); // Get the jQuery object representing the input field
+    $emailInput.addClass('form-control'); // Add the 'form-control' class to the input field
+});

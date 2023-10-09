@@ -417,7 +417,7 @@
             
                             <!-- change data type -->
                             <div class="change-dtype col-lg-5">
-                                <form method="POST" class="form needs-validation" novalidate>
+                                <form method="POST" class="form needs-validation" id="change_dtype_form" novalidate>
                                     {% csrf_token %}
                                     <div class="mb-3">
                                         <label aria-describedby="helpId-dtype" for="select-col-convert-dtype" class="form-label mb-2 mt-3">Select column to change data type
