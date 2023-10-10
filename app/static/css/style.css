@@ -75,9 +75,10 @@
 /* Stats cards end */
 
 /* Preview main data table */
-.displaydata .preview-table{
+.displaydata .preview-table, 
+.datatypetable .preview-dtype-table{
     overflow: auto;
-    max-height: 452px;
+    max-height: 482px;
     width: 100%;
 }
 /* Preview main data table end */
@@ -131,4 +132,16 @@ thead tr th{
     list-style-type: none !important;
     display: inline-block;
     color: red;
+}
+
+[class*="shadow"] {
+    transition: all 0.15s ease;
+}
+
+@media (min-width: 992px){
+    .col-lg-8 {
+        flex: 0 0 auto;
+        width: 65.7666666667%!important;
+        margin-right: 11px!important;
+}
 }

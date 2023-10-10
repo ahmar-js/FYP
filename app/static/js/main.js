@@ -247,7 +247,7 @@ $(document).ready(function () {
                 // console.log('JSON data received:', jsonData)
 
                 // Create and populate the table with the JSON data
-                var tableHtml = '<table class = "table table-bordered table-dark table-hover">';
+                var tableHtml = '<table class = "table table-bordered table-dark table-hover mb-0">';
                 tableHtml += '<thead><tr>';
                 for (var key in jsonData[0]) {
                     tableHtml += '<th>' + key + '</th>';
@@ -405,6 +405,77 @@ $(document).ready(function () {
             },
             error: function (error) {
                 console.log('Error handling drop rows:', error);
+            }
+        });
+    });
+    //Handle dtypes conversion
+    $('#change_dtype_form').submit(function (event) {
+        event.preventDefault();  // Prevent the default form submission
+
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const formData = $(this).serialize();  // Serialize the form data
+
+        // Make an AJAX request to handle data type conversion
+        $.ajax({
+            headers: { 'X-CSRFToken': csrftoken },
+            url: '/handle_data_type_conversion/',  // Replace with your Django view URL
+            type: 'POST',
+            data: formData,  // Send the serialized form data
+            success: function (response) {
+                console.log(response);
+                if (response.error){
+                    $('#changedtype-alert-container').empty();
+                    showAlert('danger', response.error, '#changedtype-alert-container');
+                }
+                else{
+                    $('#changedtype-alert-container').empty();
+                    showAlert('success', response.message, '#changedtype-alert-container');
+                }
+
+                var selectedLimit = $('#datalimit').val();
+                loadData(selectedLimit);
+                updateStatistics();
+                // Handle success response as needed
+            },
+            error: function (error) {
+                console.log('Error handling data type conversion:', error);
+            }
+        });
+    });
+
+    //handle coodinate system
+    $('#coordinate-system-conversion-form').submit(function (event) {
+        event.preventDefault();  // Prevent the default form submission
+
+        // Prepare the data to be sent in the AJAX request
+        var formData = $(this).serialize();
+
+        // Make an AJAX request to the Django view
+        $.ajax({
+            url: '/handle_coordinate_system_conversion/',  // Replace with your Django view URL
+            type: 'POST',
+            data: formData,
+            dataType: 'json',
+            success: function (response) {
+                console.log(response)
+                if (response.error) {
+                    $('#alert_cont_cordSys').empty();
+                    showAlert('danger', response.error, '#alert_cont_cordSys');
+                    // Handle error message here
+                    // alert('Error: ' + response.error);
+                } else {
+                    $('#alert_cont_cordSys').empty();
+                    // Handle success message and updated data here
+                    showAlert('success', response.message, '#alert_cont_cordSys');
+                    var selectedLimit = $('#datalimit').val();
+                    loadData(selectedLimit);
+                    updateStatistics();
+                    // alert('Conversion Successful');
+                    // You can update your page with the modified data if needed
+                }
+            },
+            error: function (error) {
+                console.log('Error:', error);
             }
         });
     });
@@ -873,3 +944,5 @@ $(document).ready(function () {
     var $emailInput = $('#id_email'); // Get the jQuery object representing the input field
     $emailInput.addClass('form-control'); // Add the 'form-control' class to the input field
 });
+
+

@@ -1,3 +1,5 @@
+import warnings
+from django.http import JsonResponse
 import pandas as pd
 import re
 from django.contrib import messages
@@ -110,30 +112,26 @@ def drop_rows(dataframe, how='any', subset=None):
 #  ============================= Convert data types =============================
 
 def convert_column_data_type(request, dataframe, column_name, new_data_type):
-    # Check if the column exists in the DataFrame
-    if column_name not in dataframe.columns:
-        messages.error(request, "Error: Column '{}' does not exist in the DataFrame.".format(column_name))
-        return dataframe
-
-    # Check if the column has any null values
-    if dataframe[column_name].isnull().any():
-        messages.error(request, "Error: Column '{}' has null values. Please clean the column before converting the data type.".format(column_name))
-        return dataframe
-
-    # Validate the new_data_type
-    valid_data_types = ['int', 'float', 'str', 'bool', 'date', 'datetime']
-    if new_data_type not in valid_data_types:
-        messages.error(request, "Error: Invalid data type '{}'. Valid data types are: {}.".format(new_data_type, ', '.join(valid_data_types)))
-        return dataframe
-
-    # Check if the column contains only numeric values (int or float)
-    if new_data_type in ['int', 'float']:
-        non_numeric_chars = dataframe[column_name].apply(lambda x: bool(re.search(r'[^0-9.-]', str(x))))
-        if non_numeric_chars.any():
-            messages.error(request, "Error: Column '{}' contains non-numeric or special characters. Cannot convert to {}.".format(column_name, new_data_type))
-            return dataframe
-
     try:
+        # Check if the column exists in the DataFrame
+        if column_name not in dataframe.columns:
+            raise ValueError("Column '{}' does not exist in the DataFrame.".format(column_name))
+
+        # Check if the column has any null values
+        if dataframe[column_name].isnull().any():
+            raise ValueError("Column '{}' has null values. Please clean the column before converting the data type.".format(column_name))
+
+        # Validate the new_data_type
+        valid_data_types = ['int', 'float', 'str', 'bool', 'date', 'datetime']
+        if new_data_type not in valid_data_types:
+            raise ValueError("Invalid data type '{}'. Valid data types are: {}.".format(new_data_type, ', '.join(valid_data_types)))
+
+        # Check if the column contains only numeric values (int or float)
+        if new_data_type in ['int', 'float']:
+            non_numeric_chars = dataframe[column_name].apply(lambda x: bool(re.search(r'[^0-9.-]', str(x))))
+            if non_numeric_chars.any():
+                raise ValueError("Column '{}' contains non-numeric or special characters. Cannot convert to {}.".format(column_name, new_data_type))
+
         # Convert the column data type based on the new_data_type
         if new_data_type == 'int':
             dataframe[column_name] = dataframe[column_name].astype(int)
@@ -149,50 +147,66 @@ def convert_column_data_type(request, dataframe, column_name, new_data_type):
             dataframe[column_name] = pd.to_datetime(dataframe[column_name])
 
         # Add a success message
-        messages.success(request, f"Column '{column_name}' converted to {new_data_type} data type successfully!")
+        # messages.success(request, f"Column '{column_name}' converted to {new_data_type} data type successfully!")
+        return dataframe
+    except ValueError as ve:
+        raise ValueError(str(ve))
     except Exception as e:
-        messages.error(request, f"Error: Failed to convert column '{column_name}'. Error: {e}")
+        raise ValueError('An unexpected error occurred')
 
-    return dataframe
+    
 
 
 #  ============================= Decimal GCS processing =============================
 
-#function to clean latitude and longitude in the dataframe
+# Function to clean latitude and longitude in the dataframe
 def extract_valid_lat_lon(lat_lon_str):
     # Remove leading/trailing whitespace from the string
     cleaned_str = lat_lon_str.strip()
     
-    # Check if the string matches the latitude/longitude format using the regex
+    # Check if the string matches the latitude/longitude format using regex
     match = re.match(r'-?\d+\.\d+', cleaned_str)
     
     # Return the matched value if found, otherwise return NaN
     return float(match.group()) if match else float('NaN')
 
 def convert_lat_lon_columns(request, dataframe, latitude_col, longitude_col):
-    # Check if the provided column names exist in the DataFrame
-    if latitude_col not in dataframe.columns or longitude_col not in dataframe.columns:
-        messages.error(request, "Error: Latitude or Longitude column does not exist in the DataFrame.")
-        return dataframe
-    if dataframe[latitude_col].isnull().any() or dataframe[longitude_col].isnull().any():
-        messages.error(request, "Error: Connot process NaN values.")
-        return dataframe
-
-    # Convert latitude and longitude columns to numeric type using the custom function
+    print("surprise mf")
     try:
-        if not dataframe[latitude_col].dtype is float and not dataframe[longitude_col].dtype == float:
-            dataframe[latitude_col] = dataframe[latitude_col].apply(extract_valid_lat_lon)
-            dataframe[longitude_col] = dataframe[longitude_col].apply(extract_valid_lat_lon)
-            # Add a success message
-            messages.success(request, f"Latitude and Longitude columns converted to numeric type successfully!")
-            # Drop rows with NaN values in latitude or longitude columns
-            dataframe.dropna(subset=[latitude_col, longitude_col], inplace=True)
-            messages.success(request, f"Computation Success!")
-        else:
-            messages.success(request, f"Computation Success!")
+        print(dataframe)
+        # Check if the provided column names exist in the DataFrame
+        if latitude_col not in dataframe.columns or longitude_col not in dataframe.columns:
+            raise ValueError("Latitude or Longitude column does not exist in the DataFrame.")
+
+        # Check if the latitude or longitude columns have NaN values
+        if dataframe[latitude_col].isnull().any() or dataframe[longitude_col].isnull().any():
+            raise ValueError("Latitude or Longitude columns contain NaN values, cannot process.")
+
+        print(dataframe[latitude_col])
+        print(dataframe[longitude_col])
+        try:
+            if dataframe[latitude_col].dtype == float and dataframe[longitude_col].dtype == float:
+                pass
+            else:
+                # Convert latitude and longitude columns to numeric type using the custom function
+                dataframe[latitude_col] = dataframe[latitude_col].apply(extract_valid_lat_lon)
+                dataframe[longitude_col] = dataframe[longitude_col].apply(extract_valid_lat_lon)
+        except Exception as e:
+            # Handle the exception gracefully, e.g., by printing an error message
+            raise ValueError(f"An error occurred while cleaning the coordinates: {str(e)}")
+
+        # Drop rows with NaN values in latitude or longitude columns
+        dataframe.dropna(subset=[latitude_col, longitude_col], inplace=True)
+
+        # Add a success message
+        # messages.success(request, f"Latitude and Longitude columns converted to numeric type successfully!")
+
+    except ValueError as ve:
+        # Raise a specific ValueError with the error message
+        raise ValueError(str(ve))
 
     except Exception as e:
-        messages.error(request, f"Error: Failed to convert latitude/longitude columns. Error: {e}")
-
+        # Raise a ValueError with a generic error message
+        raise ValueError('An unexpected error occurred during computation')
 
     return dataframe

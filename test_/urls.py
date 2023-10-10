@@ -26,6 +26,9 @@ urlpatterns = [
     path('export_fb_cv_csv_zip/', app_views.export_fb_cv_csv_zip, name='export_fb_cv_csv_zip'),
     path('model_arima_family/', app_views.model_arima_family, name='model_arima_family'),
     path('export_arima_results/', app_views.export_arima_results, name='export_arima_results'),
+    path('handle_data_type_conversion/', app_views.handle_data_type_conversion, name='handle_data_type_conversion'),
+    path('handle_coordinate_system_conversion/', app_views.handle_coordinate_system_conversion, name='handle_coordinate_system_conversion'),
+
 
     #visualization
     path('home/', viz_views.home, name='home'),
