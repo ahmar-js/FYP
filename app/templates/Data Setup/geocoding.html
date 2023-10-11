@@ -10,7 +10,7 @@
                                             <br><small id="helpId-multi-addr" class="form-text text-muted">Choose minimum one column</small><br>
                                             <div>
                                                 <select class="selectpicker" multiple aria-label="size 5 select example" name="select-multi-addr" id="select-multi-addr">
-                                                    <option selected value="null">Select columns</option>
+                                                    <option selected disabled value="null">Select columns</option>
                                                     {% for columns in preview_data.columns %}
                                                     <option value="{{columns}}">{{columns}}</option>
                                                     {% endfor %}

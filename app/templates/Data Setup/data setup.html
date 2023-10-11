@@ -1,6 +1,32 @@
                 <!-- main container -->
                 <div class="data_setup_container_main m-4">
 
+                    <div class="setup_functions d-flex justify-content-end">
+                        <div class="reset_btn m-1">
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="reset" value="true">
+                                <input type="submit" class="btn btn-sm btn-danger" value="Reset">
+                            </form>
+                        </div>
+                        <div class="donwload_btn m-1">
+                            <a href="{% url 'download_csv' %}" class="btn btn-primary btn-sm">Download CSV</a>
+                        </div>
+                        <div class="save_to_db_btn m-1">
+                        <form action="" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="save_db" value="true">
+                            <input type="submit" class="btn btn-sm btn-success" value="Save_DB" class="btn btn-sm">
+                        </form>
+                        </div> 
+                        <div class="group_and_aggregation d-flex justify-content-end m-1">
+                            <div class="aggregation_btn">
+                        <!-- Modal is located in modeling.html -->
+                              <button type="button" class="btn btn-sm btn-dark" data-bs-toggle="modal" data-bs-target="#group_data_modal">Group data</button>
+                            </div>
+                         </div>
+                    </div>
+
                     <!-- ----------- Data stat cards ----------- -->
                
                     <div class="containerr">
@@ -239,18 +265,38 @@
    
               
                         <div class="data-setup-tab-pane my-5">
-                       <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
-                        <li class="nav-item" role="presentation">
-                          <button class="nav-link active" id="pills-imputations-tab" data-bs-toggle="pill" data-bs-target="#pills-imputations" type="button" role="tab" aria-controls="pills-imputations" aria-selected="true">Imputation</button>
+                            <style>
+                                .nav-pills .nav-link.active, .nav-pills .show > .nav-link{
+                                    width: 99%;
+                                    
+                                }
+                                .data-setup-tab-pane .nav-link{
+                                    color: #6c757d!important;
+                                }
+                                .nav-pills .nav-link.active, .nav-pills .show>.nav-link {
+                                    color: #fff!important;
+                                    background-color: #f39c12 !important;
+                                    border-bottom: none !important;
+                                }
+                                
+
+                                .data-setup-tab-pane .nav-pills li{
+                                    border-bottom: 1px solid #f39c12!important;
+                                    border-radius: 10px !important;
+                                }
+                            </style>
+                       <ul class="nav nav-pills justify-content-around mb-3" id="pills-tab" role="tablist">
+                        <li class="nav-item col-3" role="presentation">
+                          <button class="nav-link mx-auto active" id="pills-imputations-tab" data-bs-toggle="pill" data-bs-target="#pills-imputations" type="button" role="tab" aria-controls="pills-imputations" aria-selected="true">Imputation</button>
                         </li>
-                        <li class="nav-item" role="presentation">
-                          <button class="nav-link" id="pills-cord_sys-tab" data-bs-toggle="pill" data-bs-target="#pills-cord_sys" type="button" role="tab" aria-controls="pills-cord_sys" aria-selected="false">Coordinate System</button>
+                        <li class="nav-item col-3" role="presentation">
+                          <button class="nav-link mx-auto" id="pills-cord_sys-tab" data-bs-toggle="pill" data-bs-target="#pills-cord_sys" type="button" role="tab" aria-controls="pills-cord_sys" aria-selected="false">Coordinate System</button>
                         </li>
-                        <li class="nav-item" role="presentation">
-                          <button class="nav-link" id="pills-geocoding-tab" data-bs-toggle="pill" data-bs-target="#pills-geocoding" type="button" role="tab" aria-controls="pills-geocoding" aria-selected="false">Geocoding</button>
+                        <li class="nav-item col-3" role="presentation">
+                          <button class="nav-link mx-auto" id="pills-geocoding-tab" data-bs-toggle="pill" data-bs-target="#pills-geocoding" type="button" role="tab" aria-controls="pills-geocoding" aria-selected="false">Geocoding</button>
                         </li>
                       </ul>
-                      <div class="tab-content" id="pills-tabContent">
+                      <div class="tab-content my-5" id="pills-tabContent">
                         <div class="tab-pane fade show active" id="pills-imputations" role="tabpanel" aria-labelledby="pills-imputations-tab">{% include "Data Setup/imputation.html" %} 
                         </div>
                         <div class="tab-pane fade" id="pills-cord_sys" role="tabpanel" aria-labelledby="pills-cord_sys-tab">{% include "Data Setup/cordinate systems.html" %}</div>
@@ -275,26 +321,7 @@
                
                
                
-                   <form method="post">
-                       {% csrf_token %}
-                       <input type="hidden" name="reset" value="true">
-                       <input type="submit" value="Reset">
-                   </form>
-               
-                   <a href="{% url 'download_csv' %}" class="btn btn-primary my-2">Download CSV</a>
-   
-                   <form action="" method="post">
-                       {% csrf_token %}
-                       <input type="hidden" name="save_db" value="true">
-                       <input type="submit" value="Save_DB" class="btn btn-sm">
-                   </form>
-   
-                   <!-- Modal is located in modeling.html -->
-                   <div class="group_and_aggregation d-flex justify-content-end">
-                       <div class="aggregation_btn">
-                         <button type="button" class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#group_data_modal">Group data</button>
-                       </div>
-                     </div>
+
    
                
                    </div>

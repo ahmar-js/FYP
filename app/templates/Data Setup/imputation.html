@@ -1,6 +1,6 @@
                     <!-- Impuation -->
                        <!-- ----------- Info alert box ----------- -->
-               
+               <div class="container mb-5">
                        <div class="information-alert">
                         <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
                             <symbol id="check-circle-fill" fill="currentColor" viewBox="0 0 16 16">
@@ -17,7 +17,7 @@
                             </symbol>
                         </svg>
             
-                        <div class="alert alert-dark d-flex align-items-start" role="alert">
+                        <div class="alert alert-info d-flex align-items-start" role="alert">
                             <svg class="bi flex-shrink-0 me-2 mt-1" width="24" height="24" role="img" aria-label="Info:">
                                 <use xlink:href="#info-fill" />
                             </svg>
@@ -39,56 +39,151 @@
             
             
                     <!-- ----------- Imputation box ----------- -->
-            
-                    <div class="dtype-impute">
-                        <div class="">
-                            <h1>Imputation</h1>
-                            <div id="dropcolumn-alert-container"></div>
-                            {% comment %} <!-- ----------- Column drop form ----------- --> {% endcomment %}
-                            <form method="post" class="needs-validation" id="dropcolumn-form" novalidate>
-                                {% csrf_token %}
-                                <div class="dropcolumn">
-                                    <div class="mb-3">
-                                        <label for="dropcolumnmenu" class="form-label">Select Column to Drop</label>
-                                        <select class="form-select form-select" name="dropcolumnmenu" id="dropcolumnmenu" required>
-                                            <option selected disabled value="">Select one</option>
-                                            {% for column in preview_data.columns %}
-                                            <option value="{{ column }}">{{ column }}</option>
-                                            {% endfor %}
-                                        </select>
-                                        <div class="invalid-feedback">
-                                            Please select a column.
-                                        </div>
-                                    </div>
-                                    <div class="mb-3">
-                                        <!-- <button type="submit" class="btn btn-danger" onclick="event.preventDefault(); showDropAlert(document.getElementById('dropcolumnmenu').value)">Drop</button> -->
-                                        <button type="submit" class="btn btn-danger">Drop</button>
-                                    </div>
-            
+
+                    <!-- drop_col_main_container -->
+                    <div class="drop_col_main_container">
+                        <div class="drop_row_col_flex_contatiner d-flex flex-wrap">
+                            <div class="drop_col_card_container col-lg-6 col-12 mb-3">
+                            <div class="card shadow" style="border: 1px solid rgba(0, 0, 0, 0.05); border-radius: 1rem;">
+                                <div class="card-body pb-3">
+                                    <div>
+                                    <h4 class="card-title">Drop Features</h4>
                                 </div>
-                            </form>
-                            <!-- ----------- Column drop form end ----------- -->
-            
-            
+                                <div>
+                                    <div id="dropcolumn-alert-container"></div>
+                                    {% comment %} <!-- ----------- Column drop form ----------- --> {% endcomment %}
+                                    <form method="post" class="needs-validation" id="dropcolumn-form" novalidate>
+                                        {% csrf_token %}
+                                        <div class="dropcolumn">
+                                            <label for="dropcolumnmenu" class="form-label">Select Column to Drop</label>
+                                            <div class="mb-4 input-group">
+                                                <select class="form-select form-select-sm" name="dropcolumnmenu" id="dropcolumnmenu" required>
+                                                    <option selected disabled value="">Select one</option>
+                                                    {% for column in preview_data.columns %}
+                                                    <option value="{{ column }}">{{ column }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                                <button class="btn btn-outline-secondary" type="submit" style="padding: 0.1rem 0.75rem;">Drop</button>
+                                                <div class="invalid-feedback">
+                                                    Please select a column.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                    <!-- ----------- Column drop form end ----------- -->
+                                </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ----------- drop null rows  ----------- -->
+                        <div id="dropnullrows-alert-container"></div>
+                        <div class="dropnullrows-card-container col-lg-6 col-12">
+                            <div class="card shadow" style="border: 1px solid rgba(0, 0, 0, 0.05); border-radius: 1rem;">
+                                <div class="card-body pb-2">
+                                    <div class="drop-null-rows-title">
+                                    <h4 class="card-title">Drop Records</h4>
+                                </div>
+                                <div class="drop-null-rows-body">
+                                    <div class="drop-null-rows-form">
+                                        <form class="form needs-validation" method="POST" id="drop_null_rows" novalidate>
+                                            {% csrf_token %}
+                                            <label aria-describedby="select-multi-drop-row" for="select-multi-drop-row" class="form-label">Select subset to null drop
+                                                <i class="fa-solid fa-circle-info" data-bs-toggle="popover" title="Important!" data-bs-content="By not selecting column, strategy will apply to complete dataset"></i>
+                                            </label><br>
+                                                
+                                                <div>
+                                                    <div class="input-group ">
+                                                <select  class="selectpicker" multiple aria-label="size 1 select example" name="select-multi-drop-row" id="select-multi-drop-row">
+                                                  <option disabled selected>Select columns</option>
+                                                  {% for columns in preview_data.columns %}
+                    
+                                                  <option value="{{columns}}">{{columns}}</option>
+                    
+                                                  {% endfor %}
+                                                </select>
+                                            <button type="submit" class="btn btn-secondary" style="padding: 0.1rem 0.75rem;">Drop</button>
+
+                                            </div>
+                                            <small>
+                                                <label for="strategy_method" class="form-label">How: </label>
+                                                <div class="form-check form-check-inline" id="strategy_method">
+                                                    <input class="form-check-input" type="radio" name="row_drop_strategy" id="row_drop_strategy" value="any" required>
+                                                    <label class="form-check-label" for="row_drop_strategy">Any</label>
+                                                  </div>
+                    
+                                                  <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="radio" name="row_drop_strategy" id="row_drop_strategy" value="all" required>
+                                                    <label class="form-check-label" for="row_drop_strategy">All</label>
+                                                  </div>
+                    
+                                                  <div class="invalid-feedback">
+                                                    Please choose a Strategy.
+                                                </div>
+                                            </small>
+
+                    
+                                            </div>
+                    
+                    
+                                        </form>
+                                    </div>
+                                </div>
+                                </div>
+                            </div>
+
+        
+        
+                        </div>
+                        <!-- ----------- drop null rows end ----------- -->
+
+                    </div>
+                    </div>
+                    <!-- drop_col_main_container end -->
+
+
+
+                    <!-- Fill null values and change dtype -->
+
+                    <div class="fill_null_values_dtype_container">
+                        <div class="fill_null_values_dtype_flex_container d-flex flex-wrap">
+                            <div class="fill_null_values_card_container col-lg-6 col-12">
+                                <div class="card shadow" style="border: 1px solid rgba(0, 0, 0, 0.05); border-radius: 1rem;">
+                                    <div class="card-body">
+                                        <div class="title">
+                                        <h4 class="card-title">Fill Nulls</h4>
+                                        </div>
+                                        <div class="fill_null_values_body">
                             <!-- ----------- Fill null values form ----------- -->
-            
-                            <div class="fill_naValues mb-3">
+                            <div class="fill_naValues mb-1">
                                 <div id="fillna-alert-container"></div>
                                 <form class="form needs-validation" method="post" id="fill_na_values" novalidate>
                                     {% csrf_token %}
             
                                     <div class="mb-3">
-                                        <label for="fillnullvalues" class="form-label">Select to Fill Null values</label>
-                                        <select class="form-select form-select" name="fillnullvalues" id="fillnullvalues" required>
-                                            <option selected disabled value="">Select one</option>
-                                            <option value="complete_data">Complete Data</option>
-                                            {% for column in preview_data.columns %}
-                                            <option value="{{column}}">{{column}}</option>
-                                            {% endfor %}
-                                        </select>
-                                        <div class="invalid-feedback">
-                                            Please select a column.
+                                        <div class="flex-container d-flex flex-wrap align-items-end">
+                                            <div class="select_to_fill_null col-lg-6 col-12">
+                                                <label for="fillnullvalues" class="form-label">Select to Fill Null values</label>
+                                                <select class="form-select form-select-sm" name="fillnullvalues" id="fillnullvalues" required>
+                                                    <option selected disabled value="">Select one</option>
+                                                    <option value="complete_data">Complete Data</option>
+                                                    {% for column in preview_data.columns %}
+                                                    <option value="{{column}}">{{column}}</option>
+                                                    {% endfor %}
+                                                </select>
+                                                <div class="invalid-feedback">
+                                                    Please select a column.
+                                                </div>
+                                            </div>
+                                            <div class="fill_constant-input col-lg-5 col-12">
+                                                <small id="helpId" class="form-text text-muted">Enter the constant value for
+                                                    imputation.</small>
+                                                <input type="text" class="form-control form-control-sm" name="strategy_constant" id="strategy_constant"
+                                                aria-describedby="helpId" placeholder="0 or undefined" disabled required>
+                                                
+                                            </div>
                                         </div>
+
                                         <div class="form-check form-check-inline">
                                             <input class="form-check-input" type="radio" name="strategy" id="strategy_mean"
                                                 value="mean" required>
@@ -122,129 +217,94 @@
                                         <div class="invalid-feedback">
                                             Please select any of the strategy.
                                         </div>
-                                        <input type="text" class="form-control" name="strategy_constant" id="strategy_constant"
-                                            aria-describedby="helpId" placeholder="0 or undefined" disabled required>
-                                        <small id="helpId" class="form-text text-muted">Enter the constant value for
-                                            imputation.</small>
+
                                     </div>
                                     <button type="submit" class="btn btn-primary">Impute</button>
                                 </form>
                             </div>
                             <!-- ----------- fill null values form end ----------- -->
-            
-                            <!-- ----------- nullrows-dtype-container ----------- -->
-                            <div id="dropnullrows-alert-container"></div>
-                            <div id="changedtype-alert-container"></div>
-
-                            <div class="nullrows-dtype-container d-flex">
-            
-                            <!-- ----------- drop null rows  ----------- -->
-            
-                            <div class="dropnullrows col-lg-5">
-                                <form class="form needs-validation" method="POST" id="drop_null_rows" novalidate>
-                                    {% csrf_token %}
-                                    <div class="my-3">
-                                        <label aria-describedby="helpId-multi" for="select-multi-drop-row" class="form-label">Select subset to null drop
-                                            <i class="fa-solid fa-circle-info py-1" data-bs-toggle="popover" title="Important!" data-bs-content="By not selecting column, strategy will apply to complete dataset"></i>
-                                        </label>
-                                        <br><small id="helpId-multi" class="form-text text-muted">Select multiple</small><br>
-                                        <div>
-                                        <select  class="selectpicker" multiple aria-label="size 3 select example" name="select-multi-drop-row" id="select-multi-drop-row">
-                                          <option disabled selected>Select columns</option>
-                                          {% for columns in preview_data.columns %}
-            
-                                          <option value="{{columns}}">{{columns}}</option>
-            
-                                          {% endfor %}
-                                        </select><br>
-                                        <label for="strategy_method" class="form-label">How: </label>
-                                        <div class="form-check form-check-inline" id="strategy_method">
-                                            <input class="form-check-input" type="radio" name="row_drop_strategy" id="row_drop_strategy" value="any" required>
-                                            <label class="form-check-label" for="row_drop_strategy">Any</label>
-                                          </div>
-            
-                                          <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" name="row_drop_strategy" id="row_drop_strategy" value="all" required>
-                                            <label class="form-check-label" for="row_drop_strategy">All</label>
-                                          </div>
-            
-                                          <div class="invalid-feedback">
-                                            Please choose a Strategy.
                                         </div>
-            
-                                    </div>
-            
-            
-                                    </div>
-                                    <button type="submit" class="btn btn-secondary">Drop</button>
-                                </form>
-            
-            
-                            </div>
-                            <!-- ----------- drop null rows end ----------- -->
-            
-
-                            <!-- change data type -->
-                            <div class="change-dtype col-lg-5">
-                                <form method="POST" class="form needs-validation" id="change_dtype_form" novalidate>
-                                    {% csrf_token %}
-                                    <div class="mb-3">
-                                        <label aria-describedby="helpId-dtype" for="select-col-convert-dtype" class="form-label mb-2 mt-3">Select column to change data type
-                                            <i class="fa-solid fa-circle-info" data-bs-toggle="popover" title="Important!" data-bs-content="For GCS coordinates - Don't convert data type of coordinates to float, keep them as object"></i>
-                                        </label>
-                                        <br><small id="helpId-dtype" class="form-text text-muted">Remove null values first</small><br>
-                                        <select class="form-select form-select" name="select-col-convert-dtype" id="select-col-convert-dtype" required>
-                                            <option disabled selected value="">Select Column</option>
-                                            {% for columns in preview_data.columns %}
-            
-                                            <option value="{{columns}}">{{columns}}</option>
-            
-                                            {% endfor %}
-                                        </select>
-                                        <div class="invalid-feedback">
-                                            Please specify a column.
-                                        </div>
-                                    <div class="selectdtype">
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" name="datatype" id="datatype1" value="int" required>
-                                            <label class="form-check-label" for="datatype1">int</label>
-                                          </div>
-                                          <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" name="datatype" id="datatype2" value="bool" required>
-                                            <label class="form-check-label" for="datatype2">bool</label>
-                                          </div>
-                                          <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" name="datatype" id="datatype4" value="float" required>
-                                            <label class="form-check-label" for="datatype4">float</label>
-                                          </div>
-                                          <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" name="datatype" id="datatype3" value="str" required>
-                                            <label class="form-check-label" for="datatype3">str</label>
-                                          </div>
-                                          <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" name="datatype" id="datatype5" value="date" required>
-                                            <label class="form-check-label" for="datatype5">date</label>
-                                          </div>
-                                          <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" name="datatype" id="datatype6" value="datetime" required>
-                                            <label class="form-check-label" for="datatype6">datetime</label>
-                                          </div>
-                                    </div>
-                                    <div class="invalid-feedback">
-                                        Please choose data type to convert.
                                     </div>
                                 </div>
-            
-                                <button type="submit" class="btn btn-warning">Change</button>
-            
-                                </form>
                             </div>
-                            <!-- change data type end -->
-            
-            
+                            <div class="change_dtype_container col-lg-6 col-12">
+                                <div class="card shadow" style="border: 1px solid rgba(0, 0, 0, 0.05); border-radius: 1rem;">
+                                    <div class="card-body">
+                                    <div id="changedtype-alert-container"></div>
+                                        <div class="title">
+                                            <h4 class="card-title">Change Type</h4>
+                                        </div>
+                                        <div class="change_dtype_body">
+                                            <div class="nullrows-dtype-container">
+                                                <!-- change data type -->
+                                                <div class="change-dtype">
+                                                    <form method="POST" class="form needs-validation" id="change_dtype_form" novalidate>
+                                                        {% csrf_token %}
+                                                        <div class="mb-3">
+                                                            <label aria-describedby="helpId-dtype" for="select-col-convert-dtype" class="form-label">Select column to change data type
+                                                                <i class="fa-solid fa-circle-info" data-bs-toggle="popover" title="Important!" data-bs-content="For GCS coordinates - Don't convert data type of coordinates to float, keep them as object"></i>
+                                                            </label>
+                                                            <br><small id="helpId-dtype" class="form-text text-muted">Remove null values first</small><br>
+                                                            <select class="form-select form-select" name="select-col-convert-dtype" id="select-col-convert-dtype" required>
+                                                                <option disabled selected value="">Select Column</option>
+                                                                {% for columns in preview_data.columns %}
+                                
+                                                                <option value="{{columns}}">{{columns}}</option>
+                                
+                                                                {% endfor %}
+                                                            </select>
+                                                            <div class="invalid-feedback">
+                                                                Please specify a column.
+                                                            </div>
+                                                        <div class="selectdtype">
+                                                            <div class="form-check form-check-inline">
+                                                                <input class="form-check-input" type="radio" name="datatype" id="datatype1" value="int" required>
+                                                                <label class="form-check-label" for="datatype1">int</label>
+                                                              </div>
+                                                              <div class="form-check form-check-inline">
+                                                                <input class="form-check-input" type="radio" name="datatype" id="datatype2" value="bool" required>
+                                                                <label class="form-check-label" for="datatype2">bool</label>
+                                                              </div>
+                                                              <div class="form-check form-check-inline">
+                                                                <input class="form-check-input" type="radio" name="datatype" id="datatype4" value="float" required>
+                                                                <label class="form-check-label" for="datatype4">float</label>
+                                                              </div>
+                                                              <div class="form-check form-check-inline">
+                                                                <input class="form-check-input" type="radio" name="datatype" id="datatype3" value="str" required>
+                                                                <label class="form-check-label" for="datatype3">str</label>
+                                                              </div>
+                                                              <div class="form-check form-check-inline">
+                                                                <input class="form-check-input" type="radio" name="datatype" id="datatype5" value="date" required>
+                                                                <label class="form-check-label" for="datatype5">date</label>
+                                                              </div>
+                                                              <div class="form-check form-check-inline">
+                                                                <input class="form-check-input" type="radio" name="datatype" id="datatype6" value="datetime" required>
+                                                                <label class="form-check-label" for="datatype6">datetime</label>
+                                                              </div>
+                                                        </div>
+                                                        <div class="invalid-feedback">
+                                                            Please choose data type to convert.
+                                                        </div>
+                                                    </div>
+                                
+                                                    <button type="submit" class="btn btn-warning">Change</button>
+                                
+                                                    </form>
+                                                </div>
+                                                <!-- change data type end -->
+                                
+                                
+                                            </div>
+                                        </div>
+                                    </div>
+                                
+                                </div>
+                            </div>
                         </div>
-                            <!-- ----------- nullrows-dtype-container end ----------- -->
-                            </div>
-                            </div>
+                    </div>
 
+
+                    <!-- Fill null values and change dtype end -->
+
+                 </div>
                  <!-- Impuation end -->
