@@ -156,6 +156,7 @@ def upload_view(request):
 
 @login_required(login_url='/Login/')
 def upload_file(request):
+
     
     # Check if the "reset" parameter is in POST data
     if request.method == 'POST' and 'reset' in request.POST:
@@ -755,6 +756,7 @@ def fbprophet_dignostic(m, horizon, initial, period):
 
 
 def model_fb_prophet(request):
+
     try:
         json_geodata = request.session.get('geodata_frame')
         json_data = request.session.get('data_frame')
@@ -833,7 +835,7 @@ def model_fb_prophet(request):
                 # Handle diagnostic errors (e.g., invalid input)
                 return JsonResponse({'error': "An error occurred during cross-validation: " + str(e)})
             
-            print(selected_district_feature_value)
+            # print(selected_district_feature_value)
             request.session['selected_filteration_fb'] = selected_district_feature_value
             jsonresponse = {
                 'forecasted_range': forecasted_range,

@@ -611,10 +611,12 @@ $(document).ready(function () {
         });
     });
 
+    
     // Handle Facebook Prophet model form submission
     $('#fb_prophet_modeling_form').submit(function (event) {
         event.preventDefault();
         $('#fbprop_report_btn').prop('disabled', true);
+        $('#save_fb_db').prop('disabled', true);
 
         const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
         const selectedDateFeature = $('#select-date-column-fb').val();
@@ -675,6 +677,8 @@ $(document).ready(function () {
 
                 }
                 $('#fbprop_report_btn').prop('disabled', false);
+                $('#save_fb_db').prop('disabled', false);
+
 
             },
             error: function (error) {

@@ -1,101 +1,118 @@
                                <!-- ----------- Lat long filteration ----------- -->
-               
-                               <div class="cord_filter">
-                                <form method="POST" class="form needs-validation" id="coordinate-system-conversion-form" novalidate>
-                                    {% csrf_token %}
-                                    <div class="my-3">
-                                        <div class="d-flex justify-content-start select-menu-latlong flex-wrap">
-                                        <div class="select-lat-container col-lg-5 me-5">
-                                        <label for="select-lat" class="form-label">Select latitude/northing column</label>
-                                        <select class="form-select form-select" name="select-lat" id="select-lat" required>
-                                            <option selected disabled value="">Select latitude/northing</option>
-                                            {% for columns in preview_data.columns %}
-            
-                                            <option value="{{columns}}">{{columns}}</option>
-            
-                                            {% endfor %}
-                                        </select>
-                                        <div class="invalid-feedback">
-                                            Please choose latitude or northing cooordinate column.
-                                        </div>
-                                    </div>
-                                    <div class="select-long-container col-lg-5">
-                                        <label for="select-long" class="form-label">Select longitude/easting column</label>
-                                        <select class="form-select form-select" name="select-long" id="select-long" required>
-                                            <option selected disabled value="">Select longitude/easting</option>
-                                            {% for columns in preview_data.columns %}
-            
-                                            <option value="{{columns}}">{{columns}}</option>
-            
-                                            {% endfor %}
-                                        </select>
-                                        <div class="invalid-feedback">
-                                            Please choose longitude or easting cooordinate column.
-                                        </div>
-                                    </div>
-                                    <div id="alert_cont_cordSys" class="col-11 me-auto mt-2"></div>
-                                    <div class="select-cordSys col-lg-5 me-5 my-2">
-                                        <fieldset class="border rounded-3 p-3">
-                                            <legend class="float-none w-auto px-3" style="font-size: medium;" >Coordinate Systems</legend>
-                                            <div class="form-check">
-                                              <input class="form-check-input" type="radio" name="cord-sys" value="gcs" id="cord-sys-gcs" onchange="updateDataUnitOptions()" required>
-                                              <label class="form-check-label" for="cord-sys">
-                                                GCS - Latitude, Longitude (curved)
-                                              </label>
-                                            </div>
-                                            <div class="form-check">
-                                              <input class="form-check-input" type="radio" name="cord-sys" value="pcs" onchange="updateDataUnitOptions()" id="cord-sys-pcs" required>
-                                              <label class="form-check-label" for="cord-sys">
-                                                PCS - Projected (cartesian)
-                                              </label>
-                                            </div>
-                                        </fieldset>
-                                        <div class="invalid-feedback">
-                                            Please choose valid coordinate system.
-                                        </div>
-                                    </div> <!-- select-cordSys end --->
-            
-                                    <div class="cord_dataunits col-lg-5 my-3">
-                                        <fieldset class="border rounded-3 p-3">
-            
-                                            <legend class="float-none w-auto px-3" style="font-size: medium;" >Data units
-                                                    <i class="fa-solid fa-circle-info" data-bs-toggle="popover" title="Important!" data-bs-content="For GCS - Don't select decimal degrees if coordinates are in simple latitude and longitude converted.
-                                                    PCS - could be time extensive for feet and km (if large data)"></i>
-                                            </legend>
-                                            <div class="form-check">
-                                              <input class="form-check-input" type="radio" value="decideg" name="cord-sys-units" id="cord-sys-unit-dg" disabled>
-                                              <label class="form-check-label" for="cord-sys-units">
-                                                Decimal Degrees (DMS)
-                                              </label>
-                                            </div>
-                                            <div class="form-check">
-                                              <input class="form-check-input" type="radio" value="meter" name="cord-sys-units" id="cord-sys-unit-mt" checked disabled>
-                                              <label class="form-check-label" for="cord-sys-units">
-                                                Meters
-                                              </label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" value="feet" name="cord-sys-units" id="cord-sys-units-ft" disabled>
-                                                <label class="form-check-label" for="cord-sys-units">
-                                                  Feets
-                                                </label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" value="km" name="cord-sys-units" id="cord-sys-unit-km" disabled>
-                                                <label class="form-check-label" for="cord-sys-units">
-                                                  Kilometers
-                                                </label>
-                                            </div>
-                                        </fieldset>
-                                        <div class="invalid-feedback">
-                                            Please choose valid Data unit of Projected Coordinate System.
-                                        </div>
-                                    </div>
-                                    </div> <!-- select-menu-latlong end -->
-                                    <button type="submit" class="btn btn-success">Compute</button>
-            
-                                    </div>
-                                </form>
-                            </div>
-            
+                               <div class="coordinates_main_container">
+                                <div class="container">
+                                <div class="card shadow" style="border: 1px solid rgba(0, 0, 0, 0.05); border-radius: 1rem;">
+                                  <div class="card-body">
+                                    <div class="card-title-cord">
+                                    <h4 class="card-title">Coordinate system of data</h4>
+                                  </div>
+                                  <div class="card-cord-body">
+                                    <div class="cord_filter">
+                                      <form method="POST" class="form needs-validation" id="coordinate-system-conversion-form" novalidate>
+                                          {% csrf_token %}
+                                          <div class="my-3">
+                                              <div class="d-flex justify-content-start select-menu-latlong flex-wrap">
+                                              <div class="select-lat-container col-lg-5 me-5">
+                                              <label for="select-lat" class="form-label">Select latitude/northing column</label>
+                                              <select class="form-select form-select" name="select-lat" id="select-lat" required>
+                                                  <option selected disabled value="">Select latitude/northing</option>
+                                                  {% for columns in preview_data.columns %}
+                  
+                                                  <option value="{{columns}}">{{columns}}</option>
+                  
+                                                  {% endfor %}
+                                              </select>
+                                              <div class="invalid-feedback">
+                                                  Please choose latitude or northing cooordinate column.
+                                              </div>
+                                          </div>
+                                          <div class="select-long-container col-lg-5">
+                                              <label for="select-long" class="form-label">Select longitude/easting column</label>
+                                              <select class="form-select form-select" name="select-long" id="select-long" required>
+                                                  <option selected disabled value="">Select longitude/easting</option>
+                                                  {% for columns in preview_data.columns %}
+                  
+                                                  <option value="{{columns}}">{{columns}}</option>
+                  
+                                                  {% endfor %}
+                                              </select>
+                                              <div class="invalid-feedback">
+                                                  Please choose longitude or easting cooordinate column.
+                                              </div>
+                                          </div>
+                                          <div id="alert_cont_cordSys" class="col-11 me-auto mt-2"></div>
+                                          <div class="select-cordSys col-lg-5 me-5 my-2">
+                                              <fieldset class="border rounded-3 p-3">
+                                                  <legend class="float-none w-auto px-3" style="font-size: medium;" >Coordinate Systems</legend>
+                                                  <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="cord-sys" value="gcs" id="cord-sys-gcs" onchange="updateDataUnitOptions()" required>
+                                                    <label class="form-check-label" for="cord-sys">
+                                                      GCS - Latitude, Longitude (curved)
+                                                    </label>
+                                                  </div>
+                                                  <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="cord-sys" value="pcs" onchange="updateDataUnitOptions()" id="cord-sys-pcs" required>
+                                                    <label class="form-check-label" for="cord-sys">
+                                                      PCS - Projected (cartesian)
+                                                    </label>
+                                                  </div>
+                                              </fieldset>
+                                              <div class="invalid-feedback">
+                                                  Please choose valid coordinate system.
+                                              </div>
+                                          </div> <!-- select-cordSys end --->
+                  
+                                          <div class="cord_dataunits col-lg-5 my-3">
+                                              <fieldset class="border rounded-3 p-3">
+                  
+                                                  <legend class="float-none w-auto px-3" style="font-size: medium;" >Data units
+                                                          <i class="fa-solid fa-circle-info" data-bs-toggle="popover" title="Important!" data-bs-content="For GCS - Don't select decimal degrees if coordinates are in simple latitude and longitude converted.
+                                                          PCS - could be time extensive for feet and km (if large data)"></i>
+                                                  </legend>
+                                                  <div class="d-flex flex-wrap">
+                                                    <div class="col-lg-6 col-12">
+                                                  <div class="form-check">
+                                                    <input class="form-check-input" type="radio" value="decideg" name="cord-sys-units" id="cord-sys-unit-dg" disabled>
+                                                    <label class="form-check-label" for="cord-sys-units">
+                                                      Decimal Degrees (DMS)
+                                                    </label>
+                                                  </div>
+                                                  <div class="form-check">
+                                                    <input class="form-check-input" type="radio" value="meter" name="cord-sys-units" id="cord-sys-unit-mt" checked disabled>
+                                                    <label class="form-check-label" for="cord-sys-units">
+                                                      Meters
+                                                    </label>
+                                                  </div>
+                                                </div>
+                                                <div class="col-lg-6 col-12">
+                                                  <div class="form-check">
+                                                      <input class="form-check-input" type="radio" value="feet" name="cord-sys-units" id="cord-sys-units-ft" disabled>
+                                                      <label class="form-check-label" for="cord-sys-units">
+                                                        Feets
+                                                      </label>
+                                                  </div>
+                                                  <div class="form-check">
+                                                      <input class="form-check-input" type="radio" value="km" name="cord-sys-units" id="cord-sys-unit-km" disabled>
+                                                      <label class="form-check-label" for="cord-sys-units">
+                                                        Kilometers
+                                                      </label>
+                                                  </div>
+                                                </div>
+                                                </div>
+                                              </fieldset>
+                                              <div class="invalid-feedback">
+                                                  Please choose valid Data unit of Projected Coordinate System.
+                                              </div>
+                                          </div>
+                                          </div> <!-- select-menu-latlong end -->
+                                          <button type="submit" class="btn btn-success">Compute</button>
+                  
+                                          </div>
+                                      </form>
+                                  </div>
+                                  </div>
+                                  </div>
+                                </div>
+                              </div>
+                          </div>
                             <!-- ----------- Lat long filteration end ----------- -->

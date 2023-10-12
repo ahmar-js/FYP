@@ -792,6 +792,21 @@ def save_forecasts_dataframe_to_db(request, df, name, filtered_by_val=[], period
     
     my_file_instance.save()
 
+    if request.session.get('fb_forcasted_df'):
+        del request.session['fb_forcasted_df']
+    if request.session.get('prophet_model'):
+        del request.session['prophet_model']
+    if request.session.get('forecasted_freq_fb'):
+        del request.session['forecasted_freq_fb']
+    if request.session.get('forecasted_period_fb'):
+        del request.session['forecasted_period_fb']
+    if request.session.get('fb_cv_df'):
+        del request.session['fb_cv_df']
+    if request.session.get('fb_p_df'):
+        del request.session['fb_p_df']
+    if request.session.get('selected_filteration_fb'):
+        del request.session['selected_filteration_fb']
+
     return HttpResponse("CSV file uploaded to the database successfully.")
 
        

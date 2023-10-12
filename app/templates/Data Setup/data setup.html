@@ -9,16 +9,16 @@
                                 <input type="submit" class="btn btn-sm btn-danger" value="Reset">
                             </form>
                         </div>
-                        <div class="donwload_btn m-1">
-                            <a href="{% url 'download_csv' %}" class="btn btn-primary btn-sm">Download CSV</a>
-                        </div>
                         <div class="save_to_db_btn m-1">
-                        <form action="" method="post">
-                            {% csrf_token %}
-                            <input type="hidden" name="save_db" value="true">
-                            <input type="submit" class="btn btn-sm btn-success" value="Save_DB" class="btn btn-sm">
-                        </form>
+                            <form action="" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="save_db" value="true">
+                                <input type="submit" class="btn btn-sm btn-success" value="Save" class="btn btn-sm">
+                            </form>
                         </div> 
+                        <div class="donwload_btn m-1">
+                            <a href="{% url 'download_csv' %}" class="btn btn-primary btn-sm">Download</a>
+                        </div>
                         <div class="group_and_aggregation d-flex justify-content-end m-1">
                             <div class="aggregation_btn">
                         <!-- Modal is located in modeling.html -->

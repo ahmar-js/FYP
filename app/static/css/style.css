@@ -156,10 +156,19 @@ thead tr th{
     width: 49.2%!important;
     padding-right: 10px!important;
 }
+.col-lg-4 {
+    flex: 0 0 auto;
+    width: 32.3333333333%!important;
+    padding-right: 10px!important;
+}
 .drop-null-rows-form .bootstrap-select:not([class*=col-]):not([class*=form-control]):not(.input-group-btn) {
     width: 89%!important;
 }
 .forward-geocoding_form .bootstrap-select:not([class*=col-]):not([class*=form-control]):not(.input-group-btn) {
     width: 98%!important;
+}
+/* prophet */
+.select-district-val-container .bootstrap-select:not([class*=col-]):not([class*=form-control]):not(.input-group-btn) {
+    width: 100%!important;
 }
 }
