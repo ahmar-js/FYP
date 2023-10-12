@@ -23,6 +23,7 @@ class fbProphet_forecasts(models.Model):
     U_df = models.ForeignKey(Uploaded_DataFrame, on_delete=models.CASCADE, blank=True, null=True)
     filtered_by = models.CharField(max_length=255)
     period = models.PositiveIntegerField(null=False, blank=False)
+    model = models.CharField(max_length=255)
     frequency = models.CharField(max_length=255, null=False, blank=False)
     file = models.FileField(upload_to='uploads_fb_forecasts/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
@@ -36,6 +37,7 @@ class ARIMA_forecasts(models.Model):
     filtered_by = models.CharField(max_length=255)
     period = models.PositiveIntegerField(null=False, blank=False)
     file = models.FileField(upload_to='uploads_ar_ma_forecasts/')
+    plot_arima = models.CharField(max_length=255)
     uploaded_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

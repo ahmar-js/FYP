@@ -4,8 +4,9 @@
     box-sizing: border-box;
 }
 /* body{
-    margin: 10%;
-    border: 4px solid red;
+
+    background-color: #212529;
+    background: #212529;
 } */
 /* Stats cards */
 .card-box {
@@ -75,9 +76,10 @@
 /* Stats cards end */
 
 /* Preview main data table */
-.displaydata .preview-table{
+.displaydata .preview-table, 
+.datatypetable .preview-dtype-table{
     overflow: auto;
-    max-height: 452px;
+    max-height: 482px;
     width: 100%;
 }
 /* Preview main data table end */
@@ -131,4 +133,42 @@ thead tr th{
     list-style-type: none !important;
     display: inline-block;
     color: red;
+}
+
+[class*="shadow"] {
+    transition: all 0.15s ease;
+}
+
+
+
+@media (min-width: 992px){
+    .col-lg-8 {
+        flex: 0 0 auto;
+        width: 65.7666666667%!important;
+        margin-right: 11px!important;
+}
+}
+
+
+@media (min-width: 992px){
+.col-lg-6 {
+    flex: 0 0 auto;
+    width: 49.2%!important;
+    padding-right: 10px!important;
+}
+.col-lg-4 {
+    flex: 0 0 auto;
+    width: 32.3333333333%!important;
+    padding-right: 10px!important;
+}
+.drop-null-rows-form .bootstrap-select:not([class*=col-]):not([class*=form-control]):not(.input-group-btn) {
+    width: 89%!important;
+}
+.forward-geocoding_form .bootstrap-select:not([class*=col-]):not([class*=form-control]):not(.input-group-btn) {
+    width: 98%!important;
+}
+/* prophet */
+.select-district-val-container .bootstrap-select:not([class*=col-]):not([class*=form-control]):not(.input-group-btn) {
+    width: 100%!important;
+}
 }

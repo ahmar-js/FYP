@@ -1,6 +1,8 @@
+import pickle
 import re
 import warnings
 import zipfile
+import joblib
 
 from pmdarima import auto_arima
 # Filter out specific warnings
@@ -108,7 +110,7 @@ def update_statss(df):
     preview_datatypes = preview_datatypes.reset_index()
     # Rename the columns to match your requirements
     preview_datatypes.columns = ['Column Name', 'Data Types']
-    preview_datatypes_html = preview_datatypes.to_html(classes='table table-dark table-hover table-bordered')
+    preview_datatypes_html = preview_datatypes.to_html(classes='table table-dark table-hover table-bordered mb-0')
 
 
     # df_dtype_info = df_dtype_info.apply(lambda x: int(x) if np.issubdtype(x, np.integer) else x)
@@ -124,7 +126,7 @@ def update_statss(df):
     return preview_data, preview_datatypes_html, stats, describe_data, unique_counts_html, null_colwise_html, nonnull_colwise_html
 
 def upload_view(request):
-    request.session.clear()  # Clear the entire session
+    # request.session.clear()  # Clear the entire session
     uploaded_file_name = None
     if request.method == 'POST' and request.FILES.get('csv_file'):
         try:
@@ -152,8 +154,9 @@ def upload_view(request):
 
     return render(request, 'upload.html')
 
-# @login_required(login_url='/Login/')
+@login_required(login_url='/Login/')
 def upload_file(request):
+
     
     # Check if the "reset" parameter is in POST data
     if request.method == 'POST' and 'reset' in request.POST:
@@ -396,7 +399,9 @@ def upload_file(request):
                 json_fb_forecasted = request.session.get('fb_forcasted_df')
                 fb_period = request.session.get('forecasted_period_fb', None)
                 fb_freq = request.session.get('forecasted_freq_fb', None)
-                if json_fb_forecasted is not None:
+                fb_model = request.session.get('prophet_model', None)
+
+                if json_fb_forecasted is not None and fb_model is not None:
                     fbforecasteddf = json_to_dataframe(json_fb_forecasted)
                     file_name = 'FB_Forecasts_File'
                     selected_filteration = request.session.get('selected_filteration_fb', [])
@@ -423,19 +428,21 @@ def upload_file(request):
                         mode = None  
                         f_per = 0
 
-                    save_forecasts_dataframe_to_db(request, fbforecasteddf, file_name, selected_filteration, f_per, mode)
+                    save_forecasts_dataframe_to_db(request, fbforecasteddf, file_name, selected_filteration, f_per, mode, fb_model=fb_model)
                     messages.success(request, 'Saved Successfully')
                 else:
                     messages.error(request, 'No forecasts to save data')
 
             if 'save_db_arima' in request.POST:
-                json_arima_forecasted = request.session.get('arima_forecasts')
+                json_arima_forecasted = request.session.get('arima_forecasts', None)
                 if json_arima_forecasted is not None:
                     arimaforecasteddf = json_to_dataframe(json_arima_forecasted)
                     file_name = 'AR_MA_Forecasts_File'
                     selected_filteration = request.session.get('selected_fileration_arima', [])
                     forecasting_period = request.session.get('arima_forecasting_period')
-                    save_forecasts_dataframe_to_db(request, arimaforecasteddf, file_name, selected_filteration, forecasting_period)
+                    arima_results = request.session.get('arima_result', None)
+                    print(arima_results)
+                    save_forecasts_dataframe_to_db(request, arimaforecasteddf, file_name, selected_filteration, forecasting_period, arima_model=arima_results)
                     messages.success(request, 'Saved Successfully')
                 else:
                     messages.error(request, 'No forecasts to save data')
@@ -715,6 +722,7 @@ def facebook_prophet(dataframe, date_col, feature_y, freq, intervals, seasonalit
     # Plotting components
     forcast_component_fig = plot_components_plotly(m, forecast)
 
+
     return dataframe, forecast, forecasted_range, pred_result_fig, forcast_component_fig, m
 
 
@@ -748,6 +756,7 @@ def fbprophet_dignostic(m, horizon, initial, period):
 
 
 def model_fb_prophet(request):
+
     try:
         json_geodata = request.session.get('geodata_frame')
         json_data = request.session.get('data_frame')
@@ -775,6 +784,17 @@ def model_fb_prophet(request):
                 dataframe, forecast, forecasted_range, pred_result_fig, forcast_component_fig, m  = facebook_prophet(mdf, selected_date_feature, selected_forecast_feature, selected_forecast_freq, selected_forecast_period, selected_seasonality_mode, selected_district_feature, selected_district_feature_value)
             else:
                 dataframe, forecast, forecasted_range, pred_result_fig, forcast_component_fig, m = facebook_prophet(mdf, selected_date_feature, selected_forecast_feature, selected_forecast_freq, selected_forecast_period, selected_seasonality_mode, selected_district_feature, selected_district_feature_value)
+
+
+            # serialized_model = pickle.dumps(m)
+            # Serialize the Prophelt model
+            serialized_model = pickle.dumps(m)
+
+            # Encode the serialized model in Base64
+            encoded_model = base64.b64encode(serialized_model).decode('utf-8')
+            request.session['prophet_model'] = encoded_model
+
+
 
             if forecast is not None:
                 request.session['fb_forcasted_df'] = dataframe_to_json(forecast)
@@ -815,7 +835,7 @@ def model_fb_prophet(request):
                 # Handle diagnostic errors (e.g., invalid input)
                 return JsonResponse({'error': "An error occurred during cross-validation: " + str(e)})
             
-            print(selected_district_feature_value)
+            # print(selected_district_feature_value)
             request.session['selected_filteration_fb'] = selected_district_feature_value
             jsonresponse = {
                 'forecasted_range': forecasted_range,
@@ -894,6 +914,9 @@ def model_arima_family(request):
                 selected_p_value, selected_P_value, selected_d_value, selected_q_value, selected_D_value, selected_Q_value, seasonality_period, start_p, end_p, start_q, end_q, start_P, end_P, start_Q, end_Q, m_autoar, d_autoar, D_autoar, known_params_seasonality, find_best_params_checkbox)  
         
         request.session['selected_fileration_arima'] = selected_district_feature_value
+        #to store in db
+        #this is not a base64 image instead it is a plotly image and have to change its variable name
+        request.session['arima_result'] = base64_img
 
 
         aic_value = None
@@ -1325,52 +1348,6 @@ def getis_ord_gi_hotspot_analysis(request):
         geodataframe_html = preview_geodataframe.to_html(classes='table table-dark fade-out table-bordered') 
         analysis_results = f"Selected K Value: <b>{selected_k_val}</b><br>Selected Feature: <b>{selected_gi_feature}</b></br>Star Parameter: <b>{star_parameter}</b><br>"
 
-        # # Load the GeoJSON file
-        # with open('C:/Users/Ahmer/Downloads/PAK_adm3.json', 'r') as geojson_file:
-        #     data = json.load(geojson_file)
-
-        # # Create an empty list to store districts in Punjab
-        # punjab_districts = []
-
-        # # Iterate through the features and filter those in Punjab
-        # for feature in data['features']:
-        #     if feature['properties']['NAME_1'] == 'Punjab':
-        #         punjab_districts.append(feature)
-
-        # # Create a new GeoJSON object with only Punjab districts
-        # punjab_geojson = {
-        #     'type': 'FeatureCollection',
-        #     'features': punjab_districts
-        # }
-        # colors = {
-        #     "Cold Spot with 99% Confidence": "#4475B4",
-        #     "Cold Spot with 95% Confidence": "#849EBA",
-        #     "Cold Spot with 90% Confidence": "#C0CCBE",
-        #     "Not Significant" : "#9C9C9C",
-        #     "Hot Spot with 99% Confidence" : "#D62F27",
-        #     "Hot Spot with 90% Confidence" : "#FAB984",
-        #     "Hot Spot with 95% Confidence" : "#ED7551",
-        # }
-        # # Replace gdf, punjab_geojson, colors with your actual data and parameters
-        # fig = px.choropleth(gdf, 
-        #                     geojson=punjab_geojson, 
-        #                     color="hotspot_analysis",
-        #                     locations="pdistrict", 
-        #                     featureidkey="properties.NAME_3",
-        #                     color_discrete_map=colors, 
-        #                     hover_data=['patient_count'], 
-        #                     hover_name='pdistrict',
-                            
-        #                )
-
-        # fig.update_geos(fitbounds="locations", visible=False)
-        # fig.update_layout(margin={"r":10,"t":40,"l":10,"b":10})
-
-        # # Convert the figure to JSON
-        # graph_json = fig.to_json()
-
-
-
         json_response = {
             'analysis_results': analysis_results,
             'geodataframe': geodataframe_html, 
@@ -1609,6 +1586,12 @@ def export_arima_results(request):
     return HttpResponse('Forecast data not available in the session to export, clear the cache and try again.')
 
 
+# def handle_change_dtypes(request):
+#     if request.method == 'POST':
+#         selected_column = request.POST.get('column')
+#         selected_dtype = request.POST.get('dtype_to_convert')
+#         if selected_column is not None and selected_dtype is not None:
+
 
 
 def handle_fill_null_values(request):
@@ -1664,15 +1647,112 @@ def handle_drop_rows(request):
 
     return JsonResponse({'error': 'Invalid request method'})
 
-#  # Drop rows based on conditions
-#                 selected_columns = request.POST.getlist('select-multi-drop-row', None)
-#                 selected_strategy = request.POST.get('row_drop_strategy', None)
-#                 drop_rows(df, how=selected_strategy, subset=selected_columns)
+def handle_data_type_conversion(request):
+    try:
+        if request.method == 'POST':
+            # Extract form data
+            selected_column = request.POST.get('select-col-convert-dtype', None)
+            selected_column_type = request.POST.get('datatype', None)
 
+            if not selected_column_type or not selected_column:
+                raise ValueError('Invalid input')
+
+            # Retrieve the DataFrame from the session
+            json_data = request.session.get('data_frame')
+            if not json_data:
+                raise ValueError('Data not available')
+
+            df = json_to_dataframe(json_data)
+            df = convert_column_data_type(request, df, column_name=selected_column, new_data_type=selected_column_type)
+            request.session['data_frame'] = dataframe_to_json(df)
+
+            # Return a JSON response indicating success
+            return JsonResponse({'message': 'Data type conversion successful'})
+
+    except ValueError as ve:
+        return JsonResponse({'error': str(ve)})
+
+    except Exception as e:
+        return JsonResponse({'error': 'An unexpected error occurred'})
+
+    # Handle other HTTP methods or invalid requests
+    return JsonResponse({'error': 'Invalid request'})
+
+
+#handle coodrdinates
+
+def handle_coordinate_system_conversion(request):
+    try:
+        if request.method == 'POST':
+            # Extract form data
+            selected_lat = request.POST.get('select-lat', None)
+            selected_long = request.POST.get('select-long', None)
+            selected_cordsystem = request.POST.get('cord-sys', None)
+
+            print(selected_lat, selected_long, selected_cordsystem)
+            if not selected_lat or not selected_long or not selected_cordsystem or not selected_lat:
+                raise ValueError('Invalid input')
+            
+            # Retrieve the DataFrame from the session
+            json_data = request.session.get('data_frame')
+            if not json_data:
+                raise ValueError('Data not available')
+            df = json_to_dataframe(json_data)
+            
+            
+            if selected_cordsystem == 'pcs':
+                unit_type = request.POST['cord-sys-units']
+                if unit_type == 'feet':
+                    try:
+                        df = feet_to_meter(df, easting_col=selected_long, northing_col=selected_lat)
+                    except ValueError as e:
+                        return JsonResponse({'error': str(e)})
+                elif unit_type == 'km':
+                    try:
+                        df = km_to_meter(df, easting_col=selected_long, northing_col=selected_lat)
+                    except ValueError as e:
+                        return JsonResponse({'error': str(e)})
+                df = utm_to_lat_lon(request, df, easting_col=selected_long, northing_col=selected_lat)
+                request.session['data_frame'] = dataframe_to_json(df)
+
+            elif selected_cordsystem == 'gcs':
+                print("here")
+                unit_type = request.POST.get('cord-sys-units', None)
+                print("Unit_type", unit_type)
+                if unit_type == 'decideg':
+                    try:
+                        df = convert_dms_to_decimal(request, df, latitude_col=selected_lat, longitude_col=selected_long)
+                        request.session['data_frame'] = dataframe_to_json(df)
+
+                    except ValueError as e:
+                        return JsonResponse({'error': str(e)})
+                else:
+                    try:
+                        print("here2")
+                        print(df)
+                        df = convert_lat_lon_columns(request, df, latitude_col=selected_lat, longitude_col=selected_long)
+                        request.session['data_frame'] = dataframe_to_json(df)
+                        print(df)
+                    except ValueError as e:
+                        return JsonResponse({'error': str(e)})
+                
+                
+            # Check data types of latitude and longitude columns
+            if not df[selected_long].dtype == float or not df[selected_lat].dtype == float:
+                return JsonResponse({'error': "Latitude, Longitude, Easting, or Northing columns should have float data type [clean coordinates]"})
+            
+            # Return the modified DataFrame as JSON
+            return JsonResponse({'message': 'Coordinate system conversion successful'})
+
+    except Exception as e:
+        return JsonResponse({'error': 'An unexpected error occurred'})
+
+    # Handle other HTTP methods or invalid requests
+    return JsonResponse({'error': 'Invalid request'})
 
 def Logout(request):
     logout(request)
-    return redirect('Login')
+    return redirect('upload')
 
 def Login(request):
     return render(request, "login.html")

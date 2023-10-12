@@ -18,8 +18,8 @@ def dms_to_decimal(dms_str, request=None):
     match = re.match(dms_pattern, dms_str)
 
     if not match:
-        if request:
-            messages.error(request, f"Error: Invalid DMS format for '{dms_str}'.")
+        # if request:
+        #     messages.error(request, f"Error: Invalid DMS format for '{dms_str}'.")
         raise ValueError(f"Invalid DMS format for '{dms_str}'")
 
     degrees = float(match.group('degrees'))
@@ -28,16 +28,16 @@ def dms_to_decimal(dms_str, request=None):
 
     # Check for invalid values
     if degrees < 0 or degrees >= 360:
-        if request:
-            messages.error(request, "Degrees should be between 0 and 359.")
+        # if request:
+        #     messages.error(request, "Degrees should be between 0 and 359.")
         raise ValueError("Degrees should be between 0 and 359.")
     if minutes < 0 or minutes >= 60:
-        if request:
-            messages.error(request, "Minutes should be between 0 and 59.")
+        # if request:
+        #     messages.error(request, "Minutes should be between 0 and 59.")
         raise ValueError("Minutes should be between 0 and 59.")
     if seconds < 0 or seconds >= 60:
-        if request:
-            messages.error(request, "Seconds should be between 0 and 59.9999.")
+        # if request:
+        #     messages.error(request, "Seconds should be between 0 and 59.9999.")
         raise ValueError("Seconds should be between 0 and 59.9999.")
 
     # Calculate the Decimal Degree value
@@ -51,23 +51,24 @@ def dms_to_decimal(dms_str, request=None):
     return decimal_deg
 
 def convert_dms_to_decimal(request, dataframe, latitude_col, longitude_col):
-    # Check if the provided column names exist in the DataFrame
-    if latitude_col not in dataframe.columns or longitude_col not in dataframe.columns:
-        messages.error(request, "Error: Latitude or Longitude column does not exist in the DataFrame.")
-        return dataframe
-
     try:
-        # Convert latitude and longitude columns to Decimal Degree format
-        dataframe[latitude_col] = dataframe[latitude_col].apply(dms_to_decimal, request=request)
-        dataframe[longitude_col] = dataframe[longitude_col].apply(dms_to_decimal, request=request)
+        # Check if the provided column names exist in the DataFrame
+        if latitude_col not in dataframe.columns or longitude_col not in dataframe.columns:
+            raise ValueError("Error: Latitude or Longitude column does not exist in the DataFrame.")
+        try:
+            # Convert latitude and longitude columns to Decimal Degree format
+            dataframe[latitude_col] = dataframe[latitude_col].apply(dms_to_decimal, request=request)
+            dataframe[longitude_col] = dataframe[longitude_col].apply(dms_to_decimal, request=request)
 
-        # Drop rows with missing or invalid values in latitude or longitude columns
-        dataframe.dropna(subset=[latitude_col, longitude_col], inplace=True)
-
-        # Add a success message
-        messages.success(request, "Latitude and Longitude columns converted to Decimal Degree format successfully!")
-
+            # Drop rows with missing or invalid values in latitude or longitude columns
+            dataframe.dropna(subset=[latitude_col, longitude_col], inplace=True)
+        except Exception as e:
+            raise ValueError(f"Failed to convert latitude/longitude columns. Ensure that DMS strings are provided in a consistent format with degree (°), minute (' or m), and second (' or s) symbols [Error: {str(e)}]")
+    except ValueError as ve:
+        # Raise a specific ValueError with the error message
+        raise ValueError(str(ve))
     except Exception as e:
-        messages.error(request, f"Error: Failed to convert latitude/longitude columns. Error: {e}")
+            raise ValueError("An Unexpected error occurred while in dms conversion.")
+        
 
     return dataframe

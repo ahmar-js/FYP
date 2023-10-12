@@ -1,7 +1,11 @@
+import base64
 import colorsys
 from datetime import datetime
+import pickle
+import joblib
 import plotly
 import plotly.graph_objs as go
+from prophet.plot import plot_plotly, plot_components_plotly
 import plotly.offline as offline
 from plotly.graph_objs import *
 from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
@@ -43,73 +47,6 @@ from app.json_serializable import json_to_geodataframe, json_to_dataframe, dataf
 def preview_dataframe(df, limit=10):
     return df.head(limit)
 
-# @login_required(login_url='/Login/')
-# def home(request):
-#     periodfb = 0
-#     freqfb = ''
-#     uploaded_frame = Uploaded_DataFrame.objects.filter(user=request.user)
-#     # filtered_fb_forecasted = fbProphet_forecasts.objects.filter(user=request.user)
-#     # filtered_arima_forecasted = ARIMA_forecasts.objects.filter(user=request.user)
-#     # filtered_fb_vals = filtered_fb_forecasted.values_list('filtered_by', flat=True).distinct()
-#     # filtered_arima_vals = filtered_fb_forecasted.values_list('filtered_by', flat=True).distinct()
-
-#     # for value in filtered_fb_forecasted:
-#     #     periodfb = value.period
-#     #     freqfb = value.frequency
-
-#     # print(periodfb, freqfb)
-#     df = pd.DataFrame()
-#     df_rows=0
-#     if request.method == 'POST':
-#         selected_df = request.POST.get('selectDataset', None)
-#         selected_model = request.POST.get('selectModel', None)
-#         selected_filter = request.POST.get('selectFilter', None)
-#         if selected_df:
-#             # selected_file = request.FILES['selectDataset']
-#             data = pd.read_csv('../FYP'+selected_df)
-#             df = pd.DataFrame(data)
-#             df_rows = int(df.shape[0])
-#             print(selected_df)
-
-#         # if selected_model:
-#         #     if selected_model == 'fbprophet':
-#         #         fb_period = request.session.get('forecasted_period_fb', None)
-#         #         fb_freq = request.session.get('forecasted_freq_fb', None)
-#         #         if fb_freq is not None and fb_period is not None:
-#         #             if fb_freq == 'A':
-#         #                 mode = 'years'
-#         #             elif fb_freq == 'Q':
-#         #                 mode = 'Quarters'
-#         #             elif fb_freq == 'M':
-#         #                 mode = 'Months'
-#         #             elif fb_freq == 'W':
-#         #                 mode = 'Weeks'
-#         #             elif fb_freq == 'D':
-#         #                 mode = 'Days'
-#         #             elif fb_freq == 'H':
-#         #                 mode = 'Hours'
-#         #             elif fb_freq == 'T':
-#         #                 mode = 'Minutes'
-#         #             elif fb_freq == 'S':
-#         #                 mode = 'Seconds'
-#         #             elif fb_freq == 'L':
-#         #                 mode = 'Milliseconds'
-#         #             elif fb_freq == 'U':
-#         #                 mode = 'Microseconds'
-#         #             elif fb_freq == 'N':
-#         #                 mode = 'Nanoseconds'
-
-#         #             fb_period = int(fb_period)
-#         #     elif selected_model == 'arima':
-#         #         pass
-#     context = {
-#         'user_files': uploaded_frame,
-#         # 'filtered_fb_vals': filtered_fb_vals,
-#         # 'dataframe': preview_dataframe(df, limit=50),
-#         # 'df_rows': df_rows,
-#     }
-#     return render(request, 'pages/index.html', context)
-
 @login_required(login_url='/Login/')
 def home(request):
     uploaded_frame = Uploaded_DataFrame.objects.filter(user=request.user)
@@ -128,19 +65,15 @@ def home(request):
         hover_data = request.POST.get('select_hover_data_col', None)
         date = request.POST.get('select_date', None)
         size = request.POST.get('select_size', None)
-        # done_hotspot = request.POST.get('done_hotspot', False)
         selected_df_id = request.session.get('selected_dataset_id', None)
         selected_gdf_id = request.session.get('selected_geodataset_id', None)
-        # print('selected_df_id: ', selected_df_id)
-        # print('selected_gdf_id: ', selected_gdf_id)
+
         if selected_gdf_id is None:
             selected_df = Uploaded_DataFrame.objects.get(id=selected_df_id)
         else:
             selected_gdf = geoDataFrame.objects.get(id=selected_gdf_id)
             selected_df = Uploaded_DataFrame.objects.get(id=selected_df_id)
 
-            # print('check1')
-            # Clear the 'selected_dataset_id' session variable
         if 'selected_dataset_id' in request.session and 'selected_geodataset_id' in request.session:
             del request.session['selected_dataset_id']
             del request.session['selected_geodataset_id']
@@ -148,53 +81,8 @@ def home(request):
             del request.session['selected_dataset_id']
 
 
-        # else:
-            # print('check2')
-            # if 'selected_dataset_id' in request.session or 'selected_geodataset_id' in request.session:
-            #     del request.session['selected_dataset_id']
-            #     del request.session['selected_geodataset_id']
-        # if done_hotspot:
-        #     color = 'hotspot_analysis'
         save_columns_to_database(selected_gdf, selected_df, selected_X, selected_Y, filtered, location, hover_data, date, size, color)
         
-        
-
-    # if request.method == 'POST':
-    #     selected_df_id = request.POST.get('selectDataset', None)
-    #     selected_model = request.POST.get('selectModel', None)
-    #     selected_filter = request.POST.get('selectFilter', None)
-    #     selected_df = Uploaded_DataFrame.objects.get(id=selected_df_id)
-    #     selected_df_url = selected_df.file.url
-    #     selected_gdf = geoDataFrame.objects.filter(U_df_id = selected_df_id)
-    #     selected_fb_result = fbProphet_forecasts.objects.filter(U_df_id = selected_df_id)
-    #     selected_arima_result = ARIMA_forecasts.objects.filter(U_df_id = selected_df_id)
-    #     filtered_fb_vals = selected_fb_result.values_list('filtered_by', flat=True)
-
-    #     # print(selected_model)
-    #     # print(filtered_fb_vals)
-
-    #     for gdf_record in selected_gdf:
-    #         print("gdf_file", gdf_record.file.name)
-
-    #     if selected_df_url:
-    #         data = pd.read_csv('../FYP'+selected_df_url)
-    #         df = pd.DataFrame(data)
-    #         df_rows = int(df.shape[0])
-
-    #     for index, row in df.iterrows():
-    #         lat = row['plat']
-    #         long = row['plong']
-    #         district = row['pdistrict']
-    
-    #         # Create a CircleMarker for each patient
-    #         folium.CircleMarker(
-    #             location=[lat, long],
-    #             popup=district,
-    #             radius=5,  # Adjust the radius as needed
-    #             color='blue',  # Customize the marker color
-    #             fill=True,
-    #             fill_color='blue',  # Customize the fill color
-    #         ).add_to(m)
     
     context = {
         'user_files': uploaded_frame,
@@ -238,6 +126,12 @@ def get_model_results(request):
         selected_fb_results = fbProphet_forecasts.objects.filter(U_df_id=selected_dataset_id)
         selected_arima_results = ARIMA_forecasts.objects.filter(U_df_id=selected_dataset_id)
 
+        total_arima_record = selected_arima_results.count()
+        total_fb_record = selected_fb_results.count()
+        total_uploaded_gdf = uploaded_gdf.count()
+        total_rec = total_arima_record + total_fb_record
+
+
         # Create a list to hold the model results
         model_results = []
         gdf_result = [] 
@@ -275,6 +169,8 @@ def get_model_results(request):
             'df_columns': columns,
             'dataframe': preview_dataframe(df, limit=50).to_html(classes='table fade-out align-items-center table-flush') ,
             'df_rows': df_rows,
+            'total_rec': total_rec,
+            'total_hs_rec': total_uploaded_gdf,
         }
 
         return JsonResponse({'message': 'Successs', 'json_response': json_response})
@@ -284,7 +180,65 @@ def get_model_results(request):
     return JsonResponse({'error': 'Invalid request'})
 
 
+def get_prophet_results(request):
+    if request.method == 'POST':
+        selected_dataset_id = request.POST.get('selectedDatasetId', None)
+        selected_prophet_result = request.POST.get('selectedPresult', None)
+
+        selected_fb_results = fbProphet_forecasts.objects.get(id=selected_prophet_result)
+        forecast_url = selected_fb_results.file.url
+        if forecast_url:
+            data = pd.read_csv('../FYP'+forecast_url)
+            forecast = pd.DataFrame(data)
+        
+
+        # Deserialize the model
+        # deserialized_model = pickle.loads(selected_fb_results.model)
+        # prophelt_model = pickle.loads(selected_fb_results.model)
+        serialized_model = base64.b64decode(selected_fb_results.model.encode('utf-8'))
+        # Deserialize the model
+        prophelt_model = pickle.loads(serialized_model)
+
+
+        print(type(prophelt_model))
+        fig = plot_plotly(prophelt_model, forecast)
+
+        json_response_fb = {
+            'fb': "ahmer",
+            'fb_plot': fig.to_json(),
+            'predictions': len(forecast),
+
+        }
+
+        return JsonResponse({'message': 'Success', 'json_response_fb': json_response_fb})
+
+
+def get_arima_results(request):
+    if request.method == 'POST':
+        selected_dataset_id = request.POST.get('selectedDatasetId', None)
+        selected_arima_result = request.POST.get('selectedPresult', None)
+        selected_arima_results = ARIMA_forecasts.objects.get(id=selected_arima_result)
+        fig_arima =selected_arima_results.plot_arima
+        forecast_arima_url = selected_arima_results.file.url
+        if forecast_arima_url:
+           data = pd.read_csv('../FYP'+forecast_arima_url)
+           forecast = pd.DataFrame(data)
+           print("arima here")
+        json_response_arima = {
+            'arimaplot':fig_arima,
+            'predictions': len(forecast),
+        }
+
+        return JsonResponse({'message': 'Success', 'json_response_arima': json_response_arima})
+        
+        
+
+
+
+
+
 def Geodatafileselection(request):
+
     geodata_check = True
     if request.method == 'POST':
         selected_geo_id = request.POST.get('Select_geodataframe', None)
@@ -320,71 +274,6 @@ def Geodatafileselection(request):
         
 
 
-
-
-
-# def retrieve_column_names(selected_dataset_id, selected_geo_id, geodata_check):
-#     selected_dataset = None
-#     print(selected_geo_id, selected_dataset_id)
-#     #to differentiate between dataframe of geodataframe: user may have not geodataframe and we have 2 fk
-#     try:
-#         if geodata_check is False: #means hotspot (geodata) is not selected
-#             print("here")
-#             column_record = ConfigDashboard.objects.get(Q(U_df=selected_dataset_id) & Q(U_gdf__isnull=True))
-#         else:
-#             print("here2")
-#             column_record = ConfigDashboard.objects.get(U_df=selected_dataset_id, U_gdf=selected_geo_id)
-#             selected_geodataset = geoDataFrame.objects.get(id=selected_geo_id) #hotspot dataframe
-#         selected_dataset = Uploaded_DataFrame.objects.get(id=selected_dataset_id) #uploaded dataframe
-        
-        
-
-#     except ConfigDashboard.DoesNotExist:
-#         # Handle the case when the record does not exist
-#         column_record = None  # Or any other action you want to take
-
-
-
-#     if column_record is not None:
-#         long = column_record.longitude
-#         lat = column_record.latitude
-#         filtered = column_record.filtered
-#         color = column_record.color
-#         location = column_record.location
-#         hover_data = column_record.hover_data
-#         date = column_record.date
-#         size = column_record.size
-#         print(long, lat, filtered, color, location, hover_data, date, size)
-#     else:
-#         print("collumn record is None")
-
-#     selected_df_url = selected_dataset.file.url
-#     if selected_df_url:
-#         data = pd.read_csv('../FYP'+selected_df_url)
-#         df = pd.DataFrame(data)
-#         m = folium.Map(location=[30.3753,  69.3451], zoom_start=5)
-#         for index, row in df.iterrows():
-#             lat = row[lat]
-#             long = row[long]
-#             district = row[filtered]
-#             # Create a CircleMarker for each patient
-#             folium.CircleMarker(
-#                 location=[lat, long],
-#                 popup=district,
-#                 radius=5,  # Adjust the radius as needed
-#                 color='blue',  # Customize the marker color
-#                 fill=True,
-#                 fill_color='blue',  # Customize the fill color
-#             ).add_to(m)
-            
-#         json_response = {
-#             "map": m._repr_html_(),
-
-#         }
-#         return json_response({'message': 'success', 'json_response': json_response})
-
-#     return JsonResponse({'error': 'Invalid request'})
-# Function to handle date data and create bins
 def bin_date_data(data, date_column, bin_by='year'):
     """
     Convert date data to appropriate data type and create bins based on month or year.
@@ -623,6 +512,7 @@ def retrieve_column_names_df(request):
     selected_dataset_id = request.GET.get('selected_dataset_id')
     geodata_check = request.GET.get('geodata_check', False)
     geodata_check = geodata_check.lower() == 'true'
+    select_map = request.GET.get('select_map', False)
     if not geodata_check:
         column_record = ConfigDashboard.objects.get(Q(U_df=selected_dataset_id) & Q(U_gdf__isnull=True))
     selected_dataset = Uploaded_DataFrame.objects.get(id=selected_dataset_id)
@@ -639,23 +529,69 @@ def retrieve_column_names_df(request):
         if selected_df_url:
             data = pd.read_csv('../FYP' + selected_df_url)
             df = pd.DataFrame(data)
+            if select_map == 'intensity':
+                print("intensity")
+                df, map_html = generate_intensity_map(df, lat, date, long, filtered, hover_data, size)
+                json_response = {
+                    "imap": map_html,
+                }
+            else:
+                df, map_html = generate_folium_map(df, lat, date, long, filtered, hover_data, size)
+                json_response = {
+                    "dmap": map_html,
+                }
 
-            df, map_html = generate_folium_map(df, lat, date, long, filtered, hover_data, size)
-            print(lat, long)
-
-            json_response = {
-                "map": map_html,
-            }
             return JsonResponse({'message': 'success', 'json_response': json_response})
     else:
             return JsonResponse({'message': 'error', 'error': 'Selected DataFrame URL not found'})
 
+
+def generate_intensity_map(df, lat, date, long, filtered, hover_data, size):
+    # Load the dataset
+    data = df
+    
+    # Group the data by 'pdistrict' and calculate the sum of 'patient_count' for each district
+    district_patient_counts = data.groupby(filtered)[hover_data].sum()
+    
+    # Determine the district with the highest patient_count
+    highest_patient_district = district_patient_counts.idxmax()
+    
+    # Create a Folium map
+    district_map = folium.Map(location=[data[lat].mean(), data[long].mean()], zoom_start=7)
+    
+    # Iterate through each district and add CircleMarker to the map
+    for district, patient_count in district_patient_counts.items():
+        intensity = (patient_count / district_patient_counts[highest_patient_district]) * 30  # Scale intensity
+        if intensity >= 30:
+            colori='red'
+        elif intensity < 30 and intensity >= 15:
+            colori='blue'
+        else:
+            colori='green'
+        popup_text = f"District: {district}<br>Patient Count: {patient_count}"
+    
+        iframe = folium.IFrame(popup_text)
+        popup = folium.Popup(iframe, min_width=250, max_width=250)
+    
+        folium.CircleMarker(
+            location=[data[data[filtered] == district][lat].iloc[0],
+                      data[data[filtered] == district][long].iloc[0]],
+            radius=intensity,
+            color=colori,
+            fill=True,
+            fill_color=colori,
+            fill_opacity=0.6,
+            popup=popup
+        ).add_to(district_map)
+
+    return data, district_map._repr_html_()
 #for df and gdf
 def retrieve_column_names(request):
     selected_dataset_id = request.GET.get('selected_dataset_idd')
     selected_geo_id = request.GET.get('selected_geo_idd')
     geodata_check = request.GET.get('geodata_checkk', False)
     geodata_check = geodata_check.lower() == 'true'
+    selecthp_timely = request.GET.get('select_hp_timely_mode', None)
     # date_column = request.GET.get('date_column')
     selected_geodataset = None
     try:
@@ -678,18 +614,6 @@ def retrieve_column_names(request):
         size = column_record.size
         color = column_record.color
 
-    #     # dataframe must be selected
-    #     selected_df_url = selected_dataset.file.url
-    #     if selected_df_url:
-    #         data = pd.read_csv('../FYP' + selected_df_url)
-    #         df = pd.DataFrame(data)
-
-    #         df, map_html = generate_folium_map(df, lat, date, long, filtered, hover_data, size)
-    #         print(lat, long)
-
-    #         json_response = {
-    #             "map": map_html,
-    #         }
             #when hotspot dataframe is selected
         if selected_geodataset is not None:
             print("ahmer aamir")
@@ -698,11 +622,20 @@ def retrieve_column_names(request):
                 data = pd.read_csv('../FYP' + selected_gdf_url)
                 gdf = pd.DataFrame(data)
                 fig = generate_plotly_3d_scatter(long, lat, filtered, hover_data, gdf, size, date, color)
-                plotly_chloro_fig = generate_plotly_chloropeth(long, lat, filtered, hover_data, gdf, size, date, color)
-                json_response = {
-                    'fig':fig.to_json(),
-                    'plotly_chloro_fig':plotly_chloro_fig.to_json(),
-                }
+                if selecthp_timely == 'scatter':
+                    plotly_chloro_fig = generateBubbleScatter(long, lat, filtered, hover_data, gdf, size, date, color)
+                    json_response = {
+                        'fig':fig.to_json(),
+                        'plotly_chloro_fig_scatter':plotly_chloro_fig.to_json(),
+                    }
+                else:
+                    plotly_chloro_fig = generate_plotly_chloropeth(long, lat, filtered, hover_data, gdf, size, date, color)
+                    json_response = {
+                        'fig':fig.to_json(),
+                        'plotly_chloro_fig_chloro':plotly_chloro_fig.to_json(),
+                    }
+
+
             else:
                 return JsonResponse({'message': 'error', 'error': 'Selected GeoDataFrame URL not found'})
 
@@ -718,44 +651,16 @@ def retrieve_column_names(request):
 
 
     
+def generateBubbleScatter(long, lat, filtered, hover_data, gdf, size, date, color):
+    gdf['date_ym'] = pd.to_datetime(gdf[date]).dt.strftime('%Y-%m')
+    gdf = gdf.sort_values(by='date_ym')
+    fig = px.scatter(gdf, x=long, y=lat, animation_frame="date_ym", animation_group=filtered,
+            size=size, color=color, hover_name=filtered,
+            log_x=True, size_max=55, range_x=[10,1000], range_y=[10,90])
+    
+    return fig
 
 
-# # get column names and store them in database
-# def get_column_names(request):
-#     if request.method == 'POST':
-#         print("check3")
-#         selected_X = request.POST.get('conf_select_x', None)
-#         selected_Y = request.POST.get('conf_select_y', None)
-#         filtered = request.POST.get('select_filtered_col', None)
-#         color = request.POST.get('select_color_col', None)
-#         location = request.POST.get('select_location_col', None)
-#         hover_data = request.POST.get('select_hover_data_col', None)
-#         date = request.POST.get('select_date', None)
-#         size = request.POST.get('select_size', None)
-#         # done_hotspot = request.POST.get('done_hotspot', False)
-#         selected_df_id = request.session.get('selected_dataset_id', None)
-#         selected_gdf_id = request.session.get('selected_geodataset_id', None)
-#         print('selected_df_id: ', selected_df_id)
-#         print('selected_gdf_id: ', selected_gdf_id)
-#         if selected_gdf_id:
-#             selected_df = geoDataFrame.objects.get(U_df_id=selected_gdf_id)
-#             print('check1')
-#             # Clear the 'selected_dataset_id' session variable
-#             # if 'selected_dataset_id' in request.session or 'selected_geodataset_id' in request.session:
-#             #     del request.session['selected_dataset_id']
-#             #     del request.session['selected_geodataset_id']
-#         else:
-#             selected_df = Uploaded_DataFrame.objects.get(id=selected_df_id)
-#             print('check2')
-#             # if 'selected_dataset_id' in request.session or 'selected_geodataset_id' in request.session:
-#             #     del request.session['selected_dataset_id']
-#             #     del request.session['selected_geodataset_id']
-#         # if done_hotspot:
-#         #     color = 'hotspot_analysis'
-#         save_columns_to_database(selected_df, selected_X, selected_Y, filtered, location, hover_data, date, size, color)
-
-
-#     return render(request, 'pages/index.html')
     
 
     
@@ -838,23 +743,25 @@ def save_dataframe_to_database(request, df, name):
 
     return HttpResponse("CSV file uploaded to the database successfully.")
 
-def save_forecasts_dataframe_to_db(request, df, name, filtered_by_val=[], period=None, freq=None):
+def save_forecasts_dataframe_to_db(request, df, name, filtered_by_val=[], period=None, freq=None, fb_model=None, arima_model=None):
     # Generate a timestamp to append to the filename
     # timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     filtered_by_val = str(filtered_by_val)  # Convert to JSON string
     if filtered_by_val == '[]':
         filtered_by_val = 'Unfiltered'
     file_name = name + '_' + filtered_by_val + '.csv'
+    print("save: ", arima_model)
+
 
     if name == 'FB_Forecasts_File':
         model_name = fbProphet_forecasts
         if freq is not None and period is not None:
-            my_file_instance = model_name(filtered_by=filtered_by_val, period=period, frequency=freq)
+            my_file_instance = model_name(filtered_by=filtered_by_val, period=period, frequency=freq, model = fb_model)
 
     else:
         model_name = ARIMA_forecasts
-        if period is not None:
-            my_file_instance = model_name(filtered_by=filtered_by_val, period=period)
+        if period is not None and arima_model is not None:
+            my_file_instance = model_name(filtered_by=filtered_by_val, period=period, plot_arima = arima_model)
 
 
     
@@ -884,6 +791,21 @@ def save_forecasts_dataframe_to_db(request, df, name, filtered_by_val=[], period
        my_file_instance.U_df = last_uploaded_df
     
     my_file_instance.save()
+
+    if request.session.get('fb_forcasted_df'):
+        del request.session['fb_forcasted_df']
+    if request.session.get('prophet_model'):
+        del request.session['prophet_model']
+    if request.session.get('forecasted_freq_fb'):
+        del request.session['forecasted_freq_fb']
+    if request.session.get('forecasted_period_fb'):
+        del request.session['forecasted_period_fb']
+    if request.session.get('fb_cv_df'):
+        del request.session['fb_cv_df']
+    if request.session.get('fb_p_df'):
+        del request.session['fb_p_df']
+    if request.session.get('selected_filteration_fb'):
+        del request.session['selected_filteration_fb']
 
     return HttpResponse("CSV file uploaded to the database successfully.")
 
