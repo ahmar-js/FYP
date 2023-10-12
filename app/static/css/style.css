@@ -4,8 +4,9 @@
     box-sizing: border-box;
 }
 /* body{
-    margin: 10%;
-    border: 4px solid red;
+
+    background-color: #212529;
+    background: #212529;
 } */
 /* Stats cards */
 .card-box {
@@ -156,6 +157,9 @@ thead tr th{
     padding-right: 10px!important;
 }
 .drop-null-rows-form .bootstrap-select:not([class*=col-]):not([class*=form-control]):not(.input-group-btn) {
-    width: 89%;
+    width: 89%!important;
+}
+.forward-geocoding_form .bootstrap-select:not([class*=col-]):not([class*=form-control]):not(.input-group-btn) {
+    width: 98%!important;
 }
 }
