@@ -14,6 +14,10 @@ class ARIMA_forecastsAdmin(admin.ModelAdmin):
     list_display = ['U_df', 'filtered_by', 'period', 'file', 'uploaded_at', 'updated_at']
 
 
+admin.site.site_title = "Administration"
+admin.site.site_header = "Health Lense Administration"
+admin.site.index_title = "Health Lense"
+
 admin.site.register(Uploaded_DataFrame, Uploaded_DataFrameAdmin)
 admin.site.register(geoDataFrame, geoDataFrameAdmin)
 admin.site.register(fbProphet_forecasts, fbProphet_forecastsAdmin)

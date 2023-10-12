@@ -1,11 +1,29 @@
 <div class="fb_prophet_main_containerr">
-    <div class="me-2">
-        <form action="" method="post" id="save_fb_to_db_form">
-            {% csrf_token %}
-            <input type="hidden" name="save_db_prophet" value="true">
-            <input type="submit" value="Save" id="save_fb_db" class="btn btn-sm btn-success btn-1" disabled>
-        </form>
-    </div>
+
+    <div class="modal" tabindex="-1" id="fbprop_save_cnfrm_btn_modal">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Are you sure?</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p>Clicking Save will save the results to the database.</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              <div class="me-2">
+                <form action="" method="post" id="save_fb_to_db_form">
+                    {% csrf_token %}
+                    <input type="hidden" name="save_db_prophet" value="true">
+                    <input type="submit" value="Save" id="save_fb_db" class="btn btn-success">
+                </form>
+            </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
     <form class="form needs-validation" novalidate method="post" id="fb_prophet_modeling_form">
         {% csrf_token %}
         <div class="fb_forecast_btns d-flex justify-content-end mb-2">
@@ -15,7 +33,9 @@
             <div class="me-2">
                 <button class="btn btn-3 btn-sm btn-danger" type="button" id="fbprop_report_btn" data-bs-target="#fbprop_view_report_modal" data-bs-toggle="modal" disabled>View Report</button>
             </div>
-            
+            <div class="me-2">
+                <button class="btn btn-3 btn-sm btn-success" type="button" id="fbprop_save_cnfrm_btn" data-bs-target="#fbprop_save_cnfrm_btn_modal" data-bs-toggle="modal" disabled>Save</button>
+            </div>
         </div>
     <div class="card shadow" style="max-width:1348.06px; border: 1px solid rgba(0, 0, 0, 0.05); border-radius: 1rem;">
         <div class="card-body">
