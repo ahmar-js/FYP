@@ -735,6 +735,9 @@ $(document).ready(function () {
         $('#arima-form').submit(function(event) {
             event.preventDefault();
 
+            $('#arima_report_btn').prop('disabled', true);
+            $('#save_db_modal_btn').prop('disabled', true);
+
             console.log("here")
             $.ajax({
                 type: 'POST',
@@ -758,8 +761,9 @@ $(document).ready(function () {
                     $('#MAE-arima').html(data.arima_results.mae)
                     $('#MSE-arima').html(data.arima_results.mse)
                     $('#RMSE-arima').html(data.arima_results.rmse)
-
+                    
                     $('#arima_report_btn').prop('disabled', false);
+                    $('#save_db_modal_btn').prop('disabled', false);
                 },
                 error: function(error) {
                     // Handle errors here
@@ -852,7 +856,27 @@ $(document).ready(function () {
 });
 
 
+// document.addEventListener('DOMContentLoaded', function () {
+//     // Get a reference to the "save_initail_dataset_form" form
+//     const initialDatasetForm = document.getElementById('save_initail_dataset_form');
 
+//     // Get a reference to the "hotspot_save" button
+//     const hotspotSaveButton = document.getElementById('hotspot_save');
+
+//     // Add an event listener to the form submission
+//     initialDatasetForm.addEventListener('submit', function (event) {
+//         // Prevent the default form submission behavior
+//         event.preventDefault();
+
+//         // Perform any additional validation or processing here if needed
+
+//         // Enable the "hotspot_save" button
+//         hotspotSaveButton.disabled = false;
+
+//         // Submit the form manually if desired
+//         initialDatasetForm.submit();
+//     });
+// });
 
 $(document).ready(function () {
     // Event listener for changes in the district column select menu

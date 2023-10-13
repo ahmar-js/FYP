@@ -161,6 +161,11 @@ thead tr th{
     width: 32.3333333333%!important;
     padding-right: 10px!important;
 }
+.col-lg-3 {
+    flex: 0 0 auto;
+    width: 24.3333333333%!important;
+    padding-right: 10px!important;
+}
 .drop-null-rows-form .bootstrap-select:not([class*=col-]):not([class*=form-control]):not(.input-group-btn) {
     width: 89%!important;
 }

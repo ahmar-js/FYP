@@ -10,7 +10,7 @@
                             </form>
                         </div>
                         <div class="save_to_db_btn m-1">
-                            <form action="" method="post">
+                            <form class="form" action="" method="post" id="save_initail_dataset_form" name="save_initail_dataset_form">
                                 {% csrf_token %}
                                 <input type="hidden" name="save_db" value="true">
                                 <input type="submit" class="btn btn-sm btn-success" value="Save" class="btn btn-sm">
