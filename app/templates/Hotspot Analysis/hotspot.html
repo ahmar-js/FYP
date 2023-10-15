@@ -1,211 +1,264 @@
-<div class="hotspotsetup">
-<div class="container my-5">
-    <div class="hotspot-setup">
-        <div class="selectxy-flex-cointainer d-flex flex-column-reverse flex-lg-row flex-wrap justify-content-between">
-            <div class="gi_star col-12 col-lg-3 mb-lg-0 mb-3">
-                <form class="form form-hotspot needs-validation" novalidate method="post" id="gistar-form">
-                    {% csrf_token %}
-                <div class="spatail_weight_matrix_knn my-3">
-                    <div class="title">
-                        <h2>Calculate K-nearest neighbors (KNN) spatial weights matrix</h2>
-                    </div>
-                    <div class="subtitle">
-                        <label for="choose-opt-k"><b>Choose k</b></label>
-                    </div>
-                    <div class="description">
-                        <p>The parameter <b>k</b> specifies the number of nearest neighbors to consider when creating spatial weights in methods like K-nearest neighbors (KNN) spatial weights matrix.</p>
-                    </div>
-                    <div class="chooseK">
-                            <input type="number" placeholder="Defaullt 2 max 1000" value="2" min="2" max="1000" class="form-control" name="K_val" id="choose-opt-k" required>
-                            <small class="text-muted">Defaullt 2 max 1000</small>
-                    </div>
-                    <div class="select_star_parameterz_container my-3">
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="checkbox" name="select_star_parameter" id="select_star_parameter" value="star_parameter_on">
-                            <label class="form-check-label" for="select_star_parameter">Select star parameter
-                                <i class="fa-solid fa-circle-info text-muted ml-2" data-bs-toggle="popover" title="Information!" data-bs-content="This parameter controls how each observation's contribution to its own statistic 
-                                is calculated. When set star to a specific value, such as 0.5, it means that each observation's self-weight is equal to this value"></i>
 
-                            </label>
-                        </div>
-                        <input class="form-control" type="number" min="0.5" value="0.5" step=".5" name="star_parameter" id="star_parameter" required disabled>
-                        <small class="text-muted">(optional) min 0.5 </small>
-                    </div>
-                </div>
-                <div class="gi_star_statistic">
-                    <div class="title">
-                        <h2>Getis-Ord Gi* Hotspot Analysis</h2>
-                    </div>
-                    <div class="description mb-2">
-                        Calculate Getis-Ord Gi* statistic with KNN weights
-                    </div>
-                    <div class="selectfeature">
-                        <div class="mb-3">
-                            <label for="select_gi_feature" class="form-label">Select Feature</label>
-                            <select class="form-select form-select" name="select_gi_feature" id="select_gi_feature" required>
-                                <option disbaled value="" selected>Select one</option>
-                                {% for column in gdf_numeric %}
-                                    <option value="{{ column }}">{{ column }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                    
-                </div>
-                <div class="mt-1">
-                    <div id="gistar-alert-container"></div>
-                    <button class="btn btn-success" type="submit">Submit</button>
-                    <button class="btn btn-secondary" type="button" id="view_hotspot_report" data-bs-toggle="modal" data-bs-target="#view_report_modal" disabled>View report</button>        
+<div class="hotspot_setup_main_container my-5">
 
-                    
-                
-                </div>
-                <!-- Modal view report -->
-                <div class="modal fade" id="view_report_modal" tabindex="-1" aria-labelledby="view_report_modal_label" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered modal-xl">
-                      <div class="modal-content">
-                        <div class="modal-header">
-                          <h1 class="modal-title fs-5" id="view_report_modal_label">Getis-ord Gi* statistics report</h1>
-                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div id="graph-container" class="d-flex justify-content-center"></div>
-                          <div id="stats" class="table-responsive"></div>
-                          <div id="gi-star-reportbody"></div>
-                          <p><strong>Unique GiBins: </strong><span id="extra_stats_unique_bins"></dispanv></p>
-                          <div id="extra_stats_unique_significance_levels"></div>
-                        </div>
-                        <div class="modal-footer">
-                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                          <button type="button" class="btn btn-primary">Download</button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                <!-- Modal visualize hotspot results -->
-                <!-- <div class="modal fade" id="visualize_hotspot_modal" tabindex="-1" aria-labelledby="visualize_hotspot_modal_label" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered modal-xl">
-                      <div class="modal-content">
-                        <div class="modal-header">
-                          <h1 class="modal-title fs-5" id="visualize_hotspot_modal_label">Gi* Results</h1>
-                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body" style="border: 1px solid red;">
-                            <div class="controlvisualization-hotspot-container d-flex flex-wrap justify-content-between">
-                                <div class="control" style="border: 1px solid blue;">
-                                    <div class="mb-3 select-color-control-container">
-                                        <label for="control-color-col" class="form-label">Color</label>
-                                        <select class="form-select form-select" name="control-color-col" id="control-color-col">
-                                            <option disabled value="" selected>Select one</option>
-                                            {% for column in gdf.columns %}
-                                                <option value="{{ column }}">{{ column }}</option>
-                                            {% endfor %}
-                                        </select>
+    <div>
+        <div class="flex-container">
+            <div class="container">
+                <div class="row">
+                    <div class="convert_geodata_container col-lg-4 col-12" style="margin-top: 2.5rem;">
+                        <div class="geodata_card_container">
+                            <div class="card shadow" style="border: 1px solid rgba(0, 0, 0, 0.05); border-radius: 1rem;">
+                                <div class="card-body">
+                                    <div class="geodata_title">
+                                        <h4 class="card-title">Convert to GeoDataFrame</h4>
                                     </div>
-                                    <div class="mb-3 select-color-control-container">
-                                        <label for="control-color-col" class="form-label">Color</label>
-                                        <select class="form-select form-select" name="control-color-col" id="control-color-col">
-                                            <option disabled value="" selected>Select one</option>
-                                            {% for column in gdf.columns %}
-                                                <option value="{{ column }}">{{ column }}</option>
-                                            {% endfor %}
-                                        </select>
+                                    <div class="geodata_card_body">
+                                        <div id="geodataframe-alert-container"></div>
+                                        <div class="select-cord-form">
+                                            <form method="post" id="geodata-conversion-form" class="form" >
+                                                {% csrf_token %}
+                                                <div class="mb-3 select-y">
+                                                    <label for="select-y" class="form-label">Select y coordinate column</label>
+                                                    <select class="form-select" name="select-y" id="select-y" required>
+                                                        <option selected disabled value="">Select Lat</option>
+                                                        {% for column in gdf.columns %}
+                                                            <option value="{{ column }}">{{ column }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3 select-x">
+                                                    <label for="select-x" class="form-label">Select x coordinate column</label>
+                                                    <select class="form-select" name="select-x" id="select-x" required>
+                                                        <option selected disabled value="">Select Long</option>
+                                                        {% for column in gdf.columns %}
+                                                            <option value="{{ column }}">{{ column }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                                <div class="d-grid gap-2">
+                                                    <button class="btn bg-blue1 text-white" type="submit">Convert</button>
+                                                </div>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
-                            <div id="graph-containegr" class="col-12 col-lg-8" style="border:1px solid palevioletred"> I am graph</div>
-
                             </div>
                         </div>
-                        <div class="modal-footer">
-                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                          <button type="button" class="btn btn-primary">Save changes</button>
-                        </div>
-                      </div>
                     </div>
-                  </div> -->
-                </form>
-            </div>
-            <form action="" method="post">
-                {% csrf_token %}
-                <input type="hidden" name="save_db_hotspot" value="true">
-                <input type="submit" value="Save_DB" id="hotspot_save" class="btn btn-sm">
-            </form>
-            <div class="df-to-gdf col-12 col-lg-3 mb-lg-0 mb-3">
-                <div class="title">
-                    <h2>Convert to geodataframe</h2>
-                </div>
-                <div id="geodataframe-alert-container"></div>
-                <div class="select-cord-form">
-                    <form method="post" id="geodata-conversion-form" class="form" >
-                        {% csrf_token %}
-                        <div class="mb-3 select-y">
-                            <label for="select-y" class="form-label">Select y coordinate column</label>
-                            <select class="form-select" name="select-y" id="select-y" required>
-                                <option selected disabled value="">Select Lat</option>
-                                {% for column in gdf.columns %}
-                                    <option value="{{ column }}">{{ column }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="mb-3 select-x">
-                            <label for="select-x" class="form-label">Select x coordinate column</label>
-                            <select class="form-select" name="select-x" id="select-x" required>
-                                <option selected disabled value="">Select Long</option>
-                                {% for column in gdf.columns %}
-                                    <option value="{{ column }}">{{ column }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="d-grid gap-2">
-                            <button class="btn btn-success" type="submit">Convert</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            <div class="preview-gdf col-12 col-lg-4 ps-0 ps-lg-4" style="font-size: 12px;">
-                <div class="title">
-                    <div class="d-flex align-items-center">
-                    <div id="preview_dataframe_title" class=""><h2>Preview Data</h2></div>
-                    <div id="Loading" class="d-none text-success"><h2>Loading...</h2></div>
-                    <div class="ms-2"><!-- Spinner for loading indicator -->
-                        <div id="loading-spinner-preview-gdf" class="d-none spinner-border spinner-border-sm text-dark" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                    </div>
-                </div>
-                </div>
-                <div class="geodataframe">
-                    <div id="geodataframe-container" class="table-responsive preview-table">
-                        <!-- The GeoDataFrame will be displayed here -->
-                        <table class="table table-bordered table-dark table-hover">
-                            <thead>
-                                <tr>
-                                    {% for column in gdf.columns %}
-                                    <th>{{ column }}</th>
-                                    {% endfor %}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for row in gdf.iterrows %}
-                                <tr>
-                                    {% for value in row.1 %}
-                                    <td>{{ value }}</td>
-                                    {% endfor %}
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                 {% for column in gdf.columns %}
-                    {{ column }}
-                {% endfor %}
-                {% comment %} {{geodataframe}} {% endcomment %}
-            </div> 
-        </div>
-        
 
+                    <div class="gi_star_containe col-lg-8 col-12">
+                        <div class="gi_star_form_container">
+                            <form class="form form-hotspot needs-validation" novalidate method="post" id="gistar-form">
+                                {% csrf_token %}
+                        <div class="hotspot_btns d-flex justify-content-end mb-2">
+                            <div class="cal_btn me-2">
+                                <button class="btn btn-sm btn-primary" type="submit"><i class="fa-solid fa-earth-asia me-1"></i>Calculate</button>
+                            </div>
+                            <div class="report-btn me-2">
+                                <button class="btn btn-danger btn-sm" type="button"
+                                id="view_hotspot_report" data-bs-toggle="modal"
+                                data-bs-target="#view_report_modal" disabled><i class="fa-solid fa-square-poll-vertical me-1"></i>View
+                                report</button>
+                            </div>
+                            <div class="save_btn me-4">
+                                <button class="btn btn-sm btn-success" type="button" id="hotspot_analysis_savebtn" data-bs-target="#save_hotspot_modal" data-bs-toggle="modal" disabled><i class="fa-solid fa-cloud-arrow-up me-1"></i>Save</button>
+                            </div>
+                        </div>
+                        <div class="gi_star_card_container">
+                            <div class="card shadow" style="border: 1px solid rgba(0, 0, 0, 0.05); border-radius: 1rem;">
+                                <div class="card-body">
+                                    <div class="gi_star_card_title">
+                                        <h4 class="card-title">Calculate K-nearest neighbors (KNN) spatial weights matrix</h4>
+                                    </div>
+                                    <div class="gi_star_card_body">
+                                                <div class="spatail_weight_matrix_knn my-3">
+                                                    <div class="subtitle">
+                                                        <label for="choose-opt-k"><b>Choose k</b></label>
+                                                    </div>
+                                                    <div class="description">
+                                                        <p>The parameter <b>k</b> specifies the number of nearest
+                                                            neighbors to consider when creating spatial weights in
+                                                            methods like K-nearest neighbors (KNN) spatial weights
+                                                            matrix.</p>
+                                                    </div>
+                                                    <div class="row align-items-end">
+                                                    <div class="col-lg-6 col-12">
+
+                                                    <div class="chooseK">
+                                                        <input type="number" placeholder="Defaullt 2 max 1000" value="2"
+                                                            min="2" max="1000" class="form-control" name="K_val"
+                                                            id="choose-opt-k" required>
+                                                        <small class="text-muted">Defaullt 2 max 1000</small>
+                                                    </div>
+                                                </div>
+                                                    <div class="select_star_parameterz_container col-lg-6 col-12">
+                                                        <div class="form-check form-check-inline">
+                                                            <input class="form-check-input" type="checkbox"
+                                                                name="select_star_parameter" id="select_star_parameter"
+                                                                value="star_parameter_on">
+                                                            <label class="form-check-label"
+                                                                for="select_star_parameter">Select star parameter
+                                                                <i class="fa-solid fa-circle-info text-muted ml-2"
+                                                                    data-bs-toggle="popover" title="Information!"
+                                                                    data-bs-content="This parameter controls how each observation's contribution to its own statistic 
+                                                            is calculated. When set star to a specific value, such as 0.5, it means that each observation's self-weight is equal to this value"></i>
+
+                                                            </label>
+                                                        </div>
+                                                        <input class="form-control" type="number" min="0.5" value="0.5"
+                                                            step=".5" name="star_parameter" id="star_parameter" required
+                                                            disabled>
+                                                        <small class="text-muted">(optional) min 0.5 </small>
+                                                    </div>
+                                                </div>
+                                                </div>
+                                                <div class="gi_star_statistic">
+                                                    <div class="title">
+                                                        <h4>Getis-Ord Gi* Hotspot Analysis</h4>
+                                                    </div>
+                                                    <div class="description mb-2">
+                                                        Calculate Getis-Ord Gi* statistic with KNN weights
+                                                    </div>
+                                                    <div class="selectfeature">
+                                                        <div class="mb-3">
+                                                            <label for="select_gi_feature" class="form-label">Select
+                                                                Feature</label>
+                                                            <select class="form-select form-select"
+                                                                name="select_gi_feature" id="select_gi_feature"
+                                                                required>
+                                                                <option disbaled value="" selected>Select one</option>
+                                                                {% for column in gdf_numeric %}
+                                                                <option value="{{ column }}">{{ column }}</option>
+                                                                {% endfor %}
+                                                            </select>
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+                                                <div class="mt-1">
+                                                    <div id="gistar-alert-container"></div>
+                                                </div>
+                                                <!-- Modal view report -->
+                                                <div class="modal fade" id="view_report_modal" tabindex="-1"
+                                                    aria-labelledby="view_report_modal_label" aria-hidden="true">
+                                                    <div class="modal-dialog modal-dialog-centered modal-xl">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h1 class="modal-title fs-5"
+                                                                    id="view_report_modal_label">Getis-ord Gi*
+                                                                    statistics report</h1>
+                                                                <button type="button" class="btn-close"
+                                                                    data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <div id="graph-container"
+                                                                    class="d-flex justify-content-center"></div>
+                                                                <div id="stats" class="table-responsive"></div>
+                                                                <div id="gi-star-reportbody"></div>
+                                                                <p><strong>Unique GiBins: </strong><span
+                                                                        id="extra_stats_unique_bins"></dispanv>
+                                                                </p>
+                                                                <div id="extra_stats_unique_significance_levels"></div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary"
+                                                                    data-bs-dismiss="modal">Close</button>
+                                                                <a href="{% url 'download_geodata' %}" class="btn btn-success btn-sm btn-export-csv">Export Results</a>
+
+                                                                <!-- <button type="button" class="btn btn-primary">Download</button> -->
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="preview_geodata_tale_containercol-12">
+                        <div class="preview_geodata_card_container">
+                            <div class="card shadow" style="border: 1px solid rgba(0, 0, 0, 0.05); border-radius: 1rem;">
+                                <div class="card-body">
+                                    <div class="preview_card_title">
+                                        <h4 class="card-title">Preview Data</h4>
+                                    </div>
+                                    <div class="preview_data_card_body">
+                                            <div class="title">
+                                                <div class="d-flex align-items-center">
+                                                <div id="Loading" class="d-none text-success"><h2>Loading...</h2></div>
+                                                <div class="ms-2"><!-- Spinner for loading indicator -->
+                                                    <div id="loading-spinner-preview-gdf" class="d-none spinner-border spinner-border-sm text-dark" role="status">
+                                                        <span class="visually-hidden">Loading...</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            </div>
+                                            <div class="geodataframe mt-3">
+                                                <div class="text">
+                                                    <p class="text text-muted">Showing top 5 records</p>
+                                                </div>
+                                                <div id="geodataframe-container" class="table-responsive preview-table" style="font-size: 13px;">
+
+                                                    <!-- The GeoDataFrame will be displayed here -->
+                                                    <table class="table table-bordered table-light table-hover">
+                                                        <thead>
+                                                            <tr>
+                                                                {% for column in gdf.columns %}
+                                                                <th>{{ column }}</th>
+                                                                {% endfor %}
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {% for row in gdf.iterrows %}
+                                                            <tr>
+                                                                {% for value in row.1 %}
+                                                                <td>{{ value }}</td>
+                                                                {% endfor %}
+                                                            </tr>
+                                                            {% endfor %}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
-</div>
+
+
+
+<!-- Save modal -->
+
+<div class="modal" tabindex="-1" id="save_hotspot_modal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Are you sure?</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Clicking Save will save the results to the database.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <div class="me-2">
+            <form action="" method="post" id="save_hotspot_to_db_form">
+                {% csrf_token %}
+                <input type="hidden" name="save_db_hotspot" value="true">
+                <input type="submit" value="Save" id="hotspot_save" class="btn btn-success">
+            </form>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>

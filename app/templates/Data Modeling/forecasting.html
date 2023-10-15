@@ -7,13 +7,13 @@
                 {% csrf_token %}
                 <div class="d-flex justify-content-end">
                     <div>
-                    <button class="btn btn-sm btn-success" data-bs-toggle="tooltip" data-bs-placement="top"
-                        title="Forecast results!" type="submit">Forecast</button></div>
+                    <button class="btn btn-sm btn-primary" data-bs-toggle="tooltip" data-bs-placement="top"
+                        title="Forecast results!" type="submit"><i class="fa-solid fa-arrow-trend-up me-1"></i>Forecast</button></div>
                     <div class="mx-2">
-                    <button class="btn btn-sm btn-outline-secondary" type="button" id="arima_report_btn" data-bs-target="#arima_view_report_modal" data-bs-toggle="modal" disabled>View Report</button>
+                    <button class="btn btn-sm btn-danger" type="button" id="arima_report_btn" data-bs-target="#arima_view_report_modal" data-bs-toggle="modal" disabled><i class="fa-solid fa-square-poll-vertical me-1"></i>View Report</button>
                     </div>
                     <div>
-                        <button class="btn btn-sm btn-secondary" type="button" id="save_db_modal_btn" data-bs-target="#arima_save_cnfrm_btn_modal" data-bs-toggle="modal" disabled>Save</button>
+                        <button class="btn btn-sm btn-success" type="button" id="save_db_modal_btn" data-bs-target="#arima_save_cnfrm_btn_modal" data-bs-toggle="modal" disabled><i class="fa-solid fa-cloud-arrow-up me-1"></i>Save</button>
                     </div>
                 </div>
                 <div class="mt-2">

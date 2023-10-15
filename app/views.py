@@ -110,7 +110,7 @@ def update_statss(df):
     preview_datatypes = preview_datatypes.reset_index()
     # Rename the columns to match your requirements
     preview_datatypes.columns = ['Column Name', 'Data Types']
-    preview_datatypes_html = preview_datatypes.to_html(classes='table table-dark table-hover table-bordered mb-0')
+    preview_datatypes_html = preview_datatypes.to_html(classes='table table-hover table-light  mb-0')
 
 
     # df_dtype_info = df_dtype_info.apply(lambda x: int(x) if np.issubdtype(x, np.integer) else x)
@@ -124,7 +124,7 @@ def update_statss(df):
     
     
     return preview_data, preview_datatypes_html, stats, describe_data, unique_counts_html, null_colwise_html, nonnull_colwise_html
-
+@login_required(login_url='/Login/')
 def upload_view(request):
     # request.session.clear()  # Clear the entire session
     uploaded_file_name = None
@@ -154,7 +154,6 @@ def upload_view(request):
 
     return render(request, 'upload.html')
 
-@login_required(login_url='/Login/')
 def upload_file(request):
 
     
@@ -1297,7 +1296,6 @@ def fetch_unique_districts(request):
     return JsonResponse({'error': 'Invalid request or missing data'})
 
 
-        
 
 def getis_ord_gi_hotspot_analysis(request):
     json_geodata = request.session.get('geodata_frame')
@@ -1362,6 +1360,23 @@ def getis_ord_gi_hotspot_analysis(request):
         return JsonResponse({'message': 'Getis-ord Gi* calculated successfully!', 'json_response': json_response})
     else:
         return JsonResponse({'error': 'Invalid request method'})
+
+def download_geodata(request):
+    geodata = request.session.get('geodata_frame')
+
+    if geodata:
+        gdf = json_to_geodataframe(geodata)
+        # Parse the JSON data into a DataFrame
+        # gdf = pd.read_json(geodata)
+
+        # Convert the DataFrame to CSV format
+        geodata = gdf.to_csv(index=False)
+        # Create a response with the CSV data as a file attachment
+        response = HttpResponse(geodata, content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="Hotspot Analysis.csv"'
+        return response
+
+    return HttpResponse('CSV data not available in the session.')
 
 
 
@@ -1505,7 +1520,7 @@ def download_csv(request):
         response['Content-Disposition'] = 'attachment; filename="data.csv"'
         return response
 
-    return HttpResponse('CSV data not available in the session.')
+    return HttpResponse('CSV data not available.')
 
 def export_fb_forecasted_csv(request):
     # Store the CSV data in the session
@@ -1833,3 +1848,5 @@ def register_login(request):
     
 def register(request):
     return render(request, 'regiseter.html')
+
+

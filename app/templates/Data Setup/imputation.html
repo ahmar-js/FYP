@@ -17,7 +17,7 @@
                             </symbol>
                         </svg>
             
-                        <div class="alert alert-info d-flex align-items-start" role="alert">
+                        <div class="alert alert-light shadow d-flex fade show align-items-start" role="alert">
                             <svg class="bi flex-shrink-0 me-2 mt-1" width="24" height="24" role="img" aria-label="Info:">
                                 <use xlink:href="#info-fill" />
                             </svg>
@@ -30,6 +30,7 @@
                                 <p class="mb-0">Before employing Mean and Median imputation strategies, ensure the column is
                                     converted to numerical data types.</p>
                             </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     </div>
             
@@ -63,7 +64,7 @@
                                                     <option value="{{ column }}">{{ column }}</option>
                                                     {% endfor %}
                                                 </select>
-                                                <button class="btn btn-outline-secondary" type="submit" style="padding: 0.1rem 0.75rem;">Drop</button>
+                                                <button class="btn bg-blue4 rounded-end" type="submit" style="padding: 0.1rem 0.75rem;">Drop</button>
                                                 <div class="invalid-feedback">
                                                     Please select a column.
                                                 </div>
@@ -102,7 +103,7 @@
                     
                                                   {% endfor %}
                                                 </select>
-                                            <button type="submit" class="btn btn-secondary" style="padding: 0.1rem 0.75rem;">Drop</button>
+                                            <button type="submit" class="btn bg-blue4" style="padding: 0.1rem 0.75rem;">Drop</button>
 
                                             </div>
                                             <small>
@@ -219,7 +220,7 @@
                                         </div>
 
                                     </div>
-                                    <button type="submit" class="btn btn-primary">Impute</button>
+                                    <button type="submit" class="btn btn-sm bg-blue4">Impute</button>
                                 </form>
                             </div>
                             <!-- ----------- fill null values form end ----------- -->
@@ -287,7 +288,7 @@
                                                         </div>
                                                     </div>
                                 
-                                                    <button type="submit" class="btn btn-warning">Change</button>
+                                                    <button type="submit" class="btn btn-sm bg-blue4">Change</button>
                                 
                                                     </form>
                                                 </div>

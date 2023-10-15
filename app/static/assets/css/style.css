@@ -121,7 +121,7 @@ a {
 }
 
 a:hover {
-  color: #ff5d22;
+  color: #2A5879;
   text-decoration: none;
 }
 
@@ -180,7 +180,8 @@ a:hover {
   overflow: hidden;
   z-index: 1;
   color: #ffffff;
-  background-color: #ff5d22;
+  /* background-color: #ff5d22; */
+  background-color: #104567;
   -webkit-transition: 0.5s;
   transition: 0.5s;
   border-radius: 5px;
@@ -377,7 +378,7 @@ Preloader Area CSS
 .preloader .loader .sbl-half-circle-spin {
   height: 80px;
   width: 80px;
-  color: #ff5d22;
+  color: #104567;
   display: inline-block;
   position: relative;
   border: 1px solid;
@@ -2444,7 +2445,7 @@ About Area CSS
   display: block;
   text-transform: uppercase;
   margin-bottom: 15px;
-  color: #ff5d22;
+  color: #2A5879;
   font-weight: 700;
   font-size: 15px;
 }
@@ -2588,7 +2589,7 @@ About Area CSS
 }
 
 .about-content .content .about-list li span:hover .icon {
-  background-color: #ff5d22;
+  background-color: #2A5879;
   color: #ffffff;
 }
 
@@ -12128,7 +12129,7 @@ Footer Area CSS
 }
 
 .single-footer-widget .social-link li a:hover {
-  background-color: #ff5d22;
+  background-color: #104567;
   color: #ffffff;
 }
 
@@ -12155,7 +12156,7 @@ Footer Area CSS
 }
 
 .single-footer-widget .footer-links-list li a:hover {
-  color: #ff5d22;
+  color: #104567;
 }
 
 .single-footer-widget .footer-links-list li:last-child {
@@ -12182,7 +12183,7 @@ Footer Area CSS
 }
 
 .single-footer-widget .footer-contact-info li a:hover {
-  color: #ff5d22;
+  color: #104567;
 }
 
 .single-footer-widget .footer-contact-info li:last-child {
@@ -12192,7 +12193,7 @@ Footer Area CSS
 .single-footer-widget .footer-contact-info li i {
   position: absolute;
   left: 0;
-  color: #ff5d22;
+  color: #104567;
   top: 4px;
 }
 
@@ -12213,7 +12214,7 @@ Footer Area CSS
 }
 
 .footer-bottom-area p a {
-  color: #ff5d22;
+  color: #104567;
   font-weight: 600;
 }
 
@@ -12355,7 +12356,7 @@ Go Top CSS
 }
 
 .go-top:hover {
-  background-color: #ff5d22;
+  background-color: #2A5879;
   color: #ffffff;
   -webkit-transition: 0.5s;
   transition: 0.5s;

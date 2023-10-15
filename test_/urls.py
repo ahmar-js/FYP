@@ -11,6 +11,7 @@ urlpatterns = [
 
 
     path('', app_views.upload_view, name='upload'),
+    path('upload/', app_views.upload_view, name='upload'),
     path('preview/', app_views.upload_file, name='preview'),
     path('preview_data/', app_views.preview_data, name='preview_data'),
     path('handle_drop_columns/', app_views.handle_drop_columns, name='handle_drop_columns'),
@@ -59,11 +60,16 @@ urlpatterns = [
     path('password_reset_complete/', auth_views.PasswordResetCompleteView.as_view(template_name='password_reset_complete.html'), name='password_reset_complete'),
 
     path('save_dataframe_to_database/', viz_views.save_dataframe_to_database, name='save_dataframe_to_database'),
+
+
+    path('download_geodata/', app_views.download_geodata, name='download_geodata'),
+
 ]
     # path('generate_plot/', app_views.generate_plot, name='generate_plot'),
 
     # path('describe_data/', app_views.describe_data, name='describe_data'),
     # path('preview_dataframe_ajax/', app_views.preview_dataframe_ajax, name='preview_dataframe_ajax'),
+
 
 # Serve media files during development
 if settings.DEBUG:

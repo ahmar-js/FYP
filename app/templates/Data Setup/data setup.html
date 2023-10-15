@@ -6,23 +6,26 @@
                             <form method="post">
                                 {% csrf_token %}
                                 <input type="hidden" name="reset" value="true">
-                                <input type="submit" class="btn btn-sm btn-danger" value="Reset">
+                                <button type="submit" class="btn btn-sm btn-danger rounded"><i class="fa-solid fa-arrows-spin me-1"></i>Reset</button>
+                                <!-- <input type="submit" class="btn btn-sm btn-danger rounded" placeholder="&#61447;" value="Reset"> -->
                             </form>
                         </div>
                         <div class="save_to_db_btn m-1">
                             <form class="form" action="" method="post" id="save_initail_dataset_form" name="save_initail_dataset_form">
                                 {% csrf_token %}
                                 <input type="hidden" name="save_db" value="true">
-                                <input type="submit" class="btn btn-sm btn-success" value="Save" class="btn btn-sm">
+                                <button type="submit" class="btn btn-sm btn-success rounded"><i class="fa-solid fa-cloud-arrow-up me-1"></i>Save</button>
+
+                                <!-- <input type="submit" class="btn btn-sm btn-success rounded" value="Save" class="btn btn-sm"> -->
                             </form>
                         </div> 
                         <div class="donwload_btn m-1">
-                            <a href="{% url 'download_csv' %}" class="btn btn-primary btn-sm">Download</a>
+                            <a href="{% url 'download_csv' %}" class="btn btn-primary rounded btn-sm"><i class="fa-solid fa-file-csv me-1"></i>Download</a>
                         </div>
                         <div class="group_and_aggregation d-flex justify-content-end m-1">
                             <div class="aggregation_btn">
                         <!-- Modal is located in modeling.html -->
-                              <button type="button" class="btn btn-sm btn-dark" data-bs-toggle="modal" data-bs-target="#group_data_modal">Group data</button>
+                              <button type="button" class="btn btn-sm bg-blue1 text-white rounded" data-bs-toggle="modal" data-bs-target="#group_data_modal"><i class="fa-brands fa-think-peaks me-1"></i>Group data</button>
                             </div>
                          </div>
                     </div>
@@ -30,9 +33,9 @@
                     <!-- ----------- Data stat cards ----------- -->
                
                     <div class="containerr">
-                       <div class="row">
+                       <div class="row justify-content-center">
                            <div class="col-lg-3 col-sm-6">
-                               <div class="card-box bg-dark">
+                               <div class="card-box bg-blue1">
                                    <div class="inner">
                                        <h3 id='num_rows'> {{num_rows}} </h3>
                                        <p> Total Rows </p>
@@ -45,7 +48,7 @@
                            </div>
            
                            <div class="col-lg-3 col-sm-6">
-                               <div class="card-box bg-dark">
+                               <div class="card-box bg-blue1">
                                    <div class="inner">
                                        <h3 id='num-cols'> {{num_columns}} </h3>
                                        <p> Total Columns </p>
@@ -57,7 +60,7 @@
                                </div>
                            </div>
                            <div class="col-lg-3 col-sm-6">
-                               <div class="card-box bg-dark">
+                               <div class="card-box bg-blue1">
                                    <div class="inner">
                                        <h3 id="tot_null"> {{tot_nulls}} </h3>
                                        <p> Null Values </p>
@@ -70,7 +73,7 @@
                                </div>
                            </div>
                            <div class="col-lg-3 col-sm-6">
-                               <div class="card-box bg-dark">
+                               <div class="card-box bg-blue1">
                                    <div class="inner">
                                        <h3 id="total_notnulls"> {{total_notnull}} </h3>
                                        <p> Non null values </p>
@@ -94,22 +97,6 @@
                        </div>
                        <div class="modal-body">
                            <div class="table-responsive" id="nullwise">
-                               {% comment %} <table class="table table-bordered table-striped">
-                                   <thead>
-                                       <tr>
-                                           <th>Column Name</th>
-                                           <th>null Count</th>
-                                       </tr>
-                                   </thead>
-                                   <tbody>
-                                       {% for column, info in null_col_wise.items %}
-                                           <tr>
-                                               <td>{{ column }}</td>
-                                               <td>{{ info }}</td>
-                                           </tr>
-                                       {% endfor %}
-                                   </tbody>
-                               </table> {% endcomment %}
                            </div>
                        </div>
                        <div class="modal-footer">
@@ -217,7 +204,7 @@
                                                <form method="POST" class="form" id="previewdata-limit">
                                                {% csrf_token %}
                                                <div class="data-limit-container d-flex align-items-center">
-                                               <div class="preview-record-info" id="selected-record-info">Showing 10 records</div>&nbsp;<span> out of {{num_rows}}</span>
+                                               <div class="preview-record-info" id="selected-record-info">Showing 5 records</div>&nbsp;<span> out of {{num_rows}}</span>
                                                <select class="form-select form-select-sm ms-auto me-1" style="width: auto;" name="datalimit" id="datalimit">
                                                    <option selected value="5">5</option>
                                                    <option value="10">10</option>
@@ -227,7 +214,7 @@
                                                    <option value="500">500</option>
                                                    <option value="{{num_rows}}">All</option>
                                                </select>
-                                               <button type="submit" class="btn btn-dark" id="show-data-button" style="padding: .175rem .75rem;">Show</button>
+                                               <button type="submit" class="btn bg-blue4 text-white" id="show-data-button" style="padding: .175rem .75rem;">Show</button>
                                            </div>
                                                </form>
                                            </div>
@@ -275,7 +262,7 @@
                                 }
                                 .nav-pills .nav-link.active, .nav-pills .show>.nav-link {
                                     color: #fff!important;
-                                    background-color: #212529 !important;
+                                    background-color: #104567 !important;
                                 }
                                 
 
@@ -287,13 +274,13 @@
                             </style>
                        <ul class="nav nav-pills justify-content-around mb-3" id="pills-tab" role="tablist">
                         <li class="nav-item col-3" role="presentation">
-                          <button class="nav-link mx-auto active" id="pills-imputations-tab" data-bs-toggle="pill" data-bs-target="#pills-imputations" type="button" role="tab" aria-controls="pills-imputations" aria-selected="true">Imputation</button>
+                          <button class="nav-link mx-auto active" id="pills-imputations-tab" data-bs-toggle="pill" data-bs-target="#pills-imputations" type="button" role="tab" aria-controls="pills-imputations" aria-selected="true"><i class="fa-solid fa-fill me-2"></i>Imputation</button>
                         </li>
                         <li class="nav-item col-3" role="presentation">
-                          <button class="nav-link mx-auto" id="pills-cord_sys-tab" data-bs-toggle="pill" data-bs-target="#pills-cord_sys" type="button" role="tab" aria-controls="pills-cord_sys" aria-selected="false">Coordinate System</button>
+                          <button class="nav-link mx-auto" id="pills-cord_sys-tab" data-bs-toggle="pill" data-bs-target="#pills-cord_sys" type="button" role="tab" aria-controls="pills-cord_sys" aria-selected="false"><i class="fa-solid fa-location-dot me-2"></i>Coordinate System</button>
                         </li>
                         <li class="nav-item col-3" role="presentation">
-                          <button class="nav-link mx-auto" id="pills-geocoding-tab" data-bs-toggle="pill" data-bs-target="#pills-geocoding" type="button" role="tab" aria-controls="pills-geocoding" aria-selected="false">Geocoding</button>
+                          <button class="nav-link mx-auto" id="pills-geocoding-tab" data-bs-toggle="pill" data-bs-target="#pills-geocoding" type="button" role="tab" aria-controls="pills-geocoding" aria-selected="false"><i class="fa-solid fa-map-location-dot me-2"></i>Geocoding</button>
                         </li>
                       </ul>
                       <div class="tab-content my-5" id="pills-tabContent">

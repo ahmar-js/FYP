@@ -1,13 +1,18 @@
 
-  <nav class="navbar navbar-vertical fixed-left navbar-expand-md navbar-dark bg-dark" id="sidenav-main">
+  <nav class="navbar navbar-vertical fixed-left navbar-expand-md navbar-dark" style="background-color: #E8F6EF;" id="sidenav-main">
     <div class="container-fluid">
       <!-- Toggler -->
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-collapse-main" aria-controls="sidenav-main" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
+      <style>
+        .navbar-vertical .navbar-brand-img, .navbar-vertical .navbar-brand > img {
+          max-height: 100% !important;
+        }
+      </style>
       <!-- Brand -->
       <a class="navbar-brand pt-0" href="/">
-        <img src="/static/assetss/img/brand/logo1x.png" alt="Unable to load logo">
+        <img src="/static/assetss/img/brand/modern network logo.png" alt="Unable to load logo" class="img-fluid w-100 h-100">
         
       </a>
       <!-- User -->
@@ -51,13 +56,13 @@
         <!-- Navigation -->
         <ul class="navbar-nav">
           <li class="nav-item home-item">
-          <a class=" nav-link active text-light fade-in-left " href="/"><i class="fas fa-home text-secondary "></i>Home
+          <a class=" nav-link active text-dark fade-in-left " href="{% url 'home' %}"><i class="fas fa-home text-dark "></i>Home
             </a>
           </li>
 
           <li class="nav-item maps-item">
-            <a class="nav-link text-light fade-in-left " href="/maps.html">
-              <i class="fas fa-map-marked-alt text-secondary"></i>Maps
+            <a class="nav-link text-dark fade-in-left " href="/">
+              <i class="fas fa-upload text-dark"></i>Upload
             </a>
           </li>
         </ul>
@@ -72,7 +77,7 @@
           <li class="nav-item">
 
             <div class="Dataset-select-container mx-3 fade-in-left">
-            <label for="selectDataset" class="selectDatasetLabel text-lighter text-sm"><i class="fas fa-file mr-2 text-secondary"></i>Dataset</label>
+            <label for="selectDataset" class="selectDatasetLabel text-dark text-sm"><i class="fas fa-file mr-2 text-dark"></i>Dataset</label>
             <select class="form-select" id="selectDataset" name="selectDataset" class="dataset-select" style="font-size: 12px">
               <option selected disabled>select one</option>
               {% for file in user_files %}
@@ -85,7 +90,7 @@
           <!-- Model Selection dropdown -->
           <li class="nav-item mt-2">
             <div class="Model-select-container fade-in-left mx-3">
-              <label for="selectModel" class="selectModelLabel text-lighter text-sm "><i class="fas fa-robot text-secondary mr-2"></i>Model</label>
+              <label for="selectModel" class="selectModelLabel text-dark text-sm "><i class="fas fa-robot text-dark mr-2"></i>Model</label>
             <select class="form-select " id="selectModel" name="selectModel" class="Model-select" style="font-size: 12px" disabled>
               <option value="" disabled>Select Model</option>
               <option value="fbprophet">Facebook Prophet</option>
@@ -96,7 +101,7 @@
           <!-- Forecasts dropdown -->
           <li class="nav-item mt-2">
             <div class="Forecasts-select-container fade-in-left mx-3">
-              <label for="selectForecasts" class="selectForecastsLabel text-lighter text-sm"><i class="fas fa-mountain text-secondary mr-2"></i>Forecasts</label>
+              <label for="selectForecasts" class="selectForecastsLabel text-dark text-sm"><i class="fas fa-mountain text-dark mr-2"></i>Forecasts</label>
             <select class="form-select" id="selectForecasts" class="Forecasts-select" style="font-size: 12px" disabled>
               <option value="" selected disabled>Select</option>
 
@@ -106,7 +111,7 @@
           <!-- Filter dropdown -->
           <li class="nav-item mt-2">
             <div class="Filter-select-container fade-in-left mx-3">
-              <label for="Select_geodataframe" class="selectDistrictLabel  text-lighter text-sm"><i class="fas fa-landmark text-secondary mr-2"></i>Hotspot Result</label>
+              <label for="Select_geodataframe" class="selectDistrictLabel  text-dark text-sm"><i class="fas fa-landmark text-dark mr-2"></i>Hotspot Result</label>
             <select class="form-select" id="Select_geodataframe" name="Select_geodataframe" class="Filter-select" style="font-size: 12px">
               <option selected disabled value="">select one</option>
               {% for gdf_file in user_files_gdf %}
@@ -119,7 +124,7 @@
           <!-- Range Slider -->
           <!-- <li class="nav-item mt-2">
             <div class="slider-container fade-in-left mx-3">
-            <label for="Datarange1 Datarange2" class="DatarangeLabel text-lighter text-sm"><i class="fas fa-calendar text-secondary mr-2"></i>Data Range</label>
+            <label for="Datarange1 Datarange2" class="DatarangeLabel text-lighter text-sm"><i class="fas fa-calendar text-dark mr-2"></i>Data Range</label>
 
               <input type="range" class="custom-range" id="Datarange1" min="01-01-2020" max="31-12-2022" step="1">
               <input type="range" class="custom-range" id="Datarange2" min="01-01-2020" max="31-12-2022" step="1">
@@ -167,10 +172,10 @@
 
         </ul>
         
-        <div class="sign_out mt-auto">
+        <div class="sign_out mt-auto" style="font-size: 12px !important;">
         <hr class="my-3">
           <span class="pe-1"><i class="fa fa-power-off" aria-hidden="true"></i></span>
-          <span><a href="{% url 'Logout' %}" class="link-secondary">Sign out, <span>{{ request.session.user_name }}</span></a></span>
+          <span ><a href="{% url 'Logout' %}" class="link-secondary">Sign out, <span >{{ request.session.user_name }}</span></a></span>
         </div>
       </div>
     </div>

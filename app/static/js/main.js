@@ -247,7 +247,7 @@ $(document).ready(function () {
                 // console.log('JSON data received:', jsonData)
 
                 // Create and populate the table with the JSON data
-                var tableHtml = '<table class = "table table-bordered table-dark table-hover mb-0">';
+                var tableHtml = '<table class = "table table-light table-hover mb-0">';
                 tableHtml += '<thead><tr>';
                 for (var key in jsonData[0]) {
                     tableHtml += '<th>' + key + '</th>';
@@ -603,6 +603,7 @@ $(document).ready(function () {
 
                 // Enable the "View report", button
                 $('#view_hotspot_report').prop('disabled', false);
+                $('#hotspot_analysis_savebtn').prop('disabled', false);
 
             },
             error: function (error) {
@@ -974,3 +975,23 @@ $(document).ready(function () {
 });
 
 
+
+$(document).ready(function() {
+    $("#download-pdf-btn").on("click", function() {
+        $.ajax({
+            type: 'GET',
+            url: '/download_geodata/',
+            success: function(data) {
+                // Trigger a download of the PDF.
+                // var blob = new Blob([data], { type: 'application/pdf' });
+                // var link = document.createElement('a');
+                // link.href = window.URL.createObjectURL(blob);
+                // link.download = 'report.pdf';
+                // link.click();
+            },
+            error: function(error){
+                console.log("Error");
+            }
+        });
+    });
+});

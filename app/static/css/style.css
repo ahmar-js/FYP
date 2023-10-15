@@ -73,6 +73,34 @@
 .bg-red {
     background-color: #d9534f !important;
 }
+.bg-blue1{
+    background-color: #104567!important;
+}
+.bg-blue1:hover{
+    background-color: #446D89!important;
+}
+.bg-blue2{
+    background-color: #2A5879 !important ;
+}
+.bg-blue3{
+    background-color: #446D89 !important ;
+}
+.bg-blue4{
+    background-color: #526D82 !important;
+    color: #fff!important;
+}
+.bg-blue4:hover{
+    background-color: #104567!important;
+    transition: .35s ease-in-out;
+}
+.bg-blue5{
+    background-color: #F0F0F0 !important ;
+}
+.bg-blue6{
+    background-color: #102C57!important;
+    color: #fff!important;
+}
+
 /* Stats cards end */
 
 /* Preview main data table */

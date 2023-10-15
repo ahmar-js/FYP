@@ -475,6 +475,7 @@ def generate_plotly_3d_scatter(long, lat, filtered, hover_data, gdf, size, date,
                     height=650,
                     width=900,
                     title="")
+    fig_3d.update_traces(marker=dict(size=5))
     fig_3d.update_layout(font=dict(color="gray"))
     # Set the legend position to the top-left corner
     # Set the legend position to the top-left corner as absolute
@@ -735,35 +736,14 @@ def save_dataframe_to_database(request, df, name):
     with open(media_path, 'rb') as file:
         my_file_instance.file.save(file_name, File(file))
 
-    # if model_name == geoDataFrame:
-    #    # Set the U_df to the ID of the last record in Uploaded_DataFrame
-    #    last_uploaded_df = Uploaded_DataFrame.objects.latest('id')
-    #    my_file_instance.U_df = last_uploaded_df
-    
-    # my_file_instance.save()
-
     if model_name == geoDataFrame:
-    # Get the current session ID
-        session_key = request.session.session_key
-
-        # Check if the session key is available
-        if session_key:
-            # Get or create a session object
-            session = Session.objects.get(session_key=session_key)
-
-            # Get the last uploaded record's ID from the session data
-            last_uploaded_id = session.get('last_uploaded_id')
-
-            if last_uploaded_id:
-                # Get the last uploaded record based on the stored ID
-                last_uploaded_df = Uploaded_DataFrame.objects.get(id=last_uploaded_id)
-                my_file_instance.U_df = last_uploaded_df
-
-    my_file_instance.save()
+       # Set the U_df to the ID of the last record in Uploaded_DataFrame
+       last_uploaded_df = Uploaded_DataFrame.objects.latest('id')
+       my_file_instance.U_df = last_uploaded_df
     
-    # Update the session data with the new last uploaded ID
-    session['last_uploaded_id'] = my_file_instance.U_df.id
-    session.save()
+    my_file_instance.save()
+
+
 
     return HttpResponse("CSV file uploaded to the database successfully.")
 
