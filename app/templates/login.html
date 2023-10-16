@@ -9,7 +9,7 @@
 
 <div class="loginform d-flex justify-content-center align-items-center flex-column" style="height: 100vh; background-color: #f8f8f8;">
     <div class="logo_login mb-5">
-       <img src="{% static 'imges/logo2x.png' %}" alt="Unable to load logo">
+       <img src="{% static 'imges/modern network logo.png' %}" alt="Unable to load logo" class="img-fluid" width="300" height="300">
     </div>
     <div class="card mb-3" style="max-width: 30rem; min-width: 20rem;">
         <div id="valid-feedback">
@@ -41,15 +41,15 @@
   
     <!-- Submit button -->
     <div class="d-grid gap-2">
-        <button class="btn btn-primary btn-block mb-1" type="submit">Login</button>
+        <button class="btn bg-blue1 text-white btn-block mb-1" type="submit">Login</button>
     </div>
     <div class="forgetpass d-flex mb-4">
-        <a href="{% url 'password_reset' %}" class="link-primary ms-auto">Foreget password</a>
+        <a href="{% url 'password_reset' %}" class="text-blue1 ms-auto">Foreget password</a>
     </div>
   
     <!-- Register buttons -->
     <div class="text-center">
-      <p>Not a member? <a href="{% url 'register' %}">Register</a></p>
+      <p>Not a member? <a href="{% url 'register' %}" class="text-blue1">Register</a></p>
     </div>
   </form>
 </div>

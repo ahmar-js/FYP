@@ -20,6 +20,8 @@
         <link rel="stylesheet" href="../static/assets/css/magnific-popup.min.css">
         <link rel="stylesheet" href="../static/assets/css/style.css">
         <link rel="stylesheet" href="../static/assets/css/responsive.css">
+        <script src="https://kit.fontawesome.com/6b9f1a8d1a.js" crossorigin="anonymous"></script>
+
 
         <title>HealthLense - Work on Spatial Data</title>
 
@@ -56,7 +58,7 @@
             <div class="tracer-nav">
                 <div class="container-fluid">
                     <nav class="navbar navbar-expand-md navbar-light">
-                        <a class="navbar-brand" href="index-3.html">
+                        <a class="navbar-brand" href="{% url 'upload' %}">
                             <img src="../static/imges/modern network logo.png" class="img-fluid" alt="logo" width="200" height="200">
                         </a>
 
@@ -93,12 +95,12 @@
                     <div class="container">
                         <div class="option-inner">
                             <div class="others-option">
-                                <div class="option-item">
+                                <!-- <div class="option-item">
                                     <form class="search-box">
                                         <input type="text" class="input-search" placeholder="Search for anything">
                                         <button type="submit"><i class="flaticon-loupe"></i></button>
                                     </form>
-                                </div>
+                                </div> -->
 
                                 <div class="option-item">
                                     <a href="{% url 'home' %}" class="default-btn"><i class="flaticon-right"></i>Dasboard<span></span></a>
@@ -123,7 +125,7 @@
                             {% csrf_token %}
                             <div class="btn-box">
                                 <input type="file" name="csv_file" accept=".csv" class="wow fadeInRight" data-wow-delay="200ms" data-wow-duration="1000ms">
-                                <button type="submit" class="default-btn wow fadeInLeft " data-wow-delay="300ms" data-wow-duration="1000ms"><i class="flaticon-google-play"></i> Upload</button>
+                                <button type="submit" class="default-btn wow fadeInLeft " data-wow-delay="300ms" data-wow-duration="1000ms"><i class="fa-solid fa-cloud-arrow-up" style="margin-right: 5px;"></i>Upload</button>
                             </div>
                         </form>
                         </div>

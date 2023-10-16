@@ -1,71 +1,3 @@
-/*
-@File: Tracer Template Styles
-
-* This file contains the styling for the actual template, this
-is the file you need to edit to change the look of the
-template.
-
-This files table contents are outlined below>>>>>
-
-*******************************************
-*******************************************
-
-** - Default CSS
-** - Preloader Area CSS
-** - Navbar Area CSS
-** - Main Banner Area CSS
-** - Solutions Area CSS
-** - About Area CSS
-** - Our Mission Area CSS
-** - Boxes Area CSS
-** - Funfacts Area CSS
-** - What We Do Area CSS
-** - History Area CSS
-** - Services Area CSS
-** - Services Details Area CSS
-** - Featured Services Area CSS
-** - How It's Work Area CSS
-** - Courses Area CSS
-** - Courses Details Area CSS
-** - Why Choose Us Area CSS
-** - Case Study Area CSS
-** - Projects Area CSS
-** - CaseStudy/Projects Details Area CSS
-** - Scientist Area CSS
-** - Explore Learning Area CSS
-** - FAQ Area CSS
-** - Industries Serve Area CSS
-** - Gallery Area CSS
-** - Products Area CSS
-** - Products Details Area CSS
-** - Cart Area CSS
-** - Checkout Area CSS
-** - Upcoming Bootcamps Area CSS
-** - Events Area CSS
-** - Events Details Area CSS
-** - 404 Error Area CSS
-** - Testimonials Area CSS
-** - Partner Area CSS
-** - Blog Area CSS
-** - Blog Details Area CSS
-** - Project Start Area CSS
-** - Page Title Area CSS
-** - Pagination CSS
-** - Widget Sidebar CSS
-** - Profile Authentication Area CSS
-** - Coming Soon Area CSS
-** - Privacy Policy Area CSS
-** - Terms of Service Area CSS
-** - Purchase Guide Area CSS
-** - Membership Levels Area CSS
-** - Contact Area CSS
-** - Subscribe Area CSS
-** - Footer Area CSS
-** - Go Top CSS
-*/
-/*================================================
-Default CSS
-=================================================*/
 @import url("https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200;0,300;0,400;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,600;1,700;1,800;1,900&amp;display=swap");
 body {
   padding: 0;
@@ -12365,4 +12297,48 @@ Go Top CSS
   -webkit-transform: translateY(-5px);
           transform: translateY(-5px);
 }
+
+input[type="file"]::file-selector-button {
+  border: none;
+  position: relative;
+  display: inline-block;
+  text-align: center;
+  overflow: hidden;
+  z-index: 1;
+  color: #ffffff;
+  background-color: #102C57;
+  -webkit-transition: 0.5s;
+  transition: 0.5s;
+  border-radius: 5px;
+  cursor: pointer;
+  padding: 12px 25px 12px 25px;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+input[type="file"]::-ms-browse:hover {
+  color: #ffffff;
+  -webkit-box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+  /* -webkit-transform: translateY(-5px);
+  transform: translateY(-5px); */
+}
+
+input[type="file"]::-webkit-file-upload-button:hover {
+  color: #ffffff;
+  -webkit-box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+  /* -webkit-transform: translateY(-5px);
+  transform: translateY(-5px); */
+}
+
+input[type="file"]::file-selector-button:hover {
+  color: #ffffff;
+  -webkit-box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+  /* -webkit-transform: translateY(-5px);
+  transform: translateY(-5px); */
+}
+
+
 /*# sourceMappingURL=style.css.map */
