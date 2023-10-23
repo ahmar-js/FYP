@@ -158,13 +158,17 @@ $(document).ready(function () {
 
 // plotting plotly 3d scatter plot and chloropeths
 $(document).ready(function () {
-        function updateMaphp() {
+        // function updateMaphp() {
+        $('#dashboard_sidenav_form').submit(function (event) {
+        event.preventDefault();
+
         console.log("here")
         // Get the selected_dataset_id, selected_geo_id, and geodata_check from your form or wherever they are available.
         var selected_geo_idd = $('#Select_geodataframe').val();
         var selected_dataset_idd = $('#selectDataset').val()
+        var select_map = $('#select_map').val();
         // var selected_geo_id = $('#Select_geodataframe').val();
-        var geodata_checkk = true;
+        // var geodata_checkk = true;
         var select_hp_timely_mode = $('#select_hp_timely_mode').val();
 
         $.ajax({
@@ -173,7 +177,8 @@ $(document).ready(function () {
             data: {
                 selected_dataset_idd: selected_dataset_idd,
                 selected_geo_idd: selected_geo_idd,
-                geodata_checkk: geodata_checkk,
+                select_map: select_map,
+                // geodata_checkk: geodata_checkk,
                 select_hp_timely_mode: select_hp_timely_mode,
             },
             dataType: "json",
@@ -181,15 +186,22 @@ $(document).ready(function () {
                 if (data.message === "success") {
                     console.log(data);
                     if (select_hp_timely_mode == 'scatter'){
-                        var bubble = JSON.parse(data.json_response.plotly_chloro_fig_scatter);
+                        var bubble = JSON.parse(data.json_response_geo.plotly_chloro_fig_scatter);
                         Plotly.newPlot('plotly_chloropeth', bubble);
                     }
                     else{
-                        var chloro = JSON.parse(data.json_response.plotly_chloro_fig_chloro);
+                        var chloro = JSON.parse(data.json_response_geo.plotly_chloro_fig_chloro);
                         Plotly.newPlot('plotly_chloropeth', chloro);
                     }
-                    var hot3d = JSON.parse(data.json_response.fig);
+                    var hot3d = JSON.parse(data.json_response_geo.fig);
                     Plotly.newPlot('hotspot_growth_chart', hot3d);
+
+                    if (select_map === 'intensity'){
+                            $("#mapbox-container").html(data.json_response_folium.imap);
+                        }
+                    else{
+                        $("#mapbox-container").html(data.json_response_folium.dmap);
+                    }
                     
                     // Inject the map HTML into the map-container div.
                     // $("#mapbox-container").html(data.json_response.map);
@@ -201,11 +213,12 @@ $(document).ready(function () {
                 alert("An error occurred while fetching the map.");
             },
         });
-}
-$("#selectDataset").change(updateMaphp);
-$('#select_map').change(updateMaphp);
-$("#Select_geodataframe").change(updateMaphp);
-$("#select_hp_timely_mode").change(updateMaphp);
+// }
+    });
+// $("#selectDataset").change(updateMaphp);
+// $('#select_map').change(updateMaphp);
+// $("#Select_geodataframe").change(updateMaphp);
+// $("#select_hp_timely_mode").change(updateMaphp);
 });
 
 
@@ -369,4 +382,5 @@ $(document).ready(function () {
 
 
 });
+
 

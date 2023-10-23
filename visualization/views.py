@@ -510,44 +510,45 @@ def generate_plotly_chloropeth(long, lat, filtered, hover_data, gdf, size, date,
     return fig_check
 from django.core.exceptions import ObjectDoesNotExist
 #for df only
-def retrieve_column_names_df(request):
-    selected_dataset_id = request.GET.get('selected_dataset_id')
-    geodata_check = request.GET.get('geodata_check', False)
-    geodata_check = geodata_check.lower() == 'true'
-    select_map = request.GET.get('select_map', False)
-    if not geodata_check:
-        column_record = ConfigDashboard.objects.get(Q(U_df=selected_dataset_id) & Q(U_gdf__isnull=True))
+# def retrieve_column_names_df(request):
+#     selected_dataset_id = request.GET.get('selected_dataset_id')
+#     geodata_check = request.GET.get('geodata_check', False)
+#     geodata_check = geodata_check.lower() == 'true'
+#     select_map = request.GET.get('select_map', False)
+#     if not geodata_check:
+#         column_record = ConfigDashboard.objects.get(Q(U_df=selected_dataset_id) & Q(U_gdf__isnull=True))
 
 
-    selected_dataset = Uploaded_DataFrame.objects.get(id=selected_dataset_id)
-    if column_record is not None:
-        long = column_record.longitude
-        lat = column_record.latitude
-        filtered = column_record.filtered
-        date = column_record.date
-        hover_data = column_record.hover_data
-        size = column_record.size
+#     selected_dataset = Uploaded_DataFrame.objects.get(id=selected_dataset_id)
+#     if column_record is not None:
+#         long = column_record.longitude
+#         lat = column_record.latitude
+#         filtered = column_record.filtered
+#         date = column_record.date
+#         hover_data = column_record.hover_data
+#         size = column_record.size
 
-        # dataframe must be selected
-        selected_df_url = selected_dataset.file.url
-        if selected_df_url:
-            data = pd.read_csv('../FYP' + selected_df_url)
-            df = pd.DataFrame(data)
-            if select_map == 'intensity':
-                print("intensity")
-                df, map_html = generate_intensity_map(df, lat, date, long, filtered, hover_data, size)
-                json_response = {
-                    "imap": map_html,
-                }
-            else:
-                df, map_html = generate_folium_map(df, lat, date, long, filtered, hover_data, size)
-                json_response = {
-                    "dmap": map_html,
-                }
+#         # dataframe must be selected
+#         selected_df_url = selected_dataset.file.url
+#         if selected_df_url:
+#             data = pd.read_csv('../FYP' + selected_df_url)
+#             df = pd.DataFrame(data)
+#             if select_map == 'intensity':
+#                 print("intensity")
+#                 df, map_html = generate_intensity_map(df, lat, date, long, filtered, hover_data, size)
+#                 json_response = {
+#                     "imap": map_html,
+#                 }
+#             else:
+#                 df, map_html = generate_folium_map(df, lat, date, long, filtered, hover_data, size)
+#                 json_response = {
+#                     "dmap": map_html,
+#                 }
 
-            return JsonResponse({'message': 'success', 'json_response': json_response})
-    else:
-            return JsonResponse({'message': 'error', 'error': 'Selected DataFrame URL not found'})
+#             return JsonResponse({'message': 'success', 'json_response': json_response})
+#     else:
+#             return JsonResponse({'message': 'error', 'error': 'Selected DataFrame URL not found'})
+
 
 
 def generate_intensity_map(df, lat, date, long, filtered, hover_data, size):
@@ -589,17 +590,21 @@ def generate_intensity_map(df, lat, date, long, filtered, hover_data, size):
         ).add_to(district_map)
 
     return data, district_map._repr_html_()
+
 #for df and gdf
 def retrieve_column_names(request):
+    select_map = request.GET.get('select_map', None)
     selected_dataset_id = request.GET.get('selected_dataset_idd')
     selected_geo_id = request.GET.get('selected_geo_idd')
     geodata_check = request.GET.get('geodata_checkk', False)
-    geodata_check = geodata_check.lower() == 'true'
+    # geodata_check = geodata_check.lower() == 'true'
     selecthp_timely = request.GET.get('select_hp_timely_mode', None)
     # date_column = request.GET.get('date_column')
-    selected_geodataset = None
+    print(selected_geo_id)
+    # selected_geodataset = None
     try:
-        if not geodata_check:
+        if selected_geo_id == '':
+            print("yolo v4")
             column_record = ConfigDashboard.objects.get(Q(U_df=selected_dataset_id) & Q(U_gdf__isnull=True))
         else:
             column_record = ConfigDashboard.objects.get(U_df=selected_dataset_id, U_gdf=selected_geo_id)
@@ -618,7 +623,28 @@ def retrieve_column_names(request):
         size = column_record.size
         color = column_record.color
 
-            #when hotspot dataframe is selected
+        if selected_dataset is not None:
+           # dataframe must be selected
+            selected_df_url = selected_dataset.file.url
+            if selected_df_url:
+                data = pd.read_csv('../FYP' + selected_df_url)
+                df = pd.DataFrame(data)
+                if select_map == 'intensity':
+                    print("intensity")
+                    df, map_html = generate_intensity_map(df, lat, date, long, filtered, hover_data, size)
+                    json_response_folium = {
+                        "imap": map_html,
+                    }
+                else:
+                    df, map_html = generate_folium_map(df, lat, date, long, filtered, hover_data, size)
+                    json_response_folium = {
+                        "dmap": map_html,
+                    }
+            #    map_html = make_folium_map(selected_dataset, select_map, lat, date, long, filtered, hover_data, size)
+            else:
+                return JsonResponse({'message': 'error', 'error': 'Selected dataset not found'})
+
+        #when hotspot dataframe is selected
         if selected_geodataset is not None:
             print("ahmer aamir")
             selected_gdf_url = selected_geodataset.file.url
@@ -628,30 +654,33 @@ def retrieve_column_names(request):
                 fig = generate_plotly_3d_scatter(long, lat, filtered, hover_data, gdf, size, date, color)
                 if selecthp_timely == 'scatter':
                     plotly_chloro_fig = generateBubbleScatter(long, lat, filtered, hover_data, gdf, size, date, color)
-                    json_response = {
+                    json_response_geo = {
                         'fig':fig.to_json(),
                         'plotly_chloro_fig_scatter':plotly_chloro_fig.to_json(),
+                        'folium': map_html,
                     }
                 else:
                     plotly_chloro_fig = generate_plotly_chloropeth(long, lat, filtered, hover_data, gdf, size, date, color)
-                    json_response = {
+                    json_response_geo = {
                         'fig':fig.to_json(),
                         'plotly_chloro_fig_chloro':plotly_chloro_fig.to_json(),
+                        'folium': map_html,
+
                     }
 
 
             else:
-                return JsonResponse({'message': 'error', 'error': 'Selected GeoDataFrame URL not found'})
+                return JsonResponse({'message': 'error', 'error': 'Selected GeoDataFrame not found'})
 
 
                 
 
-            return JsonResponse({'message': 'success', 'json_response': json_response})
+            return JsonResponse({'message': 'success', 'json_response_geo': json_response_geo, 'json_response_folium': json_response_folium})
         
 
 
     else:
-        return JsonResponse({'message': 'error', 'error': 'ConfigDashboard record not found.'})
+        return JsonResponse({'message': 'error', 'error': 'Record not found.'})
 
 
     
@@ -748,6 +777,7 @@ def save_dataframe_to_database(request, df, name):
 
 
     return HttpResponse("CSV file uploaded to the database successfully.")
+
 
 def save_forecasts_dataframe_to_db(request, df, name, filtered_by_val=[], period=None, freq=None, fb_model=None, arima_model=None):
     # Generate a timestamp to append to the filename

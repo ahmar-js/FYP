@@ -1,12 +1,11 @@
 import warnings
-
 # Filter out specific warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", message=".*The 'nopython' keyword.*")
 import re
 import zipfile
-
+import pickle
 from pmdarima import auto_arima
 
 from django.contrib.auth.models import User
@@ -545,7 +544,19 @@ def upload_file(request):
 
 
 
-
+def save_data_to_database(request):
+    if request.method == 'POST' and 'save_db' in request.POST:
+        print("yo")
+        json_data = request.session.get('data_frame')
+        if json_data is not None:
+            df = json_to_dataframe(json_data)
+            uploaded_file_name = request.session.get('uploaded_file_name')
+            save_dataframe_to_database(request, df, uploaded_file_name)
+            response_data = {'message': 'Data saved successfully'}
+            return JsonResponse(response_data)
+    else:
+        response_data = {'error': 'Invalid request'}
+        return JsonResponse(response_data, status=400)
 
 
 

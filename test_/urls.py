@@ -29,6 +29,8 @@ urlpatterns = [
     path('export_arima_results/', app_views.export_arima_results, name='export_arima_results'),
     path('handle_data_type_conversion/', app_views.handle_data_type_conversion, name='handle_data_type_conversion'),
     path('handle_coordinate_system_conversion/', app_views.handle_coordinate_system_conversion, name='handle_coordinate_system_conversion'),
+    path('save_data_to_database/', app_views.save_data_to_database, name='save_data_to_database'),
+
 
 
     #visualization
@@ -37,9 +39,10 @@ urlpatterns = [
     # path('get_column_names/', viz_views.get_column_names, name='get_column_names'),
     path('Geodatafileselection/', viz_views.Geodatafileselection, name='Geodatafileselection'),
     path('retrieve_column_names/', viz_views.retrieve_column_names, name='retrieve_column_names'),
-    path('retrieve_column_names_df/', viz_views.retrieve_column_names_df, name='retrieve_column_names_df'),
+    # path('retrieve_column_names_df/', viz_views.retrieve_column_names_df, name='retrieve_column_names_df'),
     path('get_prophet_results/', viz_views.get_prophet_results, name='get_prophet_results'),
     path('get_arima_results/', viz_views.get_arima_results, name='get_arima_results'),
+    
     
     
     

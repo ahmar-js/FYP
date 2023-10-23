@@ -995,3 +995,39 @@ $(document).ready(function() {
         });
     });
 });
+
+
+
+$(document).ready(function () {
+    $('#save_initail_dataset_form').submit(function (event) {
+        console.log("debugging");
+        event.preventDefault();
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        var save_db = $('#save_db_btn').val();
+
+        $.ajax({
+            headers: { 'X-CSRFToken': csrftoken },
+            type: 'POST',
+            url: '/save_data_to_database/',
+            data: {
+                save_db:save_db,
+            },
+            success: function (data) {
+                if (data.error) {
+                    // Handle the error
+                    alert(data.error);
+                } else {
+                    // Data saved successfully, you can update the page or show a message
+                    $('#hotspot_tab_link').removeClass('disabled');
+                    $('#modeling_tab_ink').removeClass('disabled');
+                    
+                    alert(data.message);
+                }
+            },
+            error: function (xhr, status, error) {
+                // Handle the AJAX error
+                console.log(xhr.responseText);
+            }
+        });
+    });
+});

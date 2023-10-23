@@ -13,7 +13,7 @@
                         <div class="save_to_db_btn m-1">
                             <form class="form" action="" method="post" id="save_initail_dataset_form" name="save_initail_dataset_form">
                                 {% csrf_token %}
-                                <input type="hidden" name="save_db" value="true">
+                                <input type="hidden" id="save_db_btn" name="save_db" value="true">
                                 <button type="submit" class="btn btn-sm btn-success rounded"><i class="fa-solid fa-cloud-arrow-up me-1"></i>Save</button>
 
                                 <!-- <input type="submit" class="btn btn-sm btn-success rounded" value="Save" class="btn btn-sm"> -->
