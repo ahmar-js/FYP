@@ -110,50 +110,50 @@ $(document).ready(function () {
 
 // // plot folium datapoints
 
-$(document).ready(function () {
-    function updateMap() {
-        var selected_dataset_id = $("#selectDataset").val();
-        var selected_geo_id = $('#Select_geodataframe').val();
-        var select_map = $('#select_map').val();
-        var geodata_check = false;
+// $(document).ready(function () {
+//     function updateMap() {
+//         var selected_dataset_id = $("#selectDataset").val();
+//         var selected_geo_id = $('#Select_geodataframe').val();
+//         var select_map = $('#select_map').val();
+//         var geodata_check = false;
 
-        $.ajax({
-            type: "GET",
-            url: "/retrieve_column_names_df/", 
-            data: {
-                selected_dataset_id: selected_dataset_id,
-                selected_geo_id: selected_geo_id,
-                geodata_check: geodata_check,
-                select_map: select_map,
-            },
-            dataType: "json",
-            success: function (data) {
-                if (data.message === "success") {
-                    console.log(data);
-                    // Inject the map HTML into the map-container div.
-                    if (select_map === 'intensity'){
-                        $("#mapbox-container").html(data.json_response.imap);
-                    }
-                    else{
-                        $("#mapbox-container").html(data.json_response.dmap);
-                    }
-                } else {
-                    alert("Error: " + data.error);
-                }
-            },
-            error: function () {
-                alert("An error occurred while fetching the map.");
-            },
-        });
-    }
-    // Listen for changes in the dataset selection
-    $("#selectDataset").change(updateMap);
-    // Listen for changes in the geo column selection
-    $('#select_map').change(updateMap);
+//         $.ajax({
+//             type: "GET",
+//             url: "/retrieve_column_names_df/", 
+//             data: {
+//                 selected_dataset_id: selected_dataset_id,
+//                 selected_geo_id: selected_geo_id,
+//                 geodata_check: geodata_check,
+//                 select_map: select_map,
+//             },
+//             dataType: "json",
+//             success: function (data) {
+//                 if (data.message === "success") {
+//                     console.log(data);
+//                     // Inject the map HTML into the map-container div.
+//                     if (select_map === 'intensity'){
+//                         $("#mapbox-container").html(data.json_response.imap);
+//                     }
+//                     else{
+//                         $("#mapbox-container").html(data.json_response.dmap);
+//                     }
+//                 } else {
+//                     alert("Error: " + data.error);
+//                 }
+//             },
+//             error: function () {
+//                 alert("An error occurred while fetching the map.");
+//             },
+//         });
+//     }
+//     // Listen for changes in the dataset selection
+//     $("#selectDataset").change(updateMap);
+//     // Listen for changes in the geo column selection
+//     $('#select_map').change(updateMap);
 
-    // Call updateMap initially to load the initial map
-    // updateMap();
-});
+//     // Call updateMap initially to load the initial map
+//     // updateMap();
+// });
 
 
 // plotting plotly 3d scatter plot and chloropeths
@@ -202,6 +202,8 @@ $(document).ready(function () {
             },
         });
 }
+$("#selectDataset").change(updateMaphp);
+$('#select_map').change(updateMaphp);
 $("#Select_geodataframe").change(updateMaphp);
 $("#select_hp_timely_mode").change(updateMaphp);
 });
@@ -317,11 +319,11 @@ $(document).ready(function () {
         // Clear existing options
         $('#select_filtered_col, #select_color_col, #select_location_col, #select_hover_data_col, #select_date').empty()
         // Add a default disabled option
-        $('#select_filtered_col').append('<option selected disabled value="">Select Long</option>');
-        $('#select_color_col').append('<option selected disabled value="">Select Lat</option>');
-        $('#select_location_col').append('<option selected disabled value="">Select size</option>');
-        $('#select_hover_data_col').append('<option selected disabled value="">Select size</option>');
-        $('#select_date').append('<option selected disabled value="">Select size</option>');
+        $('#select_filtered_col').append('<option selected disabled value="">Select filter column</option>');
+        $('#select_color_col').append('<option selected disabled value="">Select categorical</option>');
+        $('#select_location_col').append('<option selected disabled value="">Select location attribute</option>');
+        $('#select_hover_data_col').append('<option selected disabled value="">Select feature to hover</option>');
+        $('#select_date').append('<option selected disabled value="">Select date</option>');
 
 
         // Add columns as options

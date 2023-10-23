@@ -508,7 +508,7 @@ def generate_plotly_chloropeth(long, lat, filtered, hover_data, gdf, size, date,
                     # title="Analysis on 5 Neighbors",
                     opacity=1)
     return fig_check
-
+from django.core.exceptions import ObjectDoesNotExist
 #for df only
 def retrieve_column_names_df(request):
     selected_dataset_id = request.GET.get('selected_dataset_id')
@@ -517,6 +517,8 @@ def retrieve_column_names_df(request):
     select_map = request.GET.get('select_map', False)
     if not geodata_check:
         column_record = ConfigDashboard.objects.get(Q(U_df=selected_dataset_id) & Q(U_gdf__isnull=True))
+
+
     selected_dataset = Uploaded_DataFrame.objects.get(id=selected_dataset_id)
     if column_record is not None:
         long = column_record.longitude

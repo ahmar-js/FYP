@@ -1,14 +1,14 @@
-import pickle
-import re
 import warnings
-import zipfile
-import joblib
 
-from pmdarima import auto_arima
 # Filter out specific warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", message=".*The 'nopython' keyword.*")
+import re
+import zipfile
+
+from pmdarima import auto_arima
+
 from django.contrib.auth.models import User
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required

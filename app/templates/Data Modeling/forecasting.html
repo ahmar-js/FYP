@@ -132,26 +132,26 @@
                                             <div class="start_p col-lg-3 col-md-6 col-12">
                                                     <label for="start_p" class="form-label">Start p (autoregressive term)</label>
                                                     <input type="number" class="form-control form-control-sm" min="0" max="10" name="start_p" id="start_p"
-                                                        aria-describedby="start_p" placeholder="0" disabled>
+                                                        aria-describedby="start_p" placeholder="0" required disabled>
                                                     <small id="start_p" class="form-text text-muted">Number of AR (non-seasonal) terms between 0 and 10</small>
                                             </div>
                                             <div class="start_q col-lg-3 col-md-6 col-12">
                                                     <label for="start_q" class="form-label">Start q (lagged forecast errors)</label>
                                                     <input type="number" class="form-control form-control-sm" min="0" max="10" name="start_q" id="start_q"
-                                                        aria-describedby="start_q" placeholder="0" disabled>
+                                                        aria-describedby="start_q" placeholder="0" required disabled>
                                                     <small id="start_q" class="form-text text-muted">Number of MA (non-seasonal) terms between 0 and 10</small>
                                             </div>
                                             <div class="start_P col-lg-3 col-md-6 col-12">
                                             <label for="start_P" class="form-label">Start P (seasonal AR)</label>
                                             <input type="number" class="form-control form-control-sm" min="0" max="10" name="start_P" id="start_P"
-                                                aria-describedby="start_P" placeholder="0" disabled>
+                                                aria-describedby="start_P" placeholder="0" required disabled>
                                             <small id="start_P" class="form-text text-muted">AR (seasonal) value between 0 and 10</small>
                                     </div>
                 
                                     <div class="start_Q col-lg-3 col-md-6 col-12">
                                             <label for="start_Q" class="form-label">Start Q (seasonal MA)</label>
                                             <input type="number" class="form-control form-control-sm" min="0" max="10" name="start_Q" id="start_Q"
-                                                aria-describedby="start_Q" placeholder="0" disabled>
+                                                aria-describedby="start_Q" placeholder="0" required disabled>
                                             <small id="start_Q" class="form-text text-muted">MA (seasonal) value between 0 and 10</small>
                                     </div>
                                 </div>
@@ -160,7 +160,7 @@
                                     <div class="d col-lg-3 col-md-6 col-12">
                                             <label for="d" class="form-label">Integrated order (d)</label>
                                             <input type="number" class="form-control form-control-sm" min="0" max="3" name="d" id="d"
-                                                aria-describedby="d" placeholder="1" disabled>
+                                                aria-describedby="d" placeholder="1" required disabled>
                                             <small id="d" class="form-text text-muted">Integrated order between 0 and 3</small>
                                     </div>
 
@@ -168,7 +168,7 @@
                                         <div class="mb-3">
                                             <label for="end_p" class="form-label">End p (autoregressive terms)</label>
                                             <input type="number" class="form-control form-control-sm" min="0" max="10" name="end_p" id="end_p"
-                                                aria-describedby="end_p" placeholder="5" disabled>
+                                                aria-describedby="end_p" placeholder="5" required disabled>
                                             <small id="end_p" class="form-text text-muted">End p (non-seasonal) value between 0 and 10</small>
                                         </div>
                                     </div>
@@ -176,7 +176,7 @@
                                         <div class="mb-3">
                                             <label for="end_P" class="form-label">End P (Seasonal AR)</label>
                                             <input type="number" class="form-control form-control-sm" min="0" max="10" name="end_P" id="end_P"
-                                                aria-describedby="end_P" placeholder="3" disabled>
+                                                aria-describedby="end_P" placeholder="3" required disabled>
                                             <small id="end_P" class="form-text text-muted">End P (seasonal) value between 0 and 10</small>
                                         </div>
                                     </div>
@@ -184,7 +184,7 @@
                                         <div class="mb-3">
                                             <label for="end_q" class="form-label">End q (Seasonal MA)</label>
                                             <input type="number" class="form-control form-control-sm" min="0" max="10" name="end_q" id="end_q"
-                                                aria-describedby="end_q" placeholder="5" disabled>
+                                                aria-describedby="end_q" placeholder="5" required disabled>
                                             <small id="end_q" class="form-text text-muted">End q (non-seasonal) value between 0 and 10</small>
                                         </div>
                                     </div>
@@ -194,7 +194,7 @@
                                         <div class="mb-3">
                                             <label for="end_Q" class="form-label">End Q (Seasonal MA)</label>
                                             <input type="number" class="form-control form-control-sm" min="0" max="10" name="end_Q" id="end_Q"
-                                                aria-describedby="end_Q" placeholder="5" disabled>
+                                                aria-describedby="end_Q" placeholder="5" required disabled>
                                             <small id="end_Q" class="form-text text-muted">End Q (seasonal) value between 0 and 10</small>
                                         </div>
                                     </div>
@@ -202,7 +202,7 @@
                                         <div class="mb-3">
                                             <label for="m" class="form-label">Seasonal Periods (m)</label>
                                             <input type="number" class="form-control form-control-sm" min="0" max="365" name="m" id="m"
-                                                aria-describedby="m" placeholder="24 for daily seasonality" disabled>
+                                                aria-describedby="m" placeholder="24 for daily seasonality" required disabled>
                                             <small id="m" class="form-text text-muted">Number of seasonal periods 0-365</small>
                                         </div>
                                     </div>
@@ -210,7 +210,7 @@
                                         <div class="mb-3">
                                             <label for="D" class="form-label">Integrated order (D)</label>
                                             <input type="number" class="form-control form-control-sm" min="0" max="3"  name="D" id="D"
-                                                aria-describedby="D" placeholder="2" min="0" max="3" disabled>
+                                                aria-describedby="D" placeholder="2" min="0" max="3" required disabled>
                                             <small id="D" class="form-text text-muted">Integrated order between 0 and 3</small>
                                         </div>
                                     </div>
@@ -331,7 +331,7 @@
             <form action="" method="post" id="save_fb_to_db_form">
                 {% csrf_token %}
                 <input type="hidden" name="save_db_arima" value="true">
-                <input type="submit" value="Save" id="save_arima_db" class="btn btn-success" disabled>
+                <input type="submit" value="Save" id="save_arima_db" class="btn btn-success">
             </form>
         </div>
         </div>
