@@ -13,10 +13,18 @@
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
               <div class="me-2">
-                <form action="" method="post" id="save_fb_to_db_form">
+                <!-- <form action="" method="post" id="save_fb_to_db_form">
                     {% csrf_token %}
                     <input type="hidden" name="save_db_prophet" value="true">
                     <input type="submit" value="Save" id="save_fb_db" class="btn btn-success">
+                </form> -->
+                <form action="" method="post" id="save_fb_to_db_form">
+                    {% csrf_token %}
+                    <input type="hidden" name="save_db_prophet" value="true">
+                    <button type="submit" id="save_fb_db" class="btn btn-success">
+                        Save
+                        <span id="save-spinner-fb" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                    </button>
                 </form>
             </div>
             </div>

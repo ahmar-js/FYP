@@ -486,7 +486,7 @@ $(document).ready(function () {
     function reloadPageWithSpinner(response) {
         // Show the loading spinner before reloading the page
         showLoadingSpinner('#loading-spinner-preview-gdf');
-        window.location.reload();
+        // window.location.reload();
         showAlert('success', response.message, '#geodataframe-alert-container');
 
     }
@@ -575,6 +575,10 @@ $(document).ready(function () {
                 star_parameter: starParameter,
             },
             success: function (response) {
+                console.log(response)
+                if (response.error) {
+                    showAlert('danger', response.error, '#gistar-alert-container');
+                }
                 // Handle the response, e.g., display results
                 console.log(response.json_response);
                 var uniqueBins = JSON.parse(response.json_response.unique_bins);
@@ -976,26 +980,6 @@ $(document).ready(function () {
 
 
 
-$(document).ready(function() {
-    $("#download-pdf-btn").on("click", function() {
-        $.ajax({
-            type: 'GET',
-            url: '/download_geodata/',
-            success: function(data) {
-                // Trigger a download of the PDF.
-                // var blob = new Blob([data], { type: 'application/pdf' });
-                // var link = document.createElement('a');
-                // link.href = window.URL.createObjectURL(blob);
-                // link.download = 'report.pdf';
-                // link.click();
-            },
-            error: function(error){
-                console.log("Error");
-            }
-        });
-    });
-});
-
 
 
 $(document).ready(function () {
@@ -1004,6 +988,10 @@ $(document).ready(function () {
         event.preventDefault();
         const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
         var save_db = $('#save_db_btn').val();
+
+        $('#save-spinner-initial').removeClass('d-none');
+        $('#preview_body').css('pointer-events', 'none');
+        $('#save_db_btn').prop('disabled', true);
 
         $.ajax({
             headers: { 'X-CSRFToken': csrftoken },
@@ -1017,7 +1005,6 @@ $(document).ready(function () {
                     // Handle the error
                     alert(data.error);
                 } else {
-                    // Data saved successfully, you can update the page or show a message
                     $('#hotspot_tab_link').removeClass('disabled');
                     $('#modeling_tab_ink').removeClass('disabled');
                     
@@ -1027,7 +1014,144 @@ $(document).ready(function () {
             error: function (xhr, status, error) {
                 // Handle the AJAX error
                 console.log(xhr.responseText);
+            },
+            complete: function () {
+                // Hide the spinner after the request is complete (whether successful or not) and enable the button
+                $('#save-spinner-initial').addClass('d-none');
+                $('#preview_body').css('pointer-events', 'auto'); 
+                $('#save_db_btn').prop('disabled', false);// Enable button interaction
+
+            }
+        });
+    });
+
+    $('#save_hotspot_to_db_form').submit(function (event) {
+        event.preventDefault();
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        var save_db_hotspot = $('#hotspot_save').val();
+    
+        // Show the spinner and disable the pointer event
+        $('#save-spinner').removeClass('d-none');
+        $('#preview_body').css('pointer-events', 'none');
+        $('#hotspot_save').prop('disabled', true);
+    
+        $.ajax({
+            headers: { 'X-CSRFToken': csrftoken },
+            type: 'POST',
+            url: '/save_geodata_to_database/',
+            data: {
+                save_db_hotspot: save_db_hotspot,
+            },
+            success: function (data) {
+                if (data.error) {
+                    // Handle the error
+                    alert(data.error);
+                } else {
+                    $('#hotspot_tab_link').removeClass('disabled');
+                    $('#modeling_tab_ink').removeClass('disabled');
+                    alert(data.message);
+                }
+            },
+            error: function (xhr, status, error) {
+                // Handle the AJAX error
+                console.log(xhr.responseText);
+            },
+            complete: function () {
+                // Hide the spinner after the request is complete (whether successful or not) and enable the button
+                $('#save-spinner').addClass('d-none');
+                $('#preview_body').css('pointer-events', 'auto'); 
+                $('#hotspot_save').prop('disabled', false);// Enable button interaction
+                $('#save_hotspot_modal').modal('hide');
+            }
+        });
+    });
+
+
+    $('#save_fb_to_db_form').submit(function (event) {
+        event.preventDefault();
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        var save_db_prophet = $('#save_fb_db').val();
+    
+        // Show the spinner and disable the pointer event
+        $('#save-spinner-fb').removeClass('d-none');
+        $('#preview_body').css('pointer-events', 'none');
+        $('#save_fb_db').prop('disabled', true);
+    
+        $.ajax({
+            headers: { 'X-CSRFToken': csrftoken },
+            type: 'POST',
+            url: '/save_fb_to_database/',
+            data: {
+                save_db_prophet: save_db_prophet,
+            },
+            success: function (data) {
+                if (data.error) {
+                    // Handle the error
+                    alert(data.error);
+                } else {
+                    $('#hotspot_tab_link').removeClass('disabled');
+                    $('#modeling_tab_ink').removeClass('disabled');
+                    alert(data.message);
+                }
+            },
+            error: function (xhr, status, error) {
+                // Handle the AJAX error
+                console.log(xhr.responseText);
+            },
+            complete: function () {
+                // Hide the spinner after the request is complete (whether successful or not) and enable the button
+                $('#save-spinner-fb').addClass('d-none');
+                $('#preview_body').css('pointer-events', 'auto'); 
+                $('#save_fb_db').prop('disabled', false);// Enable button interaction
+                $('#fbprop_save_cnfrm_btn_modal').modal('hide');
+                
+
+            }
+        });
+    });
+    
+
+    $('#save_arima_to_db_form').submit(function (event) {
+        event.preventDefault();
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        var save_db_arima = $('#save_arima_db').val();
+    
+        // Show the spinner and disable the pointer event
+        $('#save-spinner-arima').removeClass('d-none');
+        $('#preview_body').css('pointer-events', 'none');
+        $('#save_arima_db').prop('disabled', true);
+    
+        $.ajax({
+            headers: { 'X-CSRFToken': csrftoken },
+            type: 'POST',
+            url: '/save_arima_to_database/',
+            data: {
+                save_db_arima: save_db_arima,
+            },
+            success: function (data) {
+                if (data.error) {
+                    // Handle the error
+                    alert(data.error);
+                } else {
+                    $('#hotspot_tab_link').removeClass('disabled');
+                    $('#modeling_tab_ink').removeClass('disabled');
+                    alert(data.message);
+                }
+            },
+            error: function (xhr, status, error) {
+                // Handle the AJAX error
+                console.log(xhr.responseText);
+            },
+            complete: function () {
+                // Hide the spinner after the request is complete (whether successful or not) and enable the button
+                $('#save-spinner-arima').addClass('d-none');
+                $('#preview_body').css('pointer-events', 'auto'); 
+                $('#save_arima_db').prop('disabled', false);// Enable button interaction
+                $('#arima_save_cnfrm_btn_modal').modal('hide');
+                
+
             }
         });
     });
 });
+

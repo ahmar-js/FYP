@@ -187,16 +187,16 @@
                                         <h4 class="card-title">Preview Data</h4>
                                     </div>
                                     <div class="preview_data_card_body">
-                                            <div class="title">
+                                            <!-- <div class="title">
                                                 <div class="d-flex align-items-center">
                                                 <div id="Loading" class="d-none text-success"><h2>Loading...</h2></div>
-                                                <div class="ms-2"><!-- Spinner for loading indicator -->
+                                                <div class="ms-2">
                                                     <div id="loading-spinner-preview-gdf" class="d-none spinner-border spinner-border-sm text-dark" role="status">
                                                         <span class="visually-hidden">Loading...</span>
                                                     </div>
                                                 </div>
                                             </div>
-                                            </div>
+                                            </div> -->
                                             <div class="geodataframe mt-3">
                                                 <div class="text">
                                                     <p class="text text-muted">Showing top 5 records</p>
@@ -252,11 +252,21 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
           <div class="me-2">
-            <form action="" method="post" id="save_hotspot_to_db_form">
+            <!-- <form action="" method="post" id="save_hotspot_to_db_form">
                 {% csrf_token %}
                 <input type="hidden" name="save_db_hotspot" value="true">
                 <input type="submit" value="Save" id="hotspot_save" class="btn btn-success">
+            </form> -->
+            <form action="" method="post" id="save_hotspot_to_db_form">
+                {% csrf_token %}
+                <input type="hidden" name="save_db_hotspot" value="true">
+                <button type="submit" id="hotspot_save" class="btn btn-success">
+                    Save
+                    <span id="save-spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                </button>
             </form>
+            
+            
         </div>
         </div>
       </div>

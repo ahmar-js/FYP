@@ -30,6 +30,9 @@ urlpatterns = [
     path('handle_data_type_conversion/', app_views.handle_data_type_conversion, name='handle_data_type_conversion'),
     path('handle_coordinate_system_conversion/', app_views.handle_coordinate_system_conversion, name='handle_coordinate_system_conversion'),
     path('save_data_to_database/', app_views.save_data_to_database, name='save_data_to_database'),
+    path('save_geodata_to_database/', app_views.save_geodata_to_database, name='save_geodata_to_database'),
+    path('save_fb_to_database/', app_views.save_fb_to_database, name='save_fb_to_database'),
+    path('save_arima_to_database/', app_views.save_arima_to_database, name='save_arima_to_database'),
 
 
 

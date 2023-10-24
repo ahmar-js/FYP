@@ -124,12 +124,13 @@
                             <form method="POST" enctype="multipart/form-data">
                             {% csrf_token %}
                             <div class="btn-box">
-                                <input type="file" name="csv_file" accept=".csv" class="wow fadeInRight" data-wow-delay="200ms" data-wow-duration="1000ms">
+                                <input type="file" name="csv_file" id="upload_file_field" accept=".csv" class="wow fadeInRight" data-wow-delay="200ms" data-wow-duration="1000ms">
                                 <button type="submit" class="default-btn wow fadeInLeft " data-wow-delay="300ms" data-wow-duration="1000ms"><i class="fa-solid fa-cloud-arrow-up" style="margin-right: 5px;"></i>Upload</button>
                             </div>
                         </form>
                         </div>
                     </div>
+                    
                     <!-- <form method="post" enctype="multipart/form-data">
                         {% csrf_token %}
                         <input type="file" name="csv_file" accept=".csv">
@@ -386,6 +387,19 @@
         <script src="../static/assets/js/contact-form-script.js"></script>
         <script src="../static/assets/js/ajaxchimp.min.js"></script>
         <script src="../static/assets/js/main.js"></script>
+        <script>
+            const fileInput = document.getElementById("upload_file_field");
+    
+            fileInput.addEventListener("change", function () {
+                const fileSize = this.files[0].size; // Get the size of the selected file in bytes
+                const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+    
+                if (fileSize > maxSize) {
+                    alert("File size exceeds 10MB. Please select a smaller file.");
+                    this.value = null; // Clear the file input
+                }
+            });
+        </script>
     </body>
 
 <!-- Mirrored from templates.envytheme.com/tracer/default/index-2.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 14 Oct 2020 13:20:55 GMT -->

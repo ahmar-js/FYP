@@ -163,6 +163,10 @@ def upload_file(request):
         if json_data:
             df = json_to_dataframe(json_data)
             request.session['data_frame'] = dataframe_to_json(df)
+        json_geodata = request.session.get('geodata_frame')
+        if json_geodata:
+            del request.session['geodata_frame']
+
 
 
     # Get DataFrame from session or redirect back to the upload view
@@ -557,6 +561,79 @@ def save_data_to_database(request):
     else:
         response_data = {'error': 'Invalid request'}
         return JsonResponse(response_data, status=400)
+    
+# I am making ajax call for saving geodata to database and 
+def save_geodata_to_database(request):
+    if request.method == 'POST' and 'save_db_hotspot' in request.POST:
+        json_geodata = request.session.get('geodata_frame')
+        if json_geodata is None:
+            return JsonResponse({'error': 'Cannot save empty geodata file'})
+        else:
+            gdf = json_to_geodataframe(json_geodata)
+            file_name = 'Hotspot_Analysis_File.csv'
+            save_dataframe_to_database(request, gdf, file_name)
+            return JsonResponse({'message': 'GeoData saved successfully'})
+    else:
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+    
+
+def save_fb_to_database(request):
+    if request.method=='POST' and 'save_db_prophet' in request.POST:
+        json_fb_forecasted = request.session.get('fb_forcasted_df')
+        fb_period = request.session.get('forecasted_period_fb', None)
+        fb_freq = request.session.get('forecasted_freq_fb', None)
+        fb_model = request.session.get('prophet_model', None)
+        if json_fb_forecasted is not None and fb_model is not None:
+            fbforecasteddf = json_to_dataframe(json_fb_forecasted)
+            file_name = 'FB_Forecasts_File'
+            selected_filteration = request.session.get('selected_filteration_fb', [])
+            print("fb", selected_filteration)
+            # Define a dictionary to map fb_freq values to mode values
+            freq_to_mode = {
+                'A': 'years',
+                'Q': 'Quarters',
+                'M': 'Months',
+                'W': 'Weeks',
+                'D': 'Days',
+                'H': 'Hours',
+                'T': 'Minutes',
+                'S': 'Seconds',
+                'L': 'Milliseconds',
+                'U': 'Microseconds',
+                'N': 'Nanoseconds',
+            }
+            if fb_period is not None and fb_freq is not None and fb_freq in freq_to_mode:
+                mode = freq_to_mode[fb_freq]
+                f_per = int(fb_period)
+            else:
+                mode = None  
+                f_per = 0
+            save_forecasts_dataframe_to_db(request, fbforecasteddf, file_name, selected_filteration, f_per, mode, fb_model=fb_model)
+            # messages.success(request, 'Saved Successfully')
+            return JsonResponse({'message': 'Saved Successfully'})
+    else:
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+
+def save_arima_to_database(request):
+    if 'save_db_arima' in request.POST and request.method=='POST':
+        json_arima_forecasted = request.session.get('arima_forecasts', None)
+        if json_arima_forecasted is not None:
+            arimaforecasteddf = json_to_dataframe(json_arima_forecasted)
+            file_name = 'AR_MA_Forecasts_File'
+            selected_filteration = request.session.get('selected_fileration_arima', [])
+            forecasting_period = request.session.get('arima_forecasting_period')
+            arima_results = request.session.get('arima_result', None)
+            print(arima_results)
+            save_forecasts_dataframe_to_db(request, arimaforecasteddf, file_name, selected_filteration, forecasting_period, arima_model=arima_results)
+            return JsonResponse({'message': 'Saved Successfully'})
+
+        else:
+            return JsonResponse({'error': 'No forecasts to save data'})
+    else:
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+    
+    # if 'save_db_hotspot' in request.POST:
+                
 
 
 
@@ -1317,6 +1394,10 @@ def getis_ord_gi_hotspot_analysis(request):
     gdf = json_to_geodataframe(json_geodata)
 
     if request.method == 'POST':
+        if 'geometry' in gdf.columns and isinstance(gdf['geometry'], gpd.GeoSeries):
+            pass
+        else:
+            return JsonResponse({'error': 'Convert the dataframe into GeoSeries'})
         selected_k_val = request.POST.get('K_val', None)
         selected_gi_feature = request.POST.get('select_gi_feature', None)
         # select_star_parameter = request.POST.get('select_star_parameter', False)
@@ -1354,7 +1435,7 @@ def getis_ord_gi_hotspot_analysis(request):
         # Calculate statistics using pandas
         stats = subset_gdf.describe().to_html(classes='table table-hover table-bordered table-striped')
 
-        geodataframe_html = preview_geodataframe.to_html(classes='table table-dark fade-out table-bordered') 
+        geodataframe_html = preview_geodataframe.to_html(classes='table table-light fade-out table-bordered') 
         analysis_results = f"Selected K Value: <b>{selected_k_val}</b><br>Selected Feature: <b>{selected_gi_feature}</b></br>Star Parameter: <b>{star_parameter}</b><br>"
 
         json_response = {
