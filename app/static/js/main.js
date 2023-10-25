@@ -493,6 +493,11 @@ $(document).ready(function () {
     // Handle GeoDataFrame conversion form submission
     $('#geodata-conversion-form').submit(function (event) {
         event.preventDefault();
+        // conv-spinner-geodata
+        $('#conv-spinner-geodata').removeClass('d-none');
+        $('#preview_body').css('pointer-events', 'none');
+        $('#convert_geodata_btn').prop('disabled', true);
+
 
         // Show the loading spinner when the request starts
         // showLoadingSpinner();
@@ -540,16 +545,29 @@ $(document).ready(function () {
                 else if (response.error) {
                     // Show error message
                     showAlert('danger', response.error, '#geodataframe-alert-container');
+                    $('#conv-spinner-geodata').addClass('d-none');
+                    $('#preview_body').css('pointer-events', 'auto'); 
+                    $('#convert_geodata_btn').prop('disabled', false);// Enable button interaction
                 } else {
                     showAlert('danger', 'An error occurred during conversion.', '#geodataframe-alert-container');
+                    $('#conv-spinner-geodata').addClass('d-none');
+                    $('#preview_body').css('pointer-events', 'auto'); 
+                    $('#convert_geodata_btn').prop('disabled', false);// Enable button interaction
                 }
             },
             error: function (error) {
                 hideLoadingSpinner('#loading-spinner-preview-gdf');
                 console.log('Error converting to GeoDataFrame:', error);
                 // Show error message
-                showAlert('danger', `An error occurred during conversion. `, '#geodataframe-alert-container');
-            }
+                // showAlert('danger', `An error occurred during conversion. `, '#geodataframe-alert-container');
+            },
+            complete: function () {
+                // Hide the spinner after the request is complete (whether successful or not) and enable the button
+                $('#conv-spinner-geodata').addClass('d-none');
+                $('#preview_body').css('pointer-events', 'auto'); 
+                $('#convert_geodata_btn').prop('disabled', false);// Enable button interaction
+
+            },
         });
 
     });
@@ -563,7 +581,11 @@ $(document).ready(function () {
         const selectedGIFeature = $('#select_gi_feature').val();
         const selectStarParameter = $('#select_star_parameter').is(':checked');
         const starParameter = selectStarParameter ? $('#star_parameter').val() : null;
-
+        const calc_hotspot_btn = $('#calc_hotspot').val();
+        // Show the spinner and disable the pointer event
+        $('#calc-spinner-htspot').removeClass('d-none');
+        $('#preview_body').css('pointer-events', 'none');
+        $('#calc_hotspot').prop('disabled', true);
         $.ajax({
             headers: { 'X-CSRFToken': csrftoken },
             url: '/getis_ord_gi_hotspot_analysis/',
@@ -578,6 +600,9 @@ $(document).ready(function () {
                 console.log(response)
                 if (response.error) {
                     showAlert('danger', response.error, '#gistar-alert-container');
+                    $('#calc-spinner-htspot').addClass('d-none');
+                    $('#preview_body').css('pointer-events', 'auto'); 
+                    $('#calc_hotspot').prop('disabled', false);// Enable button interaction
                 }
                 // Handle the response, e.g., display results
                 console.log(response.json_response);
@@ -610,9 +635,17 @@ $(document).ready(function () {
                 $('#hotspot_analysis_savebtn').prop('disabled', false);
 
             },
+           
             error: function (error) {
                 console.log('Error performing Getis-Ord Gi* Hotspot Analysis:', error);
-            }
+            },
+            complete: function () {
+                // Hide the spinner after the request is complete (whether successful or not) and enable the button
+                $('#calc-spinner-htspot').addClass('d-none');
+                $('#preview_body').css('pointer-events', 'auto'); 
+                $('#calc_hotspot').prop('disabled', false);// Enable button interaction
+
+            },
         });
     });
 

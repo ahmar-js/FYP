@@ -142,9 +142,11 @@ def convert_column_data_type(request, dataframe, column_name, new_data_type):
         elif new_data_type == 'bool':
             dataframe[column_name] = dataframe[column_name].astype(bool)
         elif new_data_type == 'date':
-            dataframe[column_name] = pd.to_datetime(dataframe[column_name]).dt.date
+            dataframe[column_name] = pd.to_datetime(dataframe[column_name], format="mixed", errors='coerce').dt.date
         elif new_data_type == 'datetime':
-            dataframe[column_name] = pd.to_datetime(dataframe[column_name])
+            dataframe[column_name] = pd.to_datetime(dataframe[column_name], format="mixed", errors='coerce')
+
+
 
         # Add a success message
         # messages.success(request, f"Column '{column_name}' converted to {new_data_type} data type successfully!")

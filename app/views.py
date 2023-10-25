@@ -771,7 +771,10 @@ def facebook_prophet(dataframe, date_col, feature_y, freq, intervals, seasonalit
     dataframe.columns = ['ds', 'y']
 
     # Convert date column to pandas datetime
-    dataframe['ds'] = pd.to_datetime(dataframe['ds'])
+    if dataframe['ds'].dtype.name == 'datetime64' or dataframe['ds'].dtype.name == 'date':
+        pass
+    else:
+        dataframe['ds'] = pd.to_datetime(dataframe['ds'], format="mixed", errors='coerce')
 
     # Sort the DataFrame by the 'ds' column in ascending order
     dataframe = dataframe.sort_values(by='ds')
@@ -1518,7 +1521,7 @@ def convert_to_geodataframe(request):
             numeric_columns = [col for col in columns if pd.api.types.is_numeric_dtype(gdf[col])]
 
             # Convert the GeoDataFrame to HTML content
-            geodataframe_html = preview_geodataframe.to_html(classes='table table-dark fade-out table-bordered') 
+            geodataframe_html = preview_geodataframe.to_html(classes='table table-light fade-out table-bordered') 
 
             return JsonResponse({'message': 'Conversion successful', 'geodataframe': geodataframe_html, 'columns': numeric_columns})
         else:

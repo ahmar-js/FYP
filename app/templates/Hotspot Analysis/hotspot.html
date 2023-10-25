@@ -36,7 +36,9 @@
                                                     </select>
                                                 </div>
                                                 <div class="d-grid gap-2">
-                                                    <button class="btn bg-blue1 text-white" type="submit">Convert</button>
+                                                    <button class="btn bg-blue1 text-white" type="submit" id="convert_geodata_btn">Convert
+                                                    <span id="conv-spinner-geodata" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                                    </button>
                                                 </div>
                                             </form>
                                         </div>
@@ -52,7 +54,10 @@
                                 {% csrf_token %}
                         <div class="hotspot_btns d-flex justify-content-end mb-2">
                             <div class="cal_btn me-2">
-                                <button class="btn btn-sm btn-primary" type="submit"><i class="fa-solid fa-earth-asia me-1"></i>Calculate</button>
+                                <button class="btn btn-sm btn-primary" id="calc_hotspot" type="submit"><i class="fa-solid fa-earth-asia me-1"></i>Calculate
+                                <span id="calc-spinner-htspot" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                
+                                </button>
                             </div>
                             <div class="report-btn me-2">
                                 <button class="btn btn-danger btn-sm" type="button"

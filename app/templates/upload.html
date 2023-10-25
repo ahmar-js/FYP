@@ -125,8 +125,12 @@
                             {% csrf_token %}
                             <div class="btn-box">
                                 <input type="file" name="csv_file" id="upload_file_field" accept=".csv" class="wow fadeInRight" data-wow-delay="200ms" data-wow-duration="1000ms">
+                                
                                 <button type="submit" class="default-btn wow fadeInLeft " data-wow-delay="300ms" data-wow-duration="1000ms"><i class="fa-solid fa-cloud-arrow-up" style="margin-right: 5px;"></i>Upload</button>
                             </div>
+                            <small class="text-muted">
+                                Max file size: 10MB
+                            </small>
                         </form>
                         </div>
                     </div>
