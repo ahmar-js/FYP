@@ -80,8 +80,8 @@
 
             <div class="Dataset-select-container mx-3 fade-in-left">
             <label for="selectDataset" class="selectDatasetLabel text-dark text-sm"><i class="fas fa-file mr-2 text-dark"></i>Dataset</label>
-            <select class="form-select" id="selectDataset" name="selectDataset" class="dataset-select" style="font-size: 12px">
-              <option selected disabled>select one</option>
+            <select class="form-select" id="selectDataset" name="selectDataset" class="dataset-select" style="font-size: 12px" required>
+              <option selected disabled value="">select one</option>
               {% for file in user_files %}
                 <option value="{{ file.id }}">{{ file.file.name }}</option>
               {% endfor %}
@@ -114,7 +114,7 @@
           <li class="nav-item mt-2">
             <div class="Filter-select-container fade-in-left mx-3">
               <label for="Select_geodataframe" class="selectDistrictLabel  text-dark text-sm"><i class="fas fa-landmark text-dark mr-2"></i>Hotspot Result</label>
-            <select class="form-select" id="Select_geodataframe" name="Select_geodataframe" class="Filter-select" style="font-size: 12px">
+            <select class="form-select" id="Select_geodataframe" name="Select_geodataframe" class="Filter-select" style="font-size: 12px" required>
               <option selected disabled value="">select one</option>
               {% for gdf_file in user_files_gdf %}
                 <option value="{{ gdf_file.id }}">{{ gdf_file.file.name }}</option>
@@ -123,7 +123,9 @@
           </div>
           </li>
           <div class="d-grid gap-2 mt-3 py-2 px-4">
-            <button class="btn btn-sm text-darker" style="background-color: #bcdbcb;" type="submit"><i class="fas fa-sync mr-1"></i>Refresh</button>
+            <button class="btn btn-sm text-darker" id="refresh-btn" style="background-color: #bcdbcb;" type="submit">
+              <span id="refresh-spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+              <i class="fas fa-sync mr-1"></i>Refresh</button>
         </div>
         </form>
           

@@ -161,6 +161,10 @@ $(document).ready(function () {
         // function updateMaphp() {
         $('#dashboard_sidenav_form').submit(function (event) {
         event.preventDefault();
+        
+        $('#refresh-spinner').removeClass('d-none');
+        $('#dashboard_body').css('pointer-events', 'none');
+        $('#refresh-btn').prop('disabled', true);
 
         console.log("here")
         // Get the selected_dataset_id, selected_geo_id, and geodata_check from your form or wherever they are available.
@@ -212,6 +216,12 @@ $(document).ready(function () {
             error: function () {
                 alert("An error occurred while fetching the map.");
             },
+            complete: function () {
+                // Hide the spinner after the request is complete (whether successful or not) and enable the button
+                $('#refresh-spinner').addClass('d-none');
+                $('#dashboard_body').css('pointer-events', 'auto');
+                $('#refresh-btn').prop('disabled', false);
+            }
         });
 // }
     });

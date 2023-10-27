@@ -366,22 +366,40 @@ def generate_folium_map(df, lat_col, date_column, long_col, filtered_col, hover_
 
     # return m._repr_html_()
     # Convert the latitude and longitude columns to Point geometries
-    geometry = [Point(xy) for xy in zip(df[long_col], df[lat_col])]
+    # geometry = [Point(xy) for xy in zip(df[long_col], df[lat_col])]
 
+    # # Create a GeoDataFrame from the data
+    # gdf = gpd.GeoDataFrame(df, crs="EPSG:4326", geometry=geometry)
+
+    # # Load the world map data
+    # world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
+    # # Extract the geometry of Pakistan
+    # pakistan = world[(world.name == "Pakistan")]['geometry'].iloc[0]
+
+
+    # # Filter out points that lie outside the boundary of Pakistan
+    # gdf = gdf[gdf['geometry'].within(pakistan)]
+
+    # Convert the latitude and longitude columns to Point geometries
+    geometry = [Point(xy) for xy in zip(df[long_col], df[lat_col])]
+    
     # Create a GeoDataFrame from the data
     gdf = gpd.GeoDataFrame(df, crs="EPSG:4326", geometry=geometry)
-
     # Load the world map data
-    world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
+    
+    # Load the GeoJSON data
+    file_path ="visualization/data/pak province/pakistan-provinces.json"
+    world = gpd.read_file(file_path)
+    # world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
     # Extract the geometry of Pakistan
-    pakistan = world[(world.name == "Pakistan")]['geometry'].iloc[0]
-
-
+    pakistan = world[(world.NAME_1 == "Punjab")]['geometry'].iloc[0]
     # Filter out points that lie outside the boundary of Pakistan
     gdf = gdf[gdf['geometry'].within(pakistan)]
 
     # Create the Folium map centered around Pakistan
-    m = folium.Map(location=[gdf['geometry'].centroid.y.mean(), gdf['geometry'].centroid.x.mean()], zoom_start=5, prefer_canvas=False, scrollWheelZoom=False)
+    # m = folium.Map(location=[gdf['geometry'].centroid.y.mean(), gdf['geometry'].centroid.x.mean()], zoom_start=5, prefer_canvas=False, scrollWheelZoom=False)
+    m = folium.Map(location=[30.3753, 69.3451], zoom_start=5, prefer_canvas=False, scrollWheelZoom=False)
+
 
     bordersStyle = {"color": 'green', 'weight': 2, 'fillOpacity': 0}
 
@@ -457,6 +475,15 @@ def generate_folium_map(df, lat_col, date_column, long_col, filtered_col, hover_
 
 
 def generate_plotly_3d_scatter(long, lat, filtered, hover_data, gdf, size, date, color):
+    print('plong:', long)
+    print('lat:', lat)
+    print('filtered:', filtered)
+    print('hover_data:', hover_data)
+    print('gdf:', gdf)
+    print('size', size)
+    print('date', date)
+    print('color', color)
+    print(gdf['plat'], gdf['plong'])
     gdf['date_ym'] = pd.to_datetime(gdf[date]).dt.strftime('%Y-%m')
     gdf = gdf.sort_values(by='date_ym')
     # Reset the index while keeping the original index as a new column
@@ -508,7 +535,6 @@ def generate_plotly_chloropeth(long, lat, filtered, hover_data, gdf, size, date,
                     # title="Analysis on 5 Neighbors",
                     opacity=1)
     return fig_check
-from django.core.exceptions import ObjectDoesNotExist
 #for df only
 # def retrieve_column_names_df(request):
 #     selected_dataset_id = request.GET.get('selected_dataset_id')
@@ -556,7 +582,7 @@ def generate_intensity_map(df, lat, date, long, filtered, hover_data, size):
     data = df
     
     # Group the data by 'pdistrict' and calculate the sum of 'patient_count' for each district
-    district_patient_counts = data.groupby(filtered)[hover_data].sum()
+    district_patient_counts = data.groupby(filtered)[size].sum()
     
     # Determine the district with the highest patient_count
     highest_patient_district = district_patient_counts.idxmax()
@@ -566,13 +592,13 @@ def generate_intensity_map(df, lat, date, long, filtered, hover_data, size):
     
     # Iterate through each district and add CircleMarker to the map
     for district, patient_count in district_patient_counts.items():
-        intensity = (patient_count / district_patient_counts[highest_patient_district]) * 30  # Scale intensity
+        intensity = (float(patient_count) / float(district_patient_counts[highest_patient_district])) * 30  # Convert to float and scale intensity
         if intensity >= 30:
-            colori='red'
+            colori = 'red'
         elif intensity < 30 and intensity >= 15:
-            colori='blue'
+            colori = 'blue'
         else:
-            colori='green'
+            colori = 'green'
         popup_text = f"District: {district}<br>Patient Count: {patient_count}"
     
         iframe = folium.IFrame(popup_text)
@@ -591,6 +617,7 @@ def generate_intensity_map(df, lat, date, long, filtered, hover_data, size):
 
     return data, district_map._repr_html_()
 
+
 #for df and gdf
 def retrieve_column_names(request):
     select_map = request.GET.get('select_map', None)
@@ -601,7 +628,8 @@ def retrieve_column_names(request):
     selecthp_timely = request.GET.get('select_hp_timely_mode', None)
     # date_column = request.GET.get('date_column')
     print(selected_geo_id)
-    # selected_geodataset = None
+    selected_geodataset = None
+    json_response_geo = {}
     try:
         if selected_geo_id == '':
             print("yolo v4")
@@ -667,15 +695,15 @@ def retrieve_column_names(request):
                         'folium': map_html,
 
                     }
-
-
             else:
                 return JsonResponse({'message': 'error', 'error': 'Selected GeoDataFrame not found'})
+        else:
+            pass
 
 
                 
 
-            return JsonResponse({'message': 'success', 'json_response_geo': json_response_geo, 'json_response_folium': json_response_folium})
+        return JsonResponse({'message': 'success', 'json_response_geo': json_response_geo, 'json_response_folium': json_response_folium})
         
 
 

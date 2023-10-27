@@ -772,6 +772,9 @@ $(document).ready(function () {
     $(document).ready(function() {
         $('#arima-form').submit(function(event) {
             event.preventDefault();
+            $('#arima-spinner').removeClass('d-none');
+            $('#preview_body').css('pointer-events', 'none');
+            $('#arima_forecast_btn').prop('disabled', true);
 
             $('#arima_report_btn').prop('disabled', true);
             $('#save_db_modal_btn').prop('disabled', true);
@@ -807,6 +810,12 @@ $(document).ready(function () {
                     // Handle errors here
                 console.log('Error modeling with arima: ', error);
 
+                },
+                complete: function () {
+                    // Hide the spinner after the request is complete (whether successful or not) and enable the button
+                    $('#arima-spinner').addClass('d-none');
+                    $('#preview_body').css('pointer-events', 'auto');
+                    $('#arima_forecast_btn').prop('disabled', false);
                 }
             });
         });

@@ -1,3 +1,4 @@
+from datetime import datetime
 import warnings
 # Filter out specific warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -128,6 +129,12 @@ def upload_view(request):
     # request.session.clear()  # Clear the entire session
     uploaded_file_name = None
     if request.method == 'POST' and request.FILES.get('csv_file'):
+        json_pred_df = request.session.get('prediction_dataframe')
+        if json_pred_df:
+            del request.session['prediction_dataframe']
+        json_geodata = request.session.get('geodata_frame')
+        if json_geodata:
+            del request.session['geodata_frame']
         try:
             csv_file = request.FILES['csv_file']
             uploaded_file_name = csv_file.name  # Store the file name
@@ -152,7 +159,6 @@ def upload_view(request):
     #     # return redirect('upload')
 
     return render(request, 'upload.html')
-
 def upload_file(request):
 
     
@@ -166,6 +172,10 @@ def upload_file(request):
         json_geodata = request.session.get('geodata_frame')
         if json_geodata:
             del request.session['geodata_frame']
+        pred_df = request.session.get('prediction_dataframe')
+        if pred_df:
+            del request.session['prediction_dataframe']
+                
 
 
 
@@ -343,6 +353,7 @@ def upload_file(request):
                 # Check if both selected features are not None and not empty strings
                 if selected_date_feature and selected_desired_feature:
                     features = [selected_date_feature, selected_desired_feature]
+                    
 
                     # Ensure 'pred_df' exists and is a DataFrame before performing operations
                     if isinstance(pred_df, pd.DataFrame):
@@ -352,11 +363,57 @@ def upload_file(request):
 
                             # Check if 'df' is a DataFrame before attempting a groupby operation
                             if isinstance(df, pd.DataFrame):
+                                # Convert the 'date' column to a datetime data type
+                                
+                                # Convert the 'date' column to a datetime object
                                 pred_df = df.groupby([selected_date_feature, selected_desired_feature]).size().reset_index(name='cases')
                                 pred_df.drop_duplicates(subset=[selected_date_feature, selected_desired_feature], inplace=True)
 
+                                pred_df[selected_date_feature] = pd.to_datetime(pred_df[selected_date_feature])
+
+                                # pred_df[selected_date_feature] = pd.to_datetime(pred_df[selected_date_feature], unit='s')
+                                
+                                
+                                unique_dates = pd.date_range(start=pred_df[selected_date_feature].min(), end=pred_df[selected_date_feature].max())
+                                unique_districts = pred_df[selected_desired_feature].unique()
+
+                                date_district_combinations = pd.MultiIndex.from_product([unique_dates, unique_districts], names=[selected_date_feature, selected_desired_feature])
+                                full_df = pd.DataFrame(index=date_district_combinations).reset_index()
+
+                                # Merge this new DataFrame with your original data to fill in missing combinations
+                                filled_df = full_df.merge(pred_df, on=[selected_date_feature, selected_desired_feature], how='left')
+
+                                # Fill missing 'cases' with 0 or cumulative sum
+                                filled_df['cases'].fillna(0, inplace=True)
+                                print(filled_df)
+
+                                # Convert the selected_date_feature column back to the desired date format
+                                # pred_df[selected_date_feature] = pred_df[selected_date_feature].dt.strftime('%d-%m-%Y')
+                                # pred_df[selected_date_feature] = pd.to_datetime(pred_df[selected_date_feature], format='%d-%m-%Y', errors='coerce')
+                                # pred_df = pred_df.dropna(subset=[selected_date_feature])  # Remove rows with invalid date entries
+
+                                # Create a date range for the entire time period
+                                # date_range = pd.date_range(start=min(pred_df[selected_date_feature]), end=max(pred_df[selected_date_feature]))
+                                # print(min(pred_df[selected_date_feature]), max(pred_df[selected_date_feature]))
+
+                                # # Create a DataFrame to hold the complete time series data
+                                # complete_pred_df = pd.DataFrame()
+                                #  # Iterate through unique district names and fill in missing dates
+                                # for district in pred_df[selected_desired_feature].unique():
+                                #     district_data = pred_df[pred_df[selected_desired_feature] == district].set_index(selected_date_feature)
+                                #     district_data = district_data.reindex(date_range)
+                                #     district_data[selected_desired_feature] = district
+                                #     district_data['cases'] = district_data['cases'].fillna(0)  # Fill missing cases with 0
+                                #     # district_data['total_cases'] = district_data['total_cases'].fillna(method='ffill')  # Fill missing total_cases using forward fill
+                                #     complete_pred_df = pd.concat([complete_pred_df, district_data])
+
+                                # # Reset the index and save the resulting DataFrame
+                                # complete_pred_df = complete_pred_df.reset_index()
+                                # complete_pred_df = complete_pred_df.rename(columns={'index': selected_date_feature})
+                                # print("sadasda", complete_pred_df.shape)
+                                # print("complete_pred_df", complete_pred_df.head())
                                 # Store the resulting DataFrame in the session variable
-                                request.session['prediction_dataframe'] = dataframe_to_json(pred_df)
+                                request.session['prediction_dataframe'] = dataframe_to_json(filled_df)
                             else:
                                 # Handle the case where 'df' is not a DataFrame
                                 error_message = "The 'df' variable is not a DataFrame."
@@ -771,10 +828,15 @@ def facebook_prophet(dataframe, date_col, feature_y, freq, intervals, seasonalit
     dataframe.columns = ['ds', 'y']
 
     # Convert date column to pandas datetime
-    if dataframe['ds'].dtype.name == 'datetime64' or dataframe['ds'].dtype.name == 'date':
-        pass
-    else:
-        dataframe['ds'] = pd.to_datetime(dataframe['ds'], format="mixed", errors='coerce')
+    dataframe['ds'] = pd.to_datetime(dataframe['ds'], unit='ms')
+    # if dataframe['ds'].dtype.name == 'datetime64' or dataframe['ds'].dtype.name == 'date':
+    #     print('here')
+    #     pass
+    # else:
+    #     dataframe['ds'] = pd.to_datetime(dataframe['ds'])
+    #     # dataframe['ds'] = pd.to_datetime(dataframe['ds'], format="mixed", errors='coerce')
+
+    print(dataframe.head(), dataframe.shape)
 
     # Sort the DataFrame by the 'ds' column in ascending order
     dataframe = dataframe.sort_values(by='ds')
@@ -857,6 +919,7 @@ def model_fb_prophet(request):
         
         if prediction_data:
             mdf = json_to_dataframe(prediction_data)
+            print(mdf.shape)
         elif json_geodata:
             mdf = json_to_geodataframe(json_geodata)
         else:
@@ -908,6 +971,7 @@ def model_fb_prophet(request):
 
             try:
                 # Cross-validation
+                print("sass", dataframe.shape)
                 horizon = request.POST.get('Horizon', None)
                 period = request.POST.get('period', None)
                 initial = request.POST.get('initial-fbpv', None)
@@ -1074,8 +1138,8 @@ def ARIMA_model(dataframe, forecasting_interval, date, target_feature, district=
     # Drop rows with any null values
     dataframe = dataframe.dropna()
 
-        # Convert the date column to datetime format if it's not already
-    dataframe[date] = pd.to_datetime(dataframe[date])
+    # Convert the date column to datetime format if it's not already
+    dataframe[date] = pd.to_datetime(dataframe[date], unit='ms')
     
     # Sort the DataFrame by the date column
     dataframe = dataframe.sort_values(by=date)
@@ -1340,12 +1404,14 @@ def ARIMA_model(dataframe, forecasting_interval, date, target_feature, district=
             base64_img = fig.to_json()
 
             actual_values = dataframe[target_feature][-forecasting_interval:]
-                
+            # forecast = pd.DataFrame(forecast)
+            forecast_values = forecast.predicted_mean
             # Calculate Mean Absolute Error (MAE)
-            mae = mean_absolute_error(actual_values, forecast)
+            mae = mean_absolute_error(actual_values, forecast_values)
             
             # Calculate Mean Squared Error (MSE)
-            mse = mean_squared_error(actual_values, forecast)
+            mse = mean_squared_error(actual_values, forecast_values)
+
             
             # Calculate Root Mean Squared Error (RMSE)
             rmse = np.sqrt(mse)

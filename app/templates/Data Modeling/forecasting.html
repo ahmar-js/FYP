@@ -8,7 +8,9 @@
                 <div class="d-flex justify-content-end">
                     <div>
                     <button class="btn btn-sm btn-primary" data-bs-toggle="tooltip" data-bs-placement="top"
-                        title="Forecast results!" type="submit"><i class="fa-solid fa-arrow-trend-up me-1"></i>Forecast</button></div>
+                        title="Forecast results!" id="arima_forecast_btn" type="submit">
+                        <span id="arima-spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        <i class="fa-solid fa-arrow-trend-up me-1"></i>Forecast</button></div>
                     <div class="mx-2">
                     <button class="btn btn-sm btn-danger" type="button" id="arima_report_btn" data-bs-target="#arima_view_report_modal" data-bs-toggle="modal" disabled><i class="fa-solid fa-square-poll-vertical me-1"></i>View Report</button>
                     </div>
@@ -79,7 +81,7 @@
                                                         <label for="select-district-column-autoarima" class="form-label">Select district
                                                             column</label>
                                                         <select class="form-select form-select-sm" name="select-district-column-autoarima"
-                                                            id="select-district-column-autoarima" required>
+                                                            id="select-district-column-autoarima">
                                                             <option disabled selected value="">Select feature</option>
                                                             {% for column in non_numeric_frame %}
                                                             <option value="{{ column }}">{{ column }}</option>
