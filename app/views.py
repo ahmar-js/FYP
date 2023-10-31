@@ -603,74 +603,7 @@ def upload_file(request):
 
 
 
-def grouped_data(request):
-    if request.method == 'POST':
-        pred_df = pd.DataFrame()
-        error_message = None
-        if 'select_date_var_gd' in request.POST and 'select_desired_feature_gd' in request.POST:
-            json_data = request.session.get('data_frame')
-            if json_data is None:
-                return JsonResponse({'error': 'Unidentified Error! Please Upload Data Again.'})
-            else:
-                df = json_to_dataframe(json_data)
-                selected_date_feature = request.POST.get('select_date_var_gd', None)
-                selected_desired_feature = request.POST.get('select_desired_feature_gd', None)
-                # Check if both selected features are not None and not empty strings
-                if selected_date_feature and selected_desired_feature:
-                    features = [selected_date_feature, selected_desired_feature]
 
-                    # Ensure 'pred_df' exists and is a DataFrame before performing operations
-                    if isinstance(pred_df, pd.DataFrame):
-                        # Check if the selected features exist in 'pred_df' columns
-                        if all(feature in df.columns for feature in features):
-                            pred_df = df[features]
-                            # Check if 'df' is a DataFrame before attempting a groupby operation
-                            if isinstance(df, pd.DataFrame):
-                                # Convert the 'date' column to a datetime data type
-
-                                # Convert the 'date' column to a datetime object
-                                pred_df = df.groupby([selected_date_feature, selected_desired_feature]).size().reset_index(name='cases')
-                                pred_df.drop_duplicates(subset=[selected_date_feature, selected_desired_feature], inplace=True)
-                                pred_df[selected_date_feature] = pd.to_datetime(pred_df[selected_date_feature])
-                                # pred_df[selected_date_feature] = pd.to_datetime(pred_df[selected_date_feature], unit='s')
-
-
-                                unique_dates = pd.date_range(start=pred_df[selected_date_feature].min(), end=pred_df[selected_date_feature].max())
-                                unique_districts = pred_df[selected_desired_feature].unique()
-                                date_district_combinations = pd.MultiIndex.from_product([unique_dates, unique_districts], names=[selected_date_feature, selected_desired_feature])
-                                full_df = pd.DataFrame(index=date_district_combinations).reset_index()
-                                # Merge this new DataFrame with your original data to fill in missing combinations
-                                filled_df = full_df.merge(pred_df, on=[selected_date_feature, selected_desired_feature], how='left')
-                                # Fill missing 'cases' with 0 or cumulative sum
-                                filled_df['cases'].fillna(0, inplace=True)
-                                print(filled_df)
-
-                                request.session['prediction_dataframe'] = dataframe_to_json(filled_df)
-                            else:
-                                # Handle the case where 'df' is not a DataFrame
-                                error_message = "The 'df' variable is not a DataFrame."
-                                # You can choose to raise an error, log the error, or provide a user-friendly message.
-                        else:
-                            # Handle the case where one or both selected features don't exist in 'pred_df'
-                            error_message = "One or both selected features do not exist in the data."
-                            # You can choose to raise an error, log the error, or provide a user-friendly message.
-                    else:
-                        # Handle the case where 'pred_df' is not a DataFrame
-                        error_message = "The 'pred_df' variable is not a DataFrame."
-                        # You can choose to raise an error, log the error, or provide a user-friendly message.
-                else:
-                    # Handle the case where one or both selected features are empty or None
-                    error_message = "Please select valid date and desired features."
-                    # You can choose to raise an error, log the error, or provide a user-friendly message.
-
-            if error_message:
-                return JsonResponse({'error': error_message}, status=400)
-            else:
-                return JsonResponse({'success': "Process Complete."}, status=200)
-        else:
-            return JsonResponse({'error': 'Invalid request'}, status=400)
-    else:
-        return JsonResponse({'error': 'Bad Request'}, status=400)
 
 def save_data_to_database(request):
     if request.method == 'POST' and 'save_db' in request.POST:
