@@ -33,6 +33,7 @@ urlpatterns = [
     path('save_geodata_to_database/', app_views.save_geodata_to_database, name='save_geodata_to_database'),
     path('save_fb_to_database/', app_views.save_fb_to_database, name='save_fb_to_database'),
     path('save_arima_to_database/', app_views.save_arima_to_database, name='save_arima_to_database'),
+    path('grouped_data/', app_views.grouped_data, name='grouped_data'),
 
 
 
