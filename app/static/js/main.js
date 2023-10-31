@@ -1048,7 +1048,7 @@ $(document).ready(function () {
                     alert(data.error);
                 } else {
                     $('#hotspot_tab_link').removeClass('disabled');
-                    $('#modeling_tab_ink').removeClass('disabled');
+                    // $('#modeling_tab_ink').removeClass('disabled');
                     
                     alert(data.message);
                 }
@@ -1197,3 +1197,49 @@ $(document).ready(function () {
     });
 });
 
+// grouped data view handling
+
+$(document).ready(function() {
+    $('#grouped_data_form').submit(function(event) {
+        event.preventDefault();
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        var selectedDate = $('#select_date_var_gd').val();
+        var selectedFeature = $('#select_desired_feature_gd').val();
+
+        $.ajax({
+            headers: { 'X-CSRFToken': csrftoken },
+            type: 'POST',
+            url: '/grouped_data/',  
+            data: {
+                'select_date_var_gd': selectedDate,
+                'select_desired_feature_gd': selectedFeature
+            },
+            success: function(response) {
+
+                console.log(response); 
+                if (response.success) {
+                    showAlert('success', response.success, '#group_data_alert_container');
+                }
+                else{
+                    showAlert('danger', response.success, '#group_data_alert_container');
+                }
+            },
+            error: function(error) {                            
+                console.error('Error:', error);
+            }
+        });
+    });
+
+    // Function to display alert messages
+    function showAlert(type, message, id) {
+        // console.log(message);
+        $(id).empty();
+        var alertHtml = `
+            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        $(id).html(alertHtml);
+    }
+});

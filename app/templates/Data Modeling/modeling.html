@@ -37,7 +37,7 @@
 <div class="groupdata_model">
 
 <!-- Modal -->
-<form action="" method="POST" class="form needs-validation" novalidate>
+<form action="" method="POST" class="form needs-validation" id="grouped_data_form" novalidate>
   {% csrf_token %}
 <div class="modal fade" id="group_data_modal" tabindex="-1" aria-labelledby="groupdatamodallabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -47,6 +47,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
+        <div id="group_data_alert_container"></div>
         <div class="select_features_gd d-flex flex-wrap justify-content-around">
           <div class="mb-3 col-lg-6 col-12">
             <label for="select_date_var_gd" class="form-label">Select date variable</label>
