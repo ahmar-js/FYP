@@ -666,7 +666,9 @@ def grouped_data(request):
             if error_message:
                 return JsonResponse({'error': error_message}, status=400)
             else:
-                return JsonResponse({'success': "Process Complete."}, status=200)
+                pred_col_names = filled_df.columns
+                pred_col_names = pred_col_names.to_list()
+                return JsonResponse({'success': "Process Complete.", 'pred_col_names': pred_col_names}, status=200)
         else:
             return JsonResponse({'error': 'Invalid request'}, status=400)
     else:

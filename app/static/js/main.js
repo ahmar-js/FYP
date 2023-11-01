@@ -1205,6 +1205,7 @@ $(document).ready(function() {
         const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
         var selectedDate = $('#select_date_var_gd').val();
         var selectedFeature = $('#select_desired_feature_gd').val();
+        var forecast_col_fb = $('#select-forecast-column-fb').val();
 
         $.ajax({
             headers: { 'X-CSRFToken': csrftoken },
@@ -1218,6 +1219,30 @@ $(document).ready(function() {
 
                 console.log(response); 
                 if (response.success) {
+
+                    if (response.pred_col_names){
+                    //FB
+                    $('#select-forecast-column-fb').empty();
+                    $('#select-district-column-fb').empty();
+                    $('#select-date-column-fb').empty();
+
+                    //arima
+                    $('#autoarima-feature-to-forecast').empty();
+                    $("#select-date-column-autoarima").empty();
+                    $("#select-district-column-autoarima").empty();
+                    
+                    
+                    
+                    // Populate the unique district values from the response
+                    $('#select-forecast-column-fb, #select-district-column-fb, #select-date-column-fb, #autoarima-feature-to-forecast, #select-date-column-autoarima, #select-district-column-autoarima').append($('<option disabled selected value="">Select one </option>'))
+                    for (var i = 0; i < response.pred_col_names.length; i++) {
+                        var pred_col_names_values = response.pred_col_names[i];
+                        $('#select-forecast-column-fb, #select-district-column-fb, #select-date-column-fb, #autoarima-feature-to-forecast, #select-date-column-autoarima, #select-district-column-autoarima').append($('<option>', {
+                            value: pred_col_names_values,
+                            text: pred_col_names_values
+                        }));
+                    }
+                }
                     showAlert('success', response.success, '#group_data_alert_container');
                 }
                 else{
