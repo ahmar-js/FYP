@@ -858,7 +858,7 @@ def Getis_ord_hotspot_Analysis(geodata, selected_k_val=2, selected_gi_feature=No
 
     return geodata, base64_img
 
-def facebook_prophet(dataframe, date_col, feature_y, freq, intervals, seasonality, district=None, unique_district=None):
+def facebook_prophet(dataframe, date_col, feature_y, freq, intervals, seasonality, seasonality_prior_scale, changepoint_prior_scale,  district=None, unique_district=None):
     """
     Perform forecasting using Facebook Prophet.
 
@@ -871,6 +871,8 @@ def facebook_prophet(dataframe, date_col, feature_y, freq, intervals, seasonalit
         - freq: specify the frequency for the time series data.
         - intervals: specify the number of intervals for forecasting.
         - seasonality: specify the seasonality components.
+        - seasonality_prior_scale: specify the extent to which the seasonality model will fit the data.
+        - changepoint_prior_scale: specify the extent to which the behavior of the series changes significantly.
 
     Returns:
         - dataframe: Original dataframe used for forecasting.
@@ -914,8 +916,17 @@ def facebook_prophet(dataframe, date_col, feature_y, freq, intervals, seasonalit
     dataframe.reset_index(drop=True, inplace=True)
     # print('df length', len(dataframe))
 
+    if seasonality_prior_scale == None or seasonality_prior_scale == '':
+        seasonality_prior_scale = 10 #default
+    
+    if changepoint_prior_scale == None or changepoint_prior_scale == '':
+        changepoint_prior_scale = 0.05 #default
+
+    print("seasonality prior scale: ", seasonality_prior_scale)
+    print("changepoint prior scale: ", changepoint_prior_scale)
+
     # Forecasting
-    m = Prophet(seasonality_mode=seasonality)
+    m = Prophet(seasonality_mode=seasonality, seasonality_prior_scale=seasonality_prior_scale, changepoint_prior_scale=changepoint_prior_scale)
     m.fit(dataframe)
     future = m.make_future_dataframe(periods=intervals, freq=freq)
     forecast = m.predict(future)
@@ -1002,10 +1013,13 @@ def model_fb_prophet(request):
             selected_forecast_freq = request.POST.get('select-forecast-mode-fb', None)
             selected_forecast_period = int(request.POST.get('Enter-forecast-interval-fb', None))
             selected_seasonality_mode = request.POST.get('select-seasonality-mode-fb', None)
+            changepoint_prior_scale = request.POST.get('changepoint_prior_scale', None)
+            seasonality_prior_scale = request.POST.get('seasonality_prior_scale', None)
+            print("here", changepoint_prior_scale, seasonality_prior_scale)
             if selected_district_feature is None:
-                dataframe, forecast, forecasted_range, pred_result_fig, forcast_component_fig, m  = facebook_prophet(mdf, selected_date_feature, selected_forecast_feature, selected_forecast_freq, selected_forecast_period, selected_seasonality_mode, selected_district_feature, selected_district_feature_value)
+                dataframe, forecast, forecasted_range, pred_result_fig, forcast_component_fig, m  = facebook_prophet(mdf, selected_date_feature, selected_forecast_feature, selected_forecast_freq, selected_forecast_period, selected_seasonality_mode, seasonality_prior_scale, changepoint_prior_scale, selected_district_feature, selected_district_feature_value)
             else:
-                dataframe, forecast, forecasted_range, pred_result_fig, forcast_component_fig, m = facebook_prophet(mdf, selected_date_feature, selected_forecast_feature, selected_forecast_freq, selected_forecast_period, selected_seasonality_mode, selected_district_feature, selected_district_feature_value)
+                dataframe, forecast, forecasted_range, pred_result_fig, forcast_component_fig, m = facebook_prophet(mdf, selected_date_feature, selected_forecast_feature, selected_forecast_freq, selected_forecast_period, selected_seasonality_mode, seasonality_prior_scale, changepoint_prior_scale, selected_district_feature, selected_district_feature_value)
 
 
             # serialized_model = pickle.dumps(m)

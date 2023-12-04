@@ -664,6 +664,8 @@ $(document).ready(function () {
         const selectedForecastFreq = $('#select-forecast-mode-fb').val();
         const selectedForecastPeriod = parseInt($('#Enter-forecast-interval-fb').val());
         const selectedSeasonalityMode = $('#select-seasonality-mode-fb').val();
+        const changepoint_prior_scale = $('#changepoint_prior_scale-fb').val();
+        const seasonality_prior_scale = $('#seasonality_prior_scale-fb').val();
         //Diagnostics
         const horizon = $('#Horizon').val();
         const period = $('#period').val();
@@ -684,6 +686,8 @@ $(document).ready(function () {
                 'Horizon':horizon,
                 'period':period,
                 'initial-fbpv':initial,
+                'seasonality_prior_scale': seasonality_prior_scale,
+                'changepoint_prior_scale': changepoint_prior_scale,
             },
             success: function (response) {
                 // Handle the response, e.g., display results

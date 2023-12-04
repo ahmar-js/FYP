@@ -122,7 +122,7 @@
                                 </div>
                             </div>
                             <div class="Enter-forecasting-interval col-lg-5 col-12">
-                                <div class="mb-3">
+                                <div class="mb-2">
                                     <label for="Enter-forecast-interval-fb" class="form-label">Intervals to forecast</label>
                                     <input type="number" class="form-control form-control-sm" min="1" max="10000"
                                         name="Enter-forecast-interval-fb" placeholder="e.g, No of days to forecast"
@@ -131,13 +131,31 @@
                                 </div>
                             </div>
                             <div class="select-seasonality-mode col-lg-5 col-12">
-                                <div class="mb-3">
+                                <div class="mb-2">
                                     <label for="select-seasonality-mode-fb" class="form-label">Seasonality mode</label>
                                     <select class="form-select form-select-sm" name="select-seasonality-mode-fb"
                                         id="select-seasonality-mode-fb" required>
                                         <option value="additive" selected>Additive (Default)</option>
                                         <option value="multiplicative">Multiplicative</option>
                                     </select>
+                                </div>
+                            </div>
+                            <div class="Enter-seasonality_prior_scale col-lg-5 col-12">
+                                <div class="mb-3">
+                                    <label for="seasonality_prior_scale-fb" class="form-label">Seasonality prior scale</label>
+                                    <input type="number" class="form-control form-control-sm" min="0" max="50"
+                                        name="seasonality_prior_scale-fb" placeholder="Extent to which the seasonality model will fit the data"
+                                        id="seasonality_prior_scale-fb">
+                                    <small class="text-muted">min 0 max 50 </small>
+                                </div>
+                            </div>
+                            <div class="Enter-changepoint_prior_scale col-lg-5 col-12">
+                                <div class="mb-3">
+                                    <label for="changepoint_prior_scale-fb" class="form-label">Changepoint prior scale</label>
+                                    <input type="number" class="form-control form-control-sm" min="0" max="50"
+                                        name="changepoint_prior_scale-fb" placeholder="Extent to which the behavior of the series changes significantly"
+                                        id="changepoint_prior_scale-fb">
+                                    <small class="text-muted">min 0 max 50 </small>
                                 </div>
                             </div>
                         </div>
