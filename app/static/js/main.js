@@ -301,7 +301,7 @@ $(document).ready(function () {
             headers: {'X-CSRFToken': csrftoken},
             url: '/handle_drop_columns/',
             type: 'POST',
-            data: { column: selectedColumn },
+            data: { 'column': selectedColumn },
             success: function (response) {
                 showAlert('success', response.message, '#dropcolumn-alert-container');
                 var selectedLimit = $('#datalimit').val();
@@ -311,16 +311,40 @@ $(document).ready(function () {
                 // Refresh data
                 loadData(selectedLimit);
                 updateStatistics()
-                // Remove the dropped column from the dropdown menu
-                $('#dropcolumnmenu option[value="' + selectedColumn + '"]').remove();
-                $('#fillnullvalues option[value="' + selectedColumn + '"]').remove();
-                $('#select-col-convert-dtype option[value="' + selectedColumn + '"]').remove();
+                // Loop through each selected column and remove it from the dropdown menus
+                selectedColumn.forEach(function(selectedColumn) {
+                    var selectedColumnLowerCase = selectedColumn.toLowerCase();
 
+                    // Remove the dropped column from the dropdown menu
+                    $('#dropcolumnmenu option[value="' + selectedColumn + '"]').remove();
+                    $('#fillnullvalues option[value="' + selectedColumn + '"]').remove();
+                    $('#select-col-convert-dtype option[value="' + selectedColumn + '"]').remove();
+
+                    // Remove the dropped column from the Bootstrap Selectpicker
+                    $('#select-multi-drop-row option[value="' + selectedColumn + '"]').remove();
+                });
+
+
+                $('#select-multi-drop-row').selectpicker('deselectAll');
+                $('#select-multi-drop-row').selectpicker('val', '');
+                $('#select-multi-drop-row').selectpicker('refresh');
+
+
+                // $('#fillnullvalues option[value="' + selectedColumn + '"]').remove();
+                // $('#select-col-convert-dtype option[value="' + selectedColumn + '"]').remove();
+                
                 $('#select-multi-drop-row').selectpicker('deselectAll'); // Deselect all options
                 $('#select-multi-drop-row').selectpicker('val', ''); // Clear the selected values
-                // Remove the dropped column from the Bootstrap Selectpicker
-                $('#select-multi-drop-row option[value="' + selectedColumn + '"]').remove();
                 $('#select-multi-drop-row').selectpicker('refresh'); // Refresh the Selectpicker
+
+
+                $('#dropcolumnmenu').selectpicker('deselectAll'); // Deselect all options
+                $('#dropcolumnmenu').selectpicker('val', ''); // Clear the selected values
+                $('#dropcolumnmenu').selectpicker('refresh'); // Refresh the Selectpicker
+
+
+                // Remove the dropped column from the Bootstrap Selectpicker
+                // $('#select-multi-drop-row option[value="' + selectedColumn + '"]').remove();
                 
                 
             },
@@ -391,7 +415,7 @@ $(document).ready(function () {
             url: '/handle_drop_rows/',
             type: 'POST',
             data: {
-                'select-multi-drop-row': selectedColumns,  // Use the correct key here
+                'select-multi-drop-row': selectedColumns, 
                 row_drop_strategy: selectedStrategy,
                 
             },

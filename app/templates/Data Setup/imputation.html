@@ -58,7 +58,7 @@
                                         <div class="dropcolumn">
                                             <label for="dropcolumnmenu" class="form-label">Select Column to Drop</label>
                                             <div class="mb-4 input-group">
-                                                <select class="form-select form-select-sm" name="dropcolumnmenu" id="dropcolumnmenu" required>
+                                                <select class="selectpicker" multiple aria-label="size 1 select example" name="dropcolumnmenu" id="dropcolumnmenu" required>
                                                     <option selected disabled value="">Select one</option>
                                                     {% for column in preview_data.columns %}
                                                     <option value="{{ column }}">{{ column }}</option>
@@ -95,7 +95,7 @@
                                                 
                                                 <div>
                                                     <div class="input-group ">
-                                                <select  class="selectpicker" multiple aria-label="size 1 select example" name="select-multi-drop-row" id="select-multi-drop-row">
+                                                <select  class="selectpicker w-100" multiple aria-label="size 1 select example" name="select-multi-drop-row" id="select-multi-drop-row">
                                                   <option disabled selected>Select columns</option>
                                                   {% for columns in preview_data.columns %}
                     
@@ -246,7 +246,7 @@
                                                                 <i class="fa-solid fa-circle-info" data-bs-toggle="popover" title="Important!" data-bs-content="For GCS coordinates - Don't convert data type of coordinates to float, keep them as object"></i>
                                                             </label>
                                                             <br><small id="helpId-dtype" class="form-text text-muted">Remove null values first</small><br>
-                                                            <select class="form-select form-select" name="select-col-convert-dtype" id="select-col-convert-dtype" required>
+                                                            <select class="form-select-sm form-select" name="select-col-convert-dtype" id="select-col-convert-dtype" required>
                                                                 <option disabled selected value="">Select Column</option>
                                                                 {% for columns in preview_data.columns %}
                                 

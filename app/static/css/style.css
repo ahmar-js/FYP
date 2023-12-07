@@ -205,7 +205,8 @@ thead tr th{
     width: 24.3333333333%!important;
     padding-right: 10px!important;
 }
-.drop-null-rows-form .bootstrap-select:not([class*=col-]):not([class*=form-control]):not(.input-group-btn) {
+.drop-null-rows-form .bootstrap-select:not([class*=col-]):not([class*=form-control]):not(.input-group-btn),
+.dropcolumn .bootstrap-select:not([class*=col-]):not([class*=form-control]):not(.input-group-btn){
     width: 89%!important;
 }
 .forward-geocoding_form .bootstrap-select:not([class*=col-]):not([class*=form-control]):not(.input-group-btn) {

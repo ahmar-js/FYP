@@ -1690,7 +1690,8 @@ def convert_to_geodataframe(request):
 
 def handle_drop_columns(request):
     if request.method == 'POST':
-        selected_column = request.POST.get('column')
+        selected_column = request.POST.getlist('column[]', None)
+        print(selected_column)
         
         # Retrieve the DataFrame from the session
         json_data = request.session.get('data_frame')

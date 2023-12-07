@@ -34,8 +34,8 @@ def drop_selected_column(df, selected_column):
 
     """
 
-    if selected_column in df.columns:
-        df.drop(columns=selected_column, inplace=True, axis=1)
+    
+    df.drop(columns=selected_column, inplace=True, axis=1)
 
 
 #  ============================= Impute missing values =============================
