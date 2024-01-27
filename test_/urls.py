@@ -6,6 +6,7 @@ from visualization import views as viz_views
 from django.contrib.auth import views as auth_views
 from django.conf.urls.static import static
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
 
