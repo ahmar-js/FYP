@@ -142,3 +142,4 @@ EMAIL_POST = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER ='ahmaraamir33@gmail.com'
 EMAIL_HOST_PASSWORD ='metfjsoppuqhoinz'
+SESSION_COOKIE_SECURE = True
