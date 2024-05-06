@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Static assetss - Used to load the Favicon -->
+{% load static %}
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>
+    HealthLens | {% block title %} Dashboard {% endblock %}
+  </title>
+
+  <link rel="stylesheet" href="/static/assetss/js/plugins/bootstrap/dist/css/bootstrap.min.css"/>
+  {% comment %} <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous"> {% endcomment %}
+
+  <!-- Favicon - loaded as static -->
+  <link rel="icon" href="{% static 'assetss/img/brand/favicon.ico' %}" type="image/png" media="print" onload="this.media='all'"/>
+  <noscript><link rel="icon" href="{% static 'assetss/img/brand/favicon.ico' %}" type="image/png"/></noscript>
+
+  <!-- Fonts -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600&display=swap" media="print" onload="this.media='all'"/>
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600&display=swap"/></noscript>
+
+  <!-- Icons -->
+  <script defer src="https://kit.fontawesome.com/189832a678.js" crossorigin="anonymous"></script>
+
+  <link rel="stylesheet" href="/static/assetss/css/style.css?v=1.1.0" media="print" onload="this.media='all'"/>
+  <noscript><link rel="stylesheet" href="/static/assetss/css/style.css?v=1.1.0"/></noscript>
+
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+
+  <!-- Specific CSS goes HERE -->
+  {% block stylesheets %}
+
+  {% endblock stylesheets %}
+
+</head>
+
+<body id="dashboard_body">
+
+  {% include "includes/sidenav.html" %}
+
+  <div class="main-content">
+
+    {% block content %}{% endblock content %}
+
+  </div>
+
+  {% include "includes/scripts.html" %}
+
+  <!-- Specific JS goes HERE --> 
+  {% block javascripts %}
+  
+  {% endblock javascripts %}
+
+</body>
+
+</html>

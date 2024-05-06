@@ -1,0 +1,213 @@
+{% extends 'layouts/base.html' %}
+{% load humanize %}
+
+{% block title %} Home {% endblock %}
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+<!-- <div class="refresh-btn d-flex justify-content-end py-2" style="margin: 2rem 3rem 0rem 0rem" >
+  <button type="submit" class="btn btn-sm btn-light">Upload</button>
+  <button type="submit" class="btn btn-sm btn-secondary">Refresh</button>
+</div> -->
+{% include "includes/header.html" %}
+
+
+
+<div class="container-fluid bg-secondary">
+
+    <div class="row">
+
+      <div class="col-xl-8 mb-5 mb-xl-0">  <!-- Global interactive Plotly Mabpox -->
+        <div class="mapselection-items d-flex justify-content-between" style="margin-bottom: 1.5rem;">
+        <div class="select-map-container col-3">
+          <form action="" method="post">
+          {% csrf_token %}
+          <select class="form-select form-select-sm" id="select_map" name="select_map" class="select_map" style="font-size: 12px">
+            <option value="default" selected>Default</option>
+            <option value="intensity">Intensity</option>
+          </select>
+        </form>
+        </div>
+      </div>
+        <div class="card shadow fade-in-bottom">
+          <div class="card-body plotly worldmap">
+            <!-- <div id="world_map" class="chart" style="height: 100%; width: 100%;"><img src="/static/assetss/img/preview.pndg" alt="Unable to load" width="1400"></div> -->
+            <div class="mapbox w-100 h-100" id="mapbox-container">
+              {{ map|safe }}
+            </div>
+          </div>
+          <!-- <div style="position: absolute; padding:1.25rem 1.5rem;">
+              <h6 class="text-uppercase text-muted ls-1 mb-1">Pakistan | Cumulative</h6>
+              <h2 class="text-dark mb-0">Mapbox</h2>
+
+          </div> -->
+        </div>
+      </div>
+      <div class="col-xl-4" style="margin-top: 3.5rem;">
+        <div class="card shadow">
+          <div class="card-header bg-transparent">
+            <div class="row align-items-center">
+              <div class="col">
+                <h6 class="text-uppercase text-muted ls-1 mb-1">Pakistan | Sortable</h6>
+                <div class="custom-continer d-flex align-items-center">
+                  <h2 class="mb-0">Cases</h2>
+                </div> 
+              </div>
+              <div class="col text-right">
+                <!-- <a href="#!" class="btn btn-sm btn-white"> -->
+                  <!-- &nbsp;<i class="fas fa-download">&nbsp;</i> -->
+                </a>
+              </div>
+            </div>
+          </div>
+          <style>
+            #cases_table_container thead{
+              background-color: #f6f9fc;
+              color: #8898aa;
+            }
+          </style>
+          <div class="table-responsive" id="cases_table_container">
+            <!-- cases table -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="row mt-5" id="fb_timely">
+      <div class="col-xl-12 mb-5 mb-xl-0">   <!-- Global daily growth plot -->
+        <div class="card shadow">
+          <div class="card-header bg-transparent">
+            <div class="row align-items-center">
+              <h6 class="text-uppercase text-muted ls-1 mb-1">Pakistan | Timely</h6>
+              <div class="col-11 d-flex align-items-center">
+                <div>
+                <h2 class="mb-0">Timely Growth</h2>
+              </div>
+              <div class="ms-3">
+                <form action="" method="post">
+                {% csrf_token %}
+                <select class="form-select form-select-sm" name="select_hp_timely_mode" id="select_hp_timely_mode">
+                  <option value="Chloropeth" selected>Chloropeth</option>
+                  <option value="scatter">Scatter</option>
+                </select>
+              </form>
+              </div>
+
+              </div>
+              <div class="col text-right">
+                 <a class="btn btn-sm btn-white" role="button" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="left" title="Info"
+                    data-bs-content="Daily time series of cases. Bars can be stacked for relative adjacent comparison by toggling 'confirmed' cases.">
+                    &nbsp;<i class="fas fa-info">&nbsp;</i>
+                  </a>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-body plotly" id="plotly_chloropeth" style="max-height: 700px; height: 600px; overflow: auto;">
+            <!-- <div id="daily_growth_chart" class="chart"style="height: 100%"><img src="/static/assetss/img/gr.pong" alt="Unable to load" height="300" width="1300"></div> -->
+          </div>
+        </div>
+      </div>
+
+
+
+    </div>
+
+
+
+    <div class="row mt-5">
+      <div class="col-xl-7 mb-5 mb-xl-0">   <!-- Global daily growth plot -->
+        <div class="card shadow">
+          <div class="card-header bg-transparent">
+            <div class="row align-items-center">
+              <div class="col">
+                <h6 class="text-uppercase text-muted ls-1 mb-1">Pakistan | Predicted</h6>
+                <h2 class="mb-0">Predicted Growth</h2>
+              </div>
+              <div class="col text-right">
+                 <a class="btn btn-sm btn-white" role="button" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="left" title="Info"
+                    data-bs-content="Daily time series of cases. Bars can be stacked for relative adjacent comparison by toggling 'confirmed' cases.">
+                    &nbsp;<i class="fas fa-info">&nbsp;</i>
+                  </a>
+              </div>
+            </div>
+          </div>
+          <div class="card-body plotly" id="fbplot_arimaplot" style="max-height: 700px; height: 600px; overflow: auto;">
+            <!-- <div id="daily_growth_chart" class="chart"style="height: 100%"><img src="/static/assetss/img/gr.pong" alt="Unable to load" height="300" width="1300"></div> -->
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-5">  <!-- Growth interactive scatterplot -->
+        <div class="card shadow fade-in-bottom" style="background-color: #E8F6EF;">
+          <div class="card-header bg-transparent">
+            <div class="row align-items-center">
+              <div class="col">
+                <h6 class="text-uppercase text-dark ls-1 mb-1">Pakistan | Cumulative</h6>
+                <h2 class="text-dark mb-0">Hotspot Areas</h2>
+              </div>
+              <div class="col text-right">
+                <a class="btn btn-sm bg-dark text-white" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="focus" title="Info"
+                    data-bs-content="Global cumulative growth in cases since collection of data started. Defaulted to logarithmic y-scale">
+                    &nbsp;<i class="fas fa-info text-light">&nbsp;</i>
+                  </a>
+              </div>
+            </div>
+          </div>
+          <div class="card-body plotly" style="max-height: 700px; height: 600px; overflow: auto;">
+            <style>
+              #hotspot_growth_chart .plot-container .main-svg{
+                background-color: transparent !important;
+                padding: 0;
+                margin: 0;
+              }
+              #hotspot_growth_chart .plot-container .svg-container{
+
+                position: static !important;
+                padding: 0;
+                margin: 0;
+              }
+              #hotspot_growth_chart .plot-container{
+                background-color: transparent !important;
+                padding: 0;
+                margin: 0;
+              }
+              
+            </style>
+            <div id="hotspot_growth_chart"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    {% include "includes/footer.html" %}
+
+  </div>
+
+{% endblock content %}
+
+<!-- Specific JS goes HERE --> 
+{% block javascripts %}
+
+<!--  Pop-overs  -->
+<script>
+    var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+    var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+      return new bootstrap.Popover(popoverTriggerEl)
+    })
+</script>
+
+
+<script>
+    // style active navigation Item
+    $('.nav-item a').removeClass('active');
+    $('.home-item a').addClass('active');
+</script>
+
+{% comment %} <script defer src="/static/assetss/js/sorttable.js"></script> {% endcomment %}
+
+{% endblock javascripts %}

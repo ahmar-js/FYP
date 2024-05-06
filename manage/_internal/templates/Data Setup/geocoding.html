@@ -1,0 +1,90 @@
+                               <!-- ----------- Geocoding ----------- -->
+                               <div class="f_r_geocoding_main_container">
+                                <div class="f_r_geocoding_flex_container d-flex flex-wrap justify-content-center">
+                                <div class="forward_geocoding_container col-lg-4 col-8">
+                                    <div class="card shadow" style="border: 1px solid rgba(0, 0, 0, 0.05); border-radius: 1rem;">
+                                        <div class="card-body">
+                                            <div class="fg-card-title">
+                                            <h4 class="card-title">Forward Geocoding</h4>
+                                        </div>
+                                        <div class="fg-card-body">
+                                            <div class="forward-geocoding_form">
+                                                <form class="form needs-validation" id="fgc-form" method="POST" novalidate>
+                                                    {% csrf_token %}
+                                                        <div class="my-3">
+                                                            <label aria-describedby="helpId-multi-addr" for="select-multi-addr" class="form-label">Select one or more address column
+                                                                <i class="fa-solid fa-circle-info py-1" data-bs-toggle="popover" title="Important!" data-bs-content="Recommended only one column - If select multiple it will merge them and create new address column in your data file"></i>
+                                                            </label>
+                                                            <!-- <br><small id="helpId-multi-addr" class="form-text text-muted">Choose minimum one column</small><br> -->
+                                                            <div>
+                                                                <select class="selectpicker" multiple aria-label="size 2 select example" name="select-multi-addr" id="select-multi-addr">
+                                                                    <option selected disabled value="null">Select columns</option>
+                                                                    {% for columns in preview_data.columns %}
+                                                                    <option value="{{columns}}">{{columns}}</option>
+                                                                    {% endfor %}
+                                                                </select><br>
+                                                            </div>
+                                                        </div>
+                                                        <span>
+                                                            <button type="submit" class="btn bg-blue4 btn-sm" id="forward-geocode-btn">Forward Geocode</button>
+                                                            <!-- <i class="fa-solid fa-circle-info text-muted" data-bs-toggle="popover" title="Important!" data-bs-content="There is a delay of one second between each geocode request to
+                                                            ensure that the usage limit does not exceed. This will cause slow processing for large data"></i> -->
+                                                        </span>
+                                                </form>
+                                            </div>
+                                        </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="reverse_geocoding_container col-lg-4 col-8">
+                                    <div class="card shadow" style="border: 1px solid rgba(0, 0, 0, 0.05); border-radius: 1rem;">
+                                        <div class="card-body">
+                                            <div class="rg_card_title">
+                                            <h4 class="card-title">Reverse Geocoding</h4>
+                                        </div>
+                                        <div class="rd_card_body">
+                                            <div class="reverse-geocoding_form">
+                                                <form class="form needs-validation" id="rgc" method="POST" novalidate>
+                                                {% csrf_token %}
+                        
+                                                <div class="my-3 d-flex justify-content-between flex-wrap">
+                                                    <div class="select_lat col-lg-6 col-12">
+                                                    <label for="select-rev-gc-lat" class="form-label">Select latitude column</label>
+                                                    <select class="form-select form-select-sm" name="select-rev-gc-lat" id="select-rev-gc-lat" required>
+                                                        <option selected disabled value="" >Select one</option>
+                                                        {% for columns in preview_data.columns %}
+                                                                <option value="{{columns}}">{{columns}}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                    </div>
+                                                    <div class="select_long col-lg-6 col-12">
+                                                    <label for="select-rev-gc-long" class="form-label">Select longitude column</label>
+                                                    <select class="form-select form-select-sm" name="select-rev-gc-long" id="select-rev-gc-long" required>
+                                                        <option selected disabled value="" >Select one</option>
+                                                        {% for columns in preview_data.columns %}
+                                                                <option value="{{columns}}">{{columns}}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                                </div>
+                                                <span>
+                                                <button type="submit" class="btn bg-blue4 btn-sm">Reverse Geocode</button>
+                                                <!-- <i class="fa-solid fa-circle-info text-muted" data-bs-toggle="popover" title="Important!"
+                                                data-bs-content="There is a delay of one second between each reverse geocode request to
+                                                ensure that the usage limit does not exceed. This will cause slow processing for large data"></i> -->
+                                                </span>
+                        
+                                            </form>
+                                            </div>
+                                        </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                            </div>
+                               </div>
+
+
+                            <!-- ----------- Geocoding end ----------- -->

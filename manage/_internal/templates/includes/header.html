@@ -1,0 +1,227 @@
+{% load humanize %}
+
+<!-- Header -->
+<div class="dashboard-setup-container d-flex mt-4 me-5">
+    <div class="dashboard-setup ms-auto">
+        <a style="cursor: pointer;" class="link-dark" data-bs-toggle="modal" data-bs-target="#d_setup_modal"><i class="fa fa-cog mr-2" aria-hidden="true"></i>Setup Dashboard</a>
+    </div>
+</div>
+<div class="header pb-4 pt-5 pt-md-4 bg-secondary">
+
+    <div class="container-fluid">
+        <div class="header-body">
+        <!-- Card stats -->
+        <div class="row">
+            <div class="col-xl-3 col-lg-6">
+            <div class="card shadow card-stats mb-4 mb-xl-0 fade-in-top">
+                <div class="card-body ">
+                <div class="row">
+                    <div class="col">
+                    <h5 class="card-title text-uppercase text-muted mb-0">Total</h5>
+                    <span id="confirmed_label" class="h2 font-weight-bold mb-0">0</span>
+                    </div>
+                    <div class="col-auto">
+                    <div class="icon icon-shape bg-primary text-white rounded-circle shadow">
+                        <i class="fas fa-virus"></i>
+                    </div>
+                    </div>
+                </div>
+                <!-- <p class="mt-3 mb-0 text-muted text-sm">
+                    <span id="trend_confirmed_label" class="mr-2">+4.2%</span>
+                    <span class="text-nowrap">Since last week</span>
+                </p> -->
+                </div>
+            </div>
+            </div>
+            <div class="col-xl-3 col-lg-6">
+            <div class="card shadow card-stats mb-4 mb-xl-0 fade-in-top">
+                <div class="card-body ">
+                <div class="row">
+                    <div class="col">
+                    <h5 class="card-title text-uppercase text-muted mb-0">Predicted</h5>
+                    <span id="predicted_label" class="h2 font-weight-bold mb-0">0</span>
+                    </div>
+                    <div class="col-auto">
+                    <div class="icon icon-shape bg-green text-white rounded-circle shadow">
+                        {% comment %} <i class="fas fa-heartbeat"></i> {% endcomment %}
+                        {% comment %} <i class="fas fa-head-side-cough"></i> {% endcomment %}
+                        <i class="fas fa-microscope"></i>
+                    </div>
+                    </div>
+                </div>
+                <!-- <p class="mt-3 mb-0 text-muted text-sm">
+                    <span id="trend_recovered_label" class="mr-2">+5.3%</span>
+                    <span class="text-nowrap">Since last month</span>
+                </p> -->
+                </div>
+            </div>
+            </div>
+            <div class="col-xl-3 col-lg-6">
+            <div class="card shadow card-stats mb-4 mb-xl-0 fade-in-top">
+                <div class="card-body ">
+                <div class="row">
+                    <div class="col">
+                    <h5 class="card-title text-uppercase text-muted mb-0">Total Predictions</h5>
+                    <span id="total_pred_label" class="h2 font-weight-bold mb-0">0</span>
+                    </div>
+                    <div class="col-auto">
+                    <div class="icon icon-shape bg-danger text-white rounded-circle shadow">
+                        <!-- <i class="fa fa-skull-crossbones"></i> -->
+                        <i class="fas fa-head-side-cough"></i>
+                    </div>
+                    </div>
+                </div>
+                <!-- <p class="mt-3 mb-0 text-muted text-sm">
+                    <span id="trend_deaths_label" class="mr-2">-0.4%</span>
+                    <span class="text-nowrap">Since last week</span>
+                </p> -->
+                </div>
+            </div>
+            </div>
+            <div class="col-xl-3 col-lg-6">
+            <div class="card shadow card-stats mb-4 mb-xl-0 fade-in-top">
+                <div class="card-body ">
+                <div class="row">
+                    <div class="col">
+                    <h5 class="card-title text-uppercase text-muted mb-0">Total Hotspots</h5>
+                    <span id="total_hotspot_label" class="h2 font-weight-bold mb-0">0</span>
+                    </div>
+                    <div class="col-auto">
+                    <div class="icon icon-shape bg-warning text-white rounded-circle shadow">
+                        <!-- <i class="fa fa-percent"></i> -->
+                        <i class="fas fa-disease"></i>
+                    </div>
+                    </div>
+                </div>
+                <!-- <p class="mt-3 mb-0 text-muted text-sm">
+                    <span id="trend_death_rate_label" class="mr-2">+0.3%</span>
+                    <span class="text-nowrap">Since last week</span>
+                </p> -->
+                </div>
+            </div>
+            </div>
+        </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Dashboard setup modal -->
+<form action="" method="POST" id="dashboard-setup-form" class="form needs-validation" novalidate>
+{% csrf_token %}
+  <div class="modal fade"  id="d_setup_modal" tabindex="-1" aria-labelledby="d_setup_modal_label" aria-hidden="true">
+    <div class="modal-dialog modal-lg" >
+      <div class="modal-content text-dark" style="background-color: #E8F6EF;">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="d_setup_modal_label">Dashboard Configuration</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" style="font-size: 14px!important;">
+          <div class="configuration-container d-flex flex-wrap justify-content-between">
+            <div class="select_coordinates_container d-flex flex-wrap col-lg-6 col-12">
+                <div class="select_x_coords col-12 col-lg-6">
+                    <div style="margin-bottom: 1.5rem;">
+                        <label for="conf_select_x" class="form-label">Select X</label>
+                        <select class="form-select form-select-sm" name="conf_select_x" id="conf_select_x" required>
+                            <option selected>Select one</option>
+                            {% for column in numeric_columns %}
+                                <option value="{{column}}">{{column}}</option>
+                            {% endfor %}
+                        </select>
+                        {{numeric_columns}}
+                    </div>
+                </div>
+                <div class="select_y_coords col-12 col-lg-6">
+                    <div style="margin-bottom: 1.5rem;">
+                        <label for="conf_select_y" class="form-label">Select Y</label>
+                        <select class="form-select form-select-sm" name="conf_select_y" id="conf_select_y" required>
+                            <option selected>Select one</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="select_filtered_col col-lg-5 col-12">
+                <div class="select_filtered_col_container">
+                    <div style="margin-bottom: 1.5rem;">
+                        <label for="select_filtered_col" class="form-label">Select filtered column</label>
+                        <select class="form-select form-select-sm" name="select_filtered_col" id="select_filtered_col" required>
+                            <option selected>Select one</option>
+                        </select>
+                        <small id="select_filtered_col" class="text-muted">Any categorical column, eg: district column</small>
+                    </div>
+                </div>
+            </div>
+            <div class="select_color_and_location_container col-12 col-lg-6 d-flex flex-wrap">
+                <div class="select_color col-lg-6 col-12 ">
+                    <div class="select_color_col_container">
+                        <div style="margin-bottom: 1.5rem;">
+                            <label for="select_color_col" class="form-label">Select color column</label>
+                            <select class="form-select form-select-sm" name="select_color_col" id="select_color_col" required>
+                                <option selected>Select one</option>
+                            </select>
+                            <small id="select_color_col" class="text-muted">Any categorical column, Hotspot Analysis Recommended</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="select_location col-lg-6 col-12">
+                    <div class="select_location_col_container">
+                        <div style="margin-bottom: 1.5rem;">
+                            <label for="select_location_col" class="form-label">Select location</label>
+                            <select class="form-select form-select-sm" name="select_location_col" id="select_location_col" required>
+                                <option selected>Select one</option>
+                            </select>
+                            <small id="select_location_col" class="text-muted">District col recomended</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="select_hover_data_col col-lg-5 col-12">
+                <div class="select_hover_data_col_container">
+                    <div style="margin-bottom: 1.5rem;">
+                        <label for="select_hover_data_col" class="form-label">Hover Data</label>
+                        <select class="form-select form-select-sm" name="select_hover_data_col" id="select_hover_data_col" required>
+                            <option selected>Select one</option>
+                        </select>
+                        <small id="select_hover_data_col" class="text-muted">Eg: cases in each district</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="select_dates_container col-12 col-lg-6 d-flex flex-wrap">
+                <div class="select_date col-12">
+                    <div class="select_date_container">
+                        <div style="margin-bottom: 1.5rem;">
+                            <label for="select_date" class="form-label">Date column</label>
+                            <select class="form-select form-select-sm" name="select_date" id="select_date" required>
+                                <option selected>Select one</option>
+                            </select>
+                            <small id="select_date" class="text-muted">DateTime or object</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="select_size_container col-12 col-lg-5 d-flex flex-wrap">
+                <div class="select_size col-12">
+                    <div class="select_size_container">
+                        <div style="margin-bottom: 1.5rem;">
+                            <label for="select_size" class="form-label">Size</label>
+                            <select class="form-select form-select-sm" name="select_size" id="select_size" required>
+                                <option selected>Select one</option>
+                            </select>
+                            <small id="select_size" class="text-muted">Any numeric, to show intensity</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>

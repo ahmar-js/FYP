@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="eng-us">
+    
+<!-- Mirrored from templates.envytheme.com/tracer/default/index-2.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 14 Oct 2020 13:16:20 GMT -->
+<head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+
+        <!-- Links of CSS files -->
+        <link rel="stylesheet" href="../static/assets/css/bootstrap.min.css">
+        <link rel="stylesheet" href="../static/assets/css/animate.min.css">
+        <link rel="stylesheet" href="../static/assets/css/boxicons.min.css">
+        <link rel="stylesheet" href="../static/assets/css/flaticon.css">
+        <link rel="stylesheet" href="../static/assets/css/nice-select.min.css">
+        <link rel="stylesheet" href="../static/assets/css/rangeSlider.min.css">
+        <link rel="stylesheet" href="../static/assets/css/fancybox.min.css">
+        <link rel="stylesheet" href="../static/assets/css/meanmenu.min.css">
+        <link rel="stylesheet" href="../static/assets/css/owl.carousel.min.css">
+        <link rel="stylesheet" href="../static/assets/css/magnific-popup.min.css">
+        <link rel="stylesheet" href="../static/assets/css/style.css">
+        <link rel="stylesheet" href="../static/assets/css/responsive.css">
+        <script src="https://kit.fontawesome.com/6b9f1a8d1a.js" crossorigin="anonymous"></script>
+
+
+        <title>HealthLense - Work on Spatial Data</title>
+
+        <link rel="icon" type="image/png" href="../static/imges/modern network logo.png">
+
+    </head>
+    <body>
+
+        <!-- Start Preloader Area -->
+        <div class="preloader">
+            <div class="loader">
+                <div class="sbl-half-circle-spin">
+                    <div></div>
+                </div>
+            </div>
+        </div>
+        <!-- End Preloader Area -->
+
+        <!-- Start Navbar Area -->
+        <div class="navbar-area">
+            <div class="tracer-responsive-nav">
+                <div class="container">
+                    <div class="tracer-responsive-menu">
+                        <div class="logo">
+                            <a href="{% url 'upload' %}">
+                                <!-- <img src="../static/assets/img/logo.png" alt="logo"> -->
+                                <img src="../static/imges/modern network logo.png" class="img-fluid" alt="logo" width="150" height="150">
+
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tracer-nav">
+                <div class="container-fluid">
+                    <nav class="navbar navbar-expand-md navbar-light">
+                        <a class="navbar-brand" href="{% url 'upload' %}">
+                            <img src="../static/imges/modern network logo.png" class="img-fluid" alt="logo" width="200" height="200">
+                        </a>
+
+                        <div class="collapse navbar-collapse mean-menu">
+                           
+
+                            <div class="others-option d-flex align-items-center justify-content-end w-100">
+                                <!-- <div class="option-item">
+                                    <form class="search-box">
+                                        <input type="text" class="input-search" placeholder="Search for anything">
+                                        <button type="submit"><i class="flaticon-loupe"></i></button>
+                                    </form>
+                                </div> -->
+
+                                <div class="option-item">
+                                    <a href="{% url 'home' %}" class="default-btn"><i class="flaticon-right"></i>Dasboard<span></span></a>
+                                </div>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="others-option-for-responsive">
+                <div class="container">
+                    <div class="dot-menu">
+                        <div class="inner">
+                            <div class="circle circle-one"></div>
+                            <div class="circle circle-two"></div>
+                            <div class="circle circle-three"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="container">
+                        <div class="option-inner">
+                            <div class="others-option">
+                                <!-- <div class="option-item">
+                                    <form class="search-box">
+                                        <input type="text" class="input-search" placeholder="Search for anything">
+                                        <button type="submit"><i class="flaticon-loupe"></i></button>
+                                    </form>
+                                </div> -->
+
+                                <div class="option-item">
+                                    <a href="{% url 'home' %}" class="default-btn"><i class="flaticon-right"></i>Dasboard<span></span></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- End Navbar Area -->
+
+        <!-- Start Main Banner Area -->
+        <div class="banner-section">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-lg-5 col-md-12">
+                        <div class="banner-content">
+                            <h1 class="wow fadeInLeft" data-wow-delay="00ms" data-wow-duration="1000ms">See Data, Predict Disease, Take Control</h1>
+                            <p class="wow fadeInLeft" data-wow-delay="100ms" data-wow-duration="1000ms">Artificial Intelligence Based Health Informatics Analytical Dashboard</p>
+                            <form method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="btn-box">
+                                <input type="file" name="csv_file" id="upload_file_field" accept=".csv" class="wow fadeInRight" data-wow-delay="200ms" data-wow-duration="1000ms">
+                                
+                                <button type="submit" class="default-btn wow fadeInLeft " data-wow-delay="300ms" data-wow-duration="1000ms"><i class="fa-solid fa-cloud-arrow-up" style="margin-right: 5px;"></i>Upload</button>
+                            </div>
+                            <small class="text-muted">
+                                Max file size: 10MB
+                            </small>
+                        </form>
+                        </div>
+                    </div>
+                    
+                    <!-- <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <input type="file" name="csv_file" accept=".csv">
+                        <button type="submit">Upload CSV</button>
+                    </form> -->
+
+                    <div class="col-lg-7 col-md-12">
+                        <div class="map-shape1"><img src="../static/assets/img/shape/map-shape1.png" alt="image"></div>
+                         <div class="footer-map"><img src="../static/assets/img/footer-map.png" alt="image"></div>
+                        <div class="banner-animation-image">
+                            <img src="../static/assets/img/shape/vector-shape1.png" class="wow fadeInDown" data-wow-delay="500ms" data-wow-duration="1000ms" alt="image" data-speed="0.06" data-revert="true">
+                            <img src="../static/assets/img/shape/vector-shape2.png" class="wow fadeInUp" data-wow-delay="500ms" data-wow-duration="1000ms" alt="image" data-speed="0.06" data-revert="true">
+                            <img src="../static/assets/img/shape/vector-shape9.png" class="wow fadeInDown" data-wow-delay="500ms" data-wow-duration="1000ms" alt="image" data-speed="0.06" data-revert="true">
+                            <img src="../static/assets/img/shape/vector-shape9.png" class="wow fadeInRight" data-wow-delay="500ms" data-wow-duration="1000ms" alt="image" data-speed="0.06" data-revert="true">
+                            <img src="../static/assets/img/shape/vector-shape9.png" class="wow fadeInLeft" data-wow-delay="500ms" data-wow-duration="1000ms" alt="image" data-speed="0.06" data-revert="true">
+                            <img src="../static/assets/img/shape/vector-shape9.png" class="wow fadeInUp" data-wow-delay="00ms" data-wow-duration="1000ms" alt="image" data-speed="0.06" data-revert="true">
+                            <!-- <img src="../static/assets/img/main-banner/banner-two/main-pic.png" alt="image"> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- End Main Banner Area -->
+
+        <!-- Start Boxes Area -->
+        <section class="boxes-area pb-70">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-4 col-md-6 col-sm-6">
+                        <div class="single-boxes-item wow fadeInUp" data-wow-delay="00ms" data-wow-duration="1000ms">
+                            <div class="icon">
+                                <img src="../static/assets/img/icon/icon1.png" alt="image">
+                            </div>
+                            <h3><a href="{% url 'upload' %}">Data Preprocessing</a></h3>
+                            <p>Experience streamlined data and spatial data preprocessing on our application, enabling you to clean, and prepare your data, optimizing your information for efficient analysis and visualization.</p>
+                            <!-- <a href="single-services-2.html" class="default-btn"><i class="flaticon-right"></i>Read More<span></span></a> -->
+                            <div class="shape1"><img src="../static/assets/img/services/shape2.png" alt="image"></div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 col-md-6 col-sm-6">
+                        <div class="single-boxes-item wow fadeInUp" data-wow-delay="200ms" data-wow-duration="1000ms">
+                            <div class="icon">
+                                <img src="../static/assets/img/icon/icon2.png" alt="image">
+                            </div>
+                            <h3><a href="{% url 'upload' %}">Hotspot Analysis</a></h3>
+                            <p>Beyond data preprocessing, We are offering powerful hotspot analysis tools for disease surveillance, helping you pinpoint critical health trends with precision and speed.</p>
+                            <!-- <a href="single-services-2.html" class="default-btn"><i class="flaticon-right"></i>Read More<span></span></a> -->
+                            <div class="shape1"><img src="../static/assets/img/services/shape2.png" alt="image"></div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 col-md-6 col-sm-6 offset-lg-0 offset-sm-3 offset-md-3">
+                        <div class="single-boxes-item wow fadeInUp" data-wow-delay="400ms" data-wow-duration="1000ms">
+                            <div class="icon">
+                                <img src="../static/assets/img/icon/icon3.png" alt="image">
+                            </div>
+                            <h3><a href="{% url 'upload' %}">Time Series Forcasting</a></h3>
+                            <p>Elevate your insights with our app's time series forecasting capabilities, unlocking the potential to predict future trends and make data-driven decisions with confidence.</p>
+                            <!-- <a href="single-services-2.html" class="default-btn"><i class="flaticon-right"></i>Read More<span></span></a> -->
+                            <div class="shape1"><img src="../static/assets/img/services/shape2.png" alt="image"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Start Boxes Area -->
+
+        <!-- Start About Area -->
+        <section class="about-area pb-100">
+            <div class="container-fluid">
+                <div class="row align-items-center">
+                    <div class="col-lg-6 col-md-12">
+                        <div class="about-img">
+                            <img src="../static/assets/img/about/img5.png" alt="image">
+                            <div class="shape"><img src="../static/assets/img/about/shape1.png"></div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6 col-md-12">
+                        <div class="about-content">
+                            <div class="content">
+                                <span class="sub-title"><img src="../static/assets/img/star-icon.png" alt="image"> About Us</span>
+                                <h2>Harnessing Data for Insights</h2>
+                                <p>Welcome to HealthLens, a place where innovation and data-driven insights collide to transform the world of disease analytics.</p>
+                                <ul class="about-list">
+                                    <li>
+                                        <span>
+                                            <div class="icon">
+                                                <i class="flaticon-tick"></i>
+                                            </div>
+                                            streamlined Data
+                                            <img src="../static/assets/img/our-mission/shape2.png" alt="image">
+                                        </span>
+                                    </li>
+                                    <li>
+                                        <span>
+                                            <div class="icon">
+                                                <i class="flaticon-tick"></i>
+                                            </div>
+                                            Data Visualization
+                                            <img src="../static/assets/img/our-mission/shape2.png" alt="image">
+                                        </span>
+                                    </li>
+                                    <li>
+                                        <span>
+                                            <div class="icon">
+                                                <i class="flaticon-tick"></i>
+                                            </div>
+                                            Spatial Data
+                                            <img src="../static/assets/img/our-mission/shape2.png" alt="image">
+                                        </span>
+                                    </li>
+                                    <li>
+                                        <span>
+                                            <div class="icon">
+                                                <i class="flaticon-tick"></i>
+                                            </div>
+                                            Operative Dashoarding
+                                            <img src="../static/assets/img/our-mission/shape2.png" alt="image">
+                                        </span>
+                                    </li>
+                                    <li>
+                                        <span>
+                                            <div class="icon">
+                                                <i class="flaticon-tick"></i>
+                                            </div>
+                                            Hotspot Analysis
+                                            <img src="../static/assets/img/our-mission/shape2.png" alt="image">
+                                        </span>
+                                    </li>
+                                    <li>
+                                        <span>
+                                            <div class="icon">
+                                                <i class="flaticon-tick"></i>
+                                            </div>
+                                            Time Series Forecasting
+                                            <img src="../static/assets/img/our-mission/shape2.png" alt="image">
+                                        </span>
+                                    </li>
+                                </ul>
+                                <p>Explore the potential of your health data with our comprehensive analytics tools. From preprocessing to predictive modeling, we've got you covered.</p>
+                                <a href="{% url 'upload' %}" class="default-btn"><i class="flaticon-right"></i>More About Us<span></span></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- End About Area -->
+
+       
+
+        <!-- Start Footer Area -->
+        <footer class="footer-area">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-4 col-md-6 col-sm-6">
+                        <div class="single-footer-widget">
+                            <a href="index-3.html" class="logo">
+                                <img src="../static/imges/modern network logo.png" class="img-fluid" alt="logo" width="120" height="120">
+
+                            </a>
+                            <p>We are a dedicated team of data enthusiasts, committed to simplifying data analysis and spatial insights for everyone.</p>
+                            <ul class="social-link">
+                                <li><a href="#" class="d-block" target="_blank"><i class='bx bxl-facebook'></i></a></li>
+                                <li><a href="#" class="d-block" target="_blank"><i class='bx bxl-twitter'></i></a></li>
+                                <li><a href="#" class="d-block" target="_blank"><i class='bx bxl-instagram'></i></a></li>
+                                <li><a href="#" class="d-block" target="_blank"><i class='bx bxl-linkedin'></i></a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-2 col-md-6 col-sm-6">
+                        <div class="single-footer-widget pl-5">
+                            <h3>Explore</h3>
+                            <ul class="footer-links-list">
+                                <li><a href="{% url 'upload' %}">Home</a></li>
+                                <li><a href="{% url 'upload' %}">About</a></li>
+                                <li><a href="{% url 'upload' %}">Case Studies</a></li>
+                                <li><a href="{% url 'upload' %}">Our Blog</a></li>
+                                <li><a href="{% url 'upload' %}">Contact</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-2 col-md-6 col-sm-6">
+                        <div class="single-footer-widget">
+                            <h3>Resources</h3>
+                            <ul class="footer-links-list">
+                                <li><a href="{% url 'upload' %}">Our Scientists</a></li>
+                                <li><a href="{% url 'upload' %}">Our Services</a></li>
+                                <li><a href="{% url 'upload' %}">Testimonials</a></li>
+                                <li><a href="{% url 'upload' %}">Disease Solutions</a></li>
+                                <li><a href="{% url 'upload' %}">Dashboards</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 col-md-6 col-sm-6">
+                        <div class="single-footer-widget">
+                            <h3>Address</h3>
+                            <ul class="footer-contact-info">
+                                <li><i class='bx bx-map'></i>175 5th Ave, Dummy Text, FK 10010, Dumy States</li>
+                                <li><i class='bx bx-phone-call'></i><a href="tel:+44587154756">+92 90 078 601</a></li>
+                                <li><i class='bx bx-envelope'></i><a href="mailto:hello@tracer.com">ahmer@healthlense.com</a></li>
+                                <li><i class='bx bxs-inbox'></i><a href="tel:+557854578964">+92 90 078 601</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="footer-bottom-area">
+                    <div class="row align-items-center">
+                        <div class="col-lg-6 col-md-6">
+                            <p><i class='bx bx-copyright'></i>2023 <strong>HealthLense</strong> is Proudly Powered by <a target="_blank" href="#">HealthLense</a></p>
+                        </div>
+
+                        <!-- <div class="col-lg-6 col-md-6">
+                            <ul>
+                                <li><a href="privacy-policy.html">Privacy Policy</a></li>
+                                <li><a href="terms-of-service.html">Terms & Conditions</a></li>
+                            </ul>
+                        </div> -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-map"><img src="../static/assets/img/footer-map.png" alt="image"></div>
+        </footer>
+        <!-- End Footer Area -->
+
+        <div class="go-top"><i class="flaticon-up"></i></div>
+
+        <!-- Links of JS files -->
+        <script src="../static/assets/js/jquery.min.js"></script>
+        <script src="../static/assets/js/popper.min.js"></script>
+        <script src="../static/assets/js/bootstrap.min.js"></script>
+        <script src="../static/assets/js/owl.carousel.min.js"></script>
+        <script src="../static/assets/js/magnific-popup.min.js"></script>
+        <script src="../static/assets/js/tilt.jquery.min.js"></script>
+        <script src="../static/assets/js/meanmenu.min.js"></script>
+        <script src="../static/assets/js/nice-select.min.js"></script>
+        <script src="../static/assets/js/rangeSlider.min.js"></script>
+        <script src="../static/assets/js/sticky-sidebar.min.js"></script>
+        <script src="../static/assets/js/fancybox.min.js"></script>
+        <script src="../static/assets/js/isotope.pkgd.min.js"></script>
+        <script src="../static/assets/js/TweenMax.min.js"></script>
+        <script src="../static/assets/js/ScrollMagic.min.js"></script>
+        <script src="../static/assets/js/animation.gsap.min.js"></script>
+        <script src="../static/assets/js/debug.addIndicators.min.js"></script>
+        <script src="../static/assets/js/wow.min.js"></script>
+        <script src="../static/assets/js/form-validator.min.js"></script>
+        <script src="../static/assets/js/contact-form-script.js"></script>
+        <script src="../static/assets/js/ajaxchimp.min.js"></script>
+        <script src="../static/assets/js/main.js"></script>
+        <script>
+            const fileInput = document.getElementById("upload_file_field");
+    
+            fileInput.addEventListener("change", function () {
+                const fileSize = this.files[0].size; // Get the size of the selected file in bytes
+                const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+    
+                if (fileSize > maxSize) {
+                    alert("File size exceeds 10MB. Please select a smaller file.");
+                    this.value = null; // Clear the file input
+                }
+            });
+        </script>
+    </body>
+
+<!-- Mirrored from templates.envytheme.com/tracer/default/index-2.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 14 Oct 2020 13:20:55 GMT -->
+</html>

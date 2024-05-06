@@ -1,0 +1,58 @@
+Metadata-Version: 2.1
+Name: segregation
+Version: 2.5
+Summary: Analytics for spatial and non-spatial segregation in Python.
+Author-email: Eli Knaap <ek@knaaptime.com>, Renan Xavier Cortes <renanxcortes@gmail.com>, Serge Rey <sjsrey@gmail.com>
+Maintainer: pysal contributors
+License: BSD 3-Clause
+Project-URL: Home, https://github.com/pysal/segregation/
+Project-URL: Repository, https://github.com/pysal/segregation
+Keywords: segregation, spatial analysis, demographics, population
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Operating System :: OS Independent
+Classifier: Intended Audience :: Science/Research
+Classifier: Topic :: Scientific/Engineering :: GIS
+Requires-Python: >=3.8
+Description-Content-Type: text/x-rst
+License-File: LICENSE.txt
+Requires-Dist: deprecation
+Requires-Dist: geopandas >=0.9
+Requires-Dist: joblib
+Requires-Dist: libpysal
+Requires-Dist: mapclassify
+Requires-Dist: matplotlib
+Requires-Dist: numpy
+Requires-Dist: pandas
+Requires-Dist: scikit-learn >=0.21.3
+Requires-Dist: scipy
+Requires-Dist: seaborn
+Requires-Dist: tqdm
+Requires-Dist: numba
+Requires-Dist: pyproj >=3
+Provides-Extra: dev
+Requires-Dist: pre-commit ; extra == 'dev'
+Provides-Extra: docs
+Requires-Dist: nbsphinx ; extra == 'docs'
+Requires-Dist: numpydoc ; extra == 'docs'
+Requires-Dist: pandoc ; extra == 'docs'
+Requires-Dist: sphinx ; extra == 'docs'
+Requires-Dist: sphinxcontrib-bibtex ; extra == 'docs'
+Requires-Dist: sphinx-bootstrap-theme ; extra == 'docs'
+Requires-Dist: mkdocs-jupyter ; extra == 'docs'
+Requires-Dist: myst-parser ; extra == 'docs'
+Provides-Extra: tests
+Requires-Dist: codecov ; extra == 'tests'
+Requires-Dist: coverage ; extra == 'tests'
+Requires-Dist: pytest ; extra == 'tests'
+Requires-Dist: pytest-mpl ; extra == 'tests'
+Requires-Dist: pytest-cov ; extra == 'tests'
+Requires-Dist: matplotlib ; extra == 'tests'
+Requires-Dist: matplotlib-scalebar ; extra == 'tests'
+Requires-Dist: watermark ; extra == 'tests'
+Requires-Dist: pandana ; extra == 'tests'
+Requires-Dist: quilt3 ; extra == 'tests'
+Requires-Dist: ipywidgets ; extra == 'tests'
+
+Segregation Measurement, Inferential Statistics, and Decomposition Analysis"
+

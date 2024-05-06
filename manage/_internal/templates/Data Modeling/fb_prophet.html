@@ -1,0 +1,251 @@
+<div class="fb_prophet_main_containerr">
+
+    <div class="modal" tabindex="-1" id="fbprop_save_cnfrm_btn_modal">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Are you sure?</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p>Clicking Save will save the results to the database.</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              <div class="me-2">
+                <!-- <form action="" method="post" id="save_fb_to_db_form">
+                    {% csrf_token %}
+                    <input type="hidden" name="save_db_prophet" value="true">
+                    <input type="submit" value="Save" id="save_fb_db" class="btn btn-success">
+                </form> -->
+                <form action="" method="post" id="save_fb_to_db_form">
+                    {% csrf_token %}
+                    <input type="hidden" name="save_db_prophet" value="true">
+                    <button type="submit" id="save_fb_db" class="btn btn-success">
+                        Save
+                        <span id="save-spinner-fb" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                    </button>
+                </form>
+            </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+    <form class="form needs-validation" novalidate method="post" id="fb_prophet_modeling_form">
+        {% csrf_token %}
+        <div class="fb_forecast_btns d-flex justify-content-end mb-2">
+            <div class="me-2">
+                <button class="btn btn-2 btn-sm btn-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="Forecast results!" type="submit"><i class="fa-solid fa-arrow-trend-up me-1"></i>Forecast</button>
+            </div>
+            <div class="me-2">
+                <button class="btn btn-3 btn-sm btn-danger" type="button" id="fbprop_report_btn" data-bs-target="#fbprop_view_report_modal" data-bs-toggle="modal" disabled><i class="fa-solid fa-square-poll-vertical me-1"></i>View Report</button>
+            </div>
+            <div class="me-2">
+                <button class="btn btn-3 btn-sm btn-success" type="button" id="fbprop_save_cnfrm_btn" data-bs-target="#fbprop_save_cnfrm_btn_modal" data-bs-toggle="modal" disabled><i class="fa-solid fa-cloud-arrow-up me-1"></i>Save</button>
+            </div>
+        </div>
+    <div class="card shadow" style="max-width:1348.06px; border: 1px solid rgba(0, 0, 0, 0.05); border-radius: 1rem;">
+        <div class="card-body">
+            <div class="fb_prop_card_title mb-3">
+                <h4 class="card-title">Select Parameters</h4>
+            </div>
+            <div class="fb_prop_card_body">
+                <div class="select_all_features_fb">
+                        <div class="select-features d-flex flex-wrap justify-content-around">
+                            <div class="select-date-col col-lg-5 col-12">
+                                <div class="mb-3">
+                                    <label for="select-date-column-fb" class="form-label">Select date column</label>
+                                    <select class="form-select form-select-sm" name="select-date-column-fb" id="select-date-column-fb"
+                                        required>
+                                        <option disabled value="" selected>Select feature</option>
+                                        {% for column in pred_df_columns %}
+                                            <option value="{{ column }}">{{ column }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="select-district-col col-lg-5 col-12">
+                                <div class="mb-3 d-flex flex-wrap">
+                                    <div class="select-district-col-container col-lg-6 col-12 pe-2">
+                                    <label for="select-district-column-fb" class="form-label">Select district column</label>
+                                    <select class="form-select form-select-sm" name="select-district-column-fb"
+                                        id="select-district-column-fb">
+                                        <option disabled selected>Select feature</option>
+                                        {% for column in non_numeric_frame %}
+                                            <option value="{{ column }}">{{ column }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="select-district-val-container col-lg-6 col-12">
+                                    <!-- Select menu for unique district values -->
+                                    <label for="select-unique-district" class="form-label">Select district or reigon</label>
+                                    <!-- <select class="form-select form-select-sm" name="select-unique-district" id="select-unique-district" disabled>
+                                        <option disabled selected>Select value</option>
+                                    </select> -->
+                                    <select  class="selectpicker" multiple aria-label="size 2 select example" name="select-unique-district" id="select-unique-district" disabled>
+                                        <option disabled selected>Select columns</option>
+                                      </select>
+                                </div>
+                            </div>
+                            </div>
+                            <div class="select-target-col col-lg-5 col-12">
+                                <div class="mb-3">
+                                    <label for="select-forecast-column-fb" class="form-label">Feature variable to forecast</label>
+                                    <select class="form-select form-select-sm" name="select-forecast-column-fb"
+                                        id="select-forecast-column-fb" required>
+                                        <option disabled value="" selected>Select feature</option>
+                                        {% for column in gdf_numeric %}
+                                            <option value="{{ column }}">{{ column }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="select-forecasting-mode col-lg-5 col-12">
+                                <div class="mb-3">
+                                    <label for="select-forecast-mode-fb" class="form-label">Forecasting frequency</label>
+                                    <select class="form-select form-select-sm" name="select-forecast-mode-fb"
+                                        id="select-forecast-mode-fb" required>
+                                        <option disabled value="" selected>Select mode</option>
+                                        <option value="A">Year</option>
+                                        <option value="Q">Quarter</option>
+                                        <option value="M">Month</option>
+                                        <option value="W">Week</option>
+                                        <option value="D">Day</option>
+                                        <option value="H">Hour</option>
+                                        <option value="T">Minute</option>
+                                        <option value="S">Second</option>
+                                        <option value="L">Millisecond</option>
+                                        <option value="U">Microsecond</option>
+                                        <option value="N">Nanosecond</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="Enter-forecasting-interval col-lg-5 col-12">
+                                <div class="mb-2">
+                                    <label for="Enter-forecast-interval-fb" class="form-label">Intervals to forecast</label>
+                                    <input type="number" class="form-control form-control-sm" min="1" max="10000"
+                                        name="Enter-forecast-interval-fb" placeholder="e.g, No of days to forecast"
+                                        id="Enter-forecast-interval-fb" required>
+                                    <small class="text-muted">min 1 max 10000 </small>
+                                </div>
+                            </div>
+                            <div class="select-seasonality-mode col-lg-5 col-12">
+                                <div class="mb-2">
+                                    <label for="select-seasonality-mode-fb" class="form-label">Seasonality mode</label>
+                                    <select class="form-select form-select-sm" name="select-seasonality-mode-fb"
+                                        id="select-seasonality-mode-fb" required>
+                                        <option value="additive" selected>Additive (Default)</option>
+                                        <option value="multiplicative">Multiplicative</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="Enter-seasonality_prior_scale col-lg-5 col-12">
+                                <div class="mb-3">
+                                    <label for="seasonality_prior_scale-fb" class="form-label">Seasonality prior scale</label>
+                                    <input type="number" class="form-control form-control-sm" min="0" max="50"
+                                        name="seasonality_prior_scale-fb" placeholder="Extent to which the seasonality model will fit the data"
+                                        id="seasonality_prior_scale-fb">
+                                    <small class="text-muted">min 0 max 50 </small>
+                                </div>
+                            </div>
+                            <div class="Enter-changepoint_prior_scale col-lg-5 col-12">
+                                <div class="mb-3">
+                                    <label for="changepoint_prior_scale-fb" class="form-label">Changepoint prior scale</label>
+                                    <input type="number" class="form-control form-control-sm" min="0" max="50"
+                                        name="changepoint_prior_scale-fb" placeholder="Extent to which the behavior of the series changes significantly"
+                                        id="changepoint_prior_scale-fb">
+                                    <small class="text-muted">min 0 max 50 </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="card shadow mt-3" style="border: 1px solid rgba(0, 0, 0, 0.05); border-radius: 1rem;">
+        <div class="card-body">
+            <div class="fb_prop_card_title mb-3">
+                <h4 class="card-title">Cross Validation</h4>
+            </div>
+            <div class="fb_prop_card_body">
+                <div class="model_dignostic_cross_val_container">
+                <div class="diagnostix_validation d-flex flex-wrap justify-content-around">
+                    <div class="initial-training-period col-lg-3 col-12">
+                        <div class="mb-3">
+                          <label for="initial-fbpv" class="form-label">Initial training period</label>
+                          <input type="text"
+                            class="form-control form-control-sm" name="initial-fbpv" id="initial-fbpv" aria-describedby="helpId-ini" placeholder="e.g, 365 interval" required>
+                          <small id="helpId" class="form-text text-muted">Specify the size of initial training period</small>
+                        </div>
+                    </div>
+                        <div class="horizon col-lg-3 col-12">
+                            <div class="mb-3">
+                              <label for="Horizon" class="form-label">Forecast horizon</label>
+                              <input type="text"
+                                  class="form-control form-control-sm" name="Horizon" id="Horizon" aria-describedby="helpId-hor" placeholder="e.g, 365 interval" required>
+                              <small id="helpId-hor" class="form-text text-muted">Number of intervals to predict into the future</small>
+                            </div>
+                        </div>
+                        <div class="period col-lg-3 col-12">
+                            <div class="mb-3">
+                              <label for="period" class="form-label">Period</label>
+                              <input type="text"
+                                  class="form-control form-control-sm" name="period" id="period" aria-describedby="helpId-pr" placeholder="e.g, 365 interval" required>
+                              <small id="helpId-pr" class="form-text text-muted">Specify the spacing between cutoff dates</small>
+                            </div>
+                        </div>
+                </div>
+            </div>
+            </div>
+            <div id="fbprop-alert-container" style="max-height: 200px;"></div>
+
+        </div>
+
+    </div>
+
+
+
+    </form>
+
+</div>
+
+
+
+    <!-- fbprophet view report modal -->
+    <div class="modal fade" id="fbprop_view_report_modal" tabindex="-1" aria-labelledby="fb_prop_view_report_modal_label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-fullscreen">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="fb_prop_view_report_modal_label">Facebook Prophet Forecasting Report</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="prophet-results">
+                    <div class="figs d-flex justify-content-center flex-wrap">
+                    <div id="pred-res-fig-container" class="col-lg-6 col-12 d-flex justify-content-center"></div>
+                    <!-- <div id="forcast_component_fig_container" class="col-lg-4 col-12 d-flex justify-content-center"></div> -->
+                    <div id="performance_metric_fig_container" class="col-lg-6 col-12 d-flex justify-content-center">
+                        <div id="performance_metric_fig_img"></div>
+                    </div>
+                </div>
+                    <div id="op_range"></div>
+                    <span class="text-muted">Cross validation records from end (limited)</span>
+                    <div id="cv_tail_data" class="table-responsive"></div>
+                    <span class="text-muted">Performance metrics records from end (limited)</span>
+                    <div id="p_tail_data" class="table-responsive"></div>
+                    
+                </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+              <a href="{% url 'export_fb_cv_csv_zip' %}" class="btn btn-success btn-sm btn-export-csv">Export Performance Results</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
+
