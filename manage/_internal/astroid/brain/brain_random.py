@@ -4,8 +4,6 @@
 
 from __future__ import annotations
 
-import random
-
 from astroid import helpers
 from astroid.context import InferenceContext
 from astroid.exceptions import UseInferenceDefault
@@ -21,6 +19,7 @@ from astroid.nodes.node_classes import (
     Set,
     Tuple,
 )
+import secrets
 
 ACCEPTED_ITERABLES_FOR_SAMPLE = (List, Set, Tuple)
 
@@ -63,7 +62,7 @@ def infer_random_sample(node, context: InferenceContext | None = None):
         raise UseInferenceDefault
 
     try:
-        elts = random.sample(inferred_sequence.elts, inferred_length.value)
+        elts = secrets.SystemRandom().sample(inferred_sequence.elts, inferred_length.value)
     except ValueError as exc:
         raise UseInferenceDefault from exc
 

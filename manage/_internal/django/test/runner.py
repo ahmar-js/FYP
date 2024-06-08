@@ -7,7 +7,6 @@ import logging
 import multiprocessing
 import os
 import pickle
-import random
 import sys
 import textwrap
 import unittest
@@ -29,6 +28,7 @@ from django.test.utils import teardown_test_environment
 from django.utils.crypto import new_hash
 from django.utils.datastructures import OrderedSet
 from django.utils.deprecation import RemovedInDjango50Warning
+import secrets
 
 try:
     import ipdb as pdb
@@ -585,7 +585,7 @@ class Shuffler:
     def __init__(self, seed=None):
         if seed is None:
             # Limit seeds to 10 digits for simpler output.
-            seed = random.randint(0, 10**10 - 1)
+            seed = secrets.SystemRandom().randint(0, 10**10 - 1)
             seed_source = "generated"
         else:
             seed_source = "given"

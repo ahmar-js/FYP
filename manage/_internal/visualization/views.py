@@ -12,7 +12,6 @@ from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
 import json
 import plotly.express as px
 import json
-import random
 from django.contrib import messages
 import os
 from django.core.files import File
@@ -22,7 +21,6 @@ import geopandas as gpd
 from django.contrib.sessions.models import Session
 from shapely.geometry import shape, Point
 import matplotlib.pyplot as plt
-import random
 import matplotlib.patches as mpatches
 import branca
 import colorsys
@@ -44,6 +42,7 @@ from django.db import connection
 import inspect
 from django.contrib.auth.decorators import login_required
 from app.json_serializable import json_to_geodataframe, json_to_dataframe, dataframe_to_json
+import secrets
 
 def preview_dataframe(df, limit=10):
     return df.head(limit)
@@ -300,9 +299,9 @@ def generate_dark_random_colors(num_colors):
     colors = []
     while len(colors) < num_colors:
         # Generate random HSL color with fixed saturation and lightness (to get darker colors)
-        h = random.randint(0, 360)
+        h = secrets.SystemRandom().randint(0, 360)
         s = 80  # Fixed saturation
-        l = random.randint(30, 50)  # Restricted lightness for darker colors
+        l = secrets.SystemRandom().randint(30, 50)  # Restricted lightness for darker colors
 
         # Convert HSL to RGB
         r, g, b = colorsys.hls_to_rgb(h / 360, l / 100, s / 100)
@@ -314,7 +313,7 @@ def generate_dark_random_colors(num_colors):
             colors.append(color)
 
     # Randomly shuffle the colors to get unique and random colors
-    random.shuffle(colors)
+    secrets.SystemRandom().shuffle(colors)
     return colors
 
 def format_popup_content(lat, lon, district, hover_data, size, dt_bin):

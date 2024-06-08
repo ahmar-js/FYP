@@ -1,8 +1,7 @@
 """
 Utility functions for generating "lorem ipsum" Latin text.
 """
-
-import random
+import secrets
 
 COMMON_P = (
     "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod "
@@ -232,12 +231,12 @@ def sentence():
     # Determine the number of comma-separated sections and number of words in
     # each section for this sentence.
     sections = [
-        " ".join(random.sample(WORDS, random.randint(3, 12)))
-        for i in range(random.randint(1, 5))
+        " ".join(secrets.SystemRandom().sample(WORDS, secrets.SystemRandom().randint(3, 12)))
+        for i in range(secrets.SystemRandom().randint(1, 5))
     ]
     s = ", ".join(sections)
     # Convert to sentence case and add end punctuation.
-    return "%s%s%s" % (s[0].upper(), s[1:], random.choice("?."))
+    return "%s%s%s" % (s[0].upper(), s[1:], secrets.choice("?."))
 
 
 def paragraph():
@@ -246,7 +245,7 @@ def paragraph():
 
     The paragraph consists of between 1 and 4 sentences, inclusive.
     """
-    return " ".join(sentence() for i in range(random.randint(1, 4)))
+    return " ".join(sentence() for i in range(secrets.SystemRandom().randint(1, 4)))
 
 
 def paragraphs(count, common=True):
@@ -280,7 +279,7 @@ def words(count, common=True):
         while count > 0:
             c = min(count, len(WORDS))
             count -= c
-            word_list += random.sample(WORDS, c)
+            word_list += secrets.SystemRandom().sample(WORDS, c)
     else:
         word_list = word_list[:count]
     return " ".join(word_list)
