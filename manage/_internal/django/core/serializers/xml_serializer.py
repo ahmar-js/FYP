@@ -2,7 +2,6 @@
 XML serializer.
 """
 import json
-from xml.dom import pulldom
 from xml.sax import handler
 from xml.sax.expatreader import ExpatParser as _ExpatParser
 
@@ -12,6 +11,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.serializers import base
 from django.db import DEFAULT_DB_ALIAS, models
 from django.utils.xmlutils import SimplerXMLGenerator, UnserializableContentError
+import defusedxml.pulldom
 
 
 class Serializer(base.Serializer):
@@ -186,7 +186,7 @@ class Deserializer(base.Deserializer):
     ):
         super().__init__(stream_or_string, **options)
         self.handle_forward_references = options.pop("handle_forward_references", False)
-        self.event_stream = pulldom.parse(self.stream, self._make_parser())
+        self.event_stream = defusedxml.pulldom.parse(self.stream, self._make_parser())
         self.db = using
         self.ignore = ignorenonexistent
 
