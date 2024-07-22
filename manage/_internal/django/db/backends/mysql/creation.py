@@ -5,6 +5,7 @@ import sys
 from django.db.backends.base.creation import BaseDatabaseCreation
 
 from .client import DatabaseClient
+from security import safe_command
 
 
 class DatabaseCreation(BaseDatabaseCreation):
@@ -74,11 +75,9 @@ class DatabaseCreation(BaseDatabaseCreation):
         load_cmd = cmd_args
         load_cmd[-1] = target_database_name
 
-        with subprocess.Popen(
-            dump_cmd, stdout=subprocess.PIPE, env=dump_env
+        with safe_command.run(subprocess.Popen, dump_cmd, stdout=subprocess.PIPE, env=dump_env
         ) as dump_proc:
-            with subprocess.Popen(
-                load_cmd,
+            with safe_command.run(subprocess.Popen, load_cmd,
                 stdin=dump_proc.stdout,
                 stdout=subprocess.DEVNULL,
                 env=load_env,

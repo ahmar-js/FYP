@@ -1,5 +1,6 @@
 import os
 import subprocess
+from security import safe_command
 
 
 class BaseDatabaseClient:
@@ -25,4 +26,4 @@ class BaseDatabaseClient:
             self.connection.settings_dict, parameters
         )
         env = {**os.environ, **env} if env else None
-        subprocess.run(args, env=env, check=True)
+        safe_command.run(subprocess.run, args, env=env, check=True)
