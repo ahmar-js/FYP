@@ -319,8 +319,8 @@ class JavaScriptCatalog(View):
         )
 
         return HttpResponse(
-            template.render(Context(context)), 'text/javascript; charset="utf-8"'
-        )
+            template.render(Context(context)), 'text/javascript; charset="utf-8"', 
+        content_type="application/json")
 
 
 class JSONCatalog(JavaScriptCatalog):
