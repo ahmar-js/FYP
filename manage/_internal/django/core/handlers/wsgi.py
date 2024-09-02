@@ -55,7 +55,7 @@ class LimitedStream:
         if size:
             line = sio.readline(size)
         else:
-            line = sio.readline()
+            line = sio.readline(5_000_000)
         self.buffer = sio.read()
         return line
 
