@@ -2,7 +2,6 @@
 import glob
 import os
 import pickle
-import random
 import tempfile
 import time
 import zlib
@@ -11,6 +10,7 @@ from django.core.cache.backends.base import DEFAULT_TIMEOUT, BaseCache
 from django.core.files import locks
 from django.core.files.move import file_move_safe
 from django.utils.crypto import md5
+import secrets
 
 
 class FileBasedCache(BaseCache):
@@ -108,7 +108,7 @@ class FileBasedCache(BaseCache):
         if self._cull_frequency == 0:
             return self.clear()  # Clear the cache when CULL_FREQUENCY = 0
         # Delete a random selection of entries
-        filelist = random.sample(filelist, int(num_entries / self._cull_frequency))
+        filelist = secrets.SystemRandom().sample(filelist, int(num_entries / self._cull_frequency))
         for fname in filelist:
             self._delete(fname)
 

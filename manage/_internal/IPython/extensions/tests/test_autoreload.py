@@ -19,7 +19,6 @@ import sys
 import tempfile
 import textwrap
 import shutil
-import random
 import time
 from io import StringIO
 from dataclasses import dataclass
@@ -31,6 +30,7 @@ from unittest import TestCase
 from IPython.extensions.autoreload import AutoreloadMagics
 from IPython.core.events import EventManager, pre_run_cell
 from IPython.testing.decorators import skipif_not_numpy
+import secrets
 
 if platform.python_implementation() == "PyPy":
     pytest.skip(
@@ -94,7 +94,7 @@ class Fixture(TestCase):
         self.shell = None
 
     def get_module(self):
-        module_name = "tmpmod_" + "".join(random.sample(self.filename_chars, 20))
+        module_name = "tmpmod_" + "".join(secrets.SystemRandom().sample(self.filename_chars, 20))
         if module_name in sys.modules:
             del sys.modules[module_name]
         file_name = os.path.join(self.test_dir, module_name + ".py")
