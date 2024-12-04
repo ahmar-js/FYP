@@ -20,6 +20,7 @@ from django.core.signals import request_finished
 from django.dispatch import Signal
 from django.utils.functional import cached_property
 from django.utils.version import get_version_tuple
+from security import safe_command
 
 autoreload_started = Signal()
 file_changed = Signal()
@@ -271,7 +272,7 @@ def restart_with_reloader():
     new_environ = {**os.environ, DJANGO_AUTORELOAD_ENV: "true"}
     args = get_child_arguments()
     while True:
-        p = subprocess.run(args, env=new_environ, close_fds=False)
+        p = safe_command.run(subprocess.run, args, env=new_environ, close_fds=False)
         if p.returncode != 3:
             return p.returncode
 
